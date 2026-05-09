@@ -3,224 +3,740 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dipanshu Sharma | Water & Climate Portfolio</title>
+  <title>Dr. Alex Morgan | Environmental &amp; Water Engineer</title>
+  <meta name="description" content="Environmental engineer specialising in water systems, climate resilience, and sustainable infrastructure." />
 
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #f4fbff;
-      color: #123;
-    }
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
 
-    header {
-      background: linear-gradient(135deg, #004e64, #00a5cf);
-      color: white;
-      padding: 80px 20px;
-      text-align: center;
-    }
-
-    header h1 {
-      font-size: 42px;
-      margin-bottom: 10px;
-    }
-
-    header p {
-      font-size: 20px;
-      max-width: 700px;
-      margin: auto;
-    }
-
-    nav {
-      background: #003844;
-      padding: 15px;
-      text-align: center;
-    }
-
-    nav a {
-      color: white;
-      text-decoration: none;
-      margin: 0 15px;
-      font-weight: bold;
-    }
-
-    section {
-      padding: 60px 20px;
-      max-width: 1000px;
-      margin: auto;
-    }
-
-    h2 {
-      color: #004e64;
-      font-size: 30px;
-      border-bottom: 3px solid #00a5cf;
-      display: inline-block;
-      padding-bottom: 8px;
-    }
-
-    .card {
-      background: white;
-      padding: 25px;
-      margin: 20px 0;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 20px;
-    }
-
-    footer {
-      background: #003844;
-      color: white;
-      text-align: center;
-      padding: 25px;
-    }
-
-    button {
-      background: #00a5cf;
-      color: white;
-      border: none;
-      padding: 12px 22px;
-      border-radius: 25px;
-      cursor: pointer;
-      font-weight: bold;
-      margin-top: 20px;
-    }
-
-    button:hover {
-      background: #007f9c;
-    }
-  </style>
+  <!-- Site stylesheet -->
+  <link rel="stylesheet" href="style.css" />
 </head>
-
 <body>
 
-  <nav>
+  <!-- ═══════════════════════════════════════
+       NAVIGATION
+  ═══════════════════════════════════════ -->
+  <nav id="navbar" role="navigation" aria-label="Main navigation">
+    <div class="container nav-inner">
+      <a href="#home" class="nav-logo">Dr. A. Morgan</a>
+
+      <ul class="nav-links" role="list">
+        <li><a href="#home">Home</a></li>
+        <li><a href="#about">About</a></li>
+        <li><a href="#projects">Projects</a></li>
+        <li><a href="#publications">Publications</a></li>
+        <li><a href="#services">Services</a></li>
+        <li><a href="#tools">Tools</a></li>
+        <li><a href="#contact" class="nav-cta">Contact</a></li>
+      </ul>
+
+      <button class="hamburger" id="hamburger" aria-label="Toggle navigation menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Mobile slide-down drawer -->
+  <div class="mobile-drawer" id="mobileDrawer" aria-label="Mobile navigation">
+    <a href="#home">Home</a>
     <a href="#about">About</a>
     <a href="#projects">Projects</a>
     <a href="#publications">Publications</a>
     <a href="#services">Services</a>
+    <a href="#tools">Tools</a>
     <a href="#contact">Contact</a>
-  </nav>
+  </div>
 
-  <header>
-    <h1>Dipanshu Sharma</h1>
-    <p>Water Resources | Hydrology | Hydraulics | Climate Resilience | Sustainable Infrastructure</p>
-    <button onclick="location.href='#projects'">View My Work</button>
-  </header>
 
-  <section id="about">
-    <h2>About Me</h2>
-    <div class="card">
-      <p>
-        I am an environmental and water resources engineer focused on water hazards,
-        climate change, hydrology, hydraulics, nature-based solutions, and sustainable
-        infrastructure.
+  <!-- ═══════════════════════════════════════
+       HOME — HERO
+  ═══════════════════════════════════════ -->
+  <section id="home" aria-label="Introduction">
+
+    <div class="grid-lines" aria-hidden="true"></div>
+    <div class="hero-particles" aria-hidden="true" id="particles"></div>
+
+    <!-- Animated SVG waves -->
+    <svg class="hero-waves" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" preserveAspectRatio="none">
+      <defs>
+        <linearGradient id="wg1" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="rgba(77,184,160,0.18)" />
+          <stop offset="100%" stop-color="rgba(77,184,160,0)" />
+        </linearGradient>
+        <linearGradient id="wg2" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="rgba(26,122,154,0.15)" />
+          <stop offset="100%" stop-color="rgba(26,122,154,0)" />
+        </linearGradient>
+      </defs>
+      <path fill="url(#wg1)">
+        <animate attributeName="d" dur="12s" repeatCount="indefinite" values="
+          M0,60% C200,45%,400,75%,600,55% S900,35%,1200,55% S1400,70%,1600,55% L1600,100% L0,100% Z;
+          M0,65% C200,55%,400,45%,600,65% S900,75%,1200,55% S1400,45%,1600,60% L1600,100% L0,100% Z;
+          M0,60% C200,45%,400,75%,600,55% S900,35%,1200,55% S1400,70%,1600,55% L1600,100% L0,100% Z" />
+      </path>
+      <path fill="url(#wg2)" opacity="0.7">
+        <animate attributeName="d" dur="9s" repeatCount="indefinite" values="
+          M0,75% C300,65%,500,80%,700,68% S1000,55%,1300,70% S1500,80%,1600,72% L1600,100% L0,100% Z;
+          M0,70% C300,78%,500,60%,700,75% S1000,80%,1300,65% S1500,58%,1600,68% L1600,100% L0,100% Z;
+          M0,75% C300,65%,500,80%,700,68% S1000,55%,1300,70% S1500,80%,1600,72% L1600,100% L0,100% Z" />
+      </path>
+    </svg>
+
+    <div class="container hero-content">
+      <div class="hero-tag">Water · Climate · Sustainability</div>
+
+      <h1 class="hero-h1">
+        Engineering<br />
+        a <em>resilient</em><br />
+        planet
+      </h1>
+
+      <p class="hero-sub">
+        Environmental and water engineer advancing sustainable infrastructure,
+        climate adaptation strategies, and data-driven solutions for a changing world.
       </p>
-      <p>
-        This is a trial version of my personal website. Later, I will make it more
-        focused on hydraulics, hydrology, water resources, and climate adaptation.
-      </p>
+
+      <div class="hero-actions">
+        <a href="#projects" class="btn btn-white">View Projects</a>
+        <a href="#contact" class="btn btn-hero-outline">Get in Touch</a>
+      </div>
+
+      <!-- Stats — no years of experience anywhere -->
+      <div class="hero-stats" role="list" aria-label="Focus areas">
+        <div class="stat-item" role="listitem">
+          <div class="stat-icon" aria-hidden="true">💧</div>
+          <div class="stat-focus">Water &amp; Climate</div>
+          <div class="stat-label">Core Focus</div>
+        </div>
+        <div class="stat-item" role="listitem">
+          <div class="stat-icon" aria-hidden="true">📄</div>
+          <div class="stat-focus">40+</div>
+          <div class="stat-label">Research Publications</div>
+        </div>
+        <div class="stat-item" role="listitem">
+          <div class="stat-icon" aria-hidden="true">🌍</div>
+          <div class="stat-focus">Global</div>
+          <div class="stat-label">International Exposure</div>
+        </div>
+        <div class="stat-item" role="listitem">
+          <div class="stat-icon" aria-hidden="true">🏗</div>
+          <div class="stat-focus">25+</div>
+          <div class="stat-label">Engineering Projects</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="hero-scroll" aria-label="Scroll down">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 9l-7 7-7-7" />
+      </svg>
+      <span>Scroll</span>
     </div>
   </section>
 
-  <section id="projects">
-    <h2>Projects</h2>
 
-    <div class="grid">
-      <div class="card">
-        <h3>Nature-Based Solutions</h3>
-        <p>
-          Work related to nature-based solutions, sponge landscapes, and climate
-          adaptation in river basins.
+  <!-- ═══════════════════════════════════════
+       ABOUT
+  ═══════════════════════════════════════ -->
+  <section id="about" aria-labelledby="about-title">
+    <div class="container">
+      <div class="about-grid">
+
+        <!-- Portrait — replace placeholder div with your actual photo -->
+        <div class="about-portrait-wrap reveal">
+          <!--
+            To add your photo, replace this entire <div class="about-portrait-placeholder">
+            block with:
+            <img src="photo.jpg" alt="Dr. Alex Morgan" class="about-portrait" />
+          -->
+          <div class="about-portrait-placeholder" role="img" aria-label="Profile photo placeholder">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1"
+                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+            <span>Replace with your photo</span>
+          </div>
+        </div>
+
+        <!-- Text -->
+        <div class="about-body">
+          <span class="section-label reveal">About Me</span>
+          <h2 class="section-title reveal reveal-delay-1" id="about-title">
+            Driven by science,<br /><em>guided by nature</em>
+          </h2>
+          <div class="divider reveal reveal-delay-2"></div>
+
+          <p class="reveal reveal-delay-2">
+            I am an environmental and water resources engineer with extensive experience
+            designing solutions for climate-stressed communities. My work bridges cutting-edge
+            hydrological modelling, sustainable drainage design, and nature-based solutions
+            to create infrastructure that endures.
+          </p>
+          <p class="reveal reveal-delay-3">
+            Operating across international field programmes, I collaborate with governments,
+            NGOs, and research institutions to translate complex climate data into actionable,
+            community-centred engineering strategies.
+          </p>
+
+          <div class="skills-grid reveal reveal-delay-3" role="list" aria-label="Core competencies">
+            <div class="skill-chip" role="listitem">Hydrological Modelling</div>
+            <div class="skill-chip" role="listitem">Flood Risk Assessment</div>
+            <div class="skill-chip" role="listitem">Climate Adaptation</div>
+            <div class="skill-chip" role="listitem">Water Quality Analysis</div>
+            <div class="skill-chip" role="listitem">Nature-Based Solutions</div>
+            <div class="skill-chip" role="listitem">GIS &amp; Remote Sensing</div>
+            <div class="skill-chip" role="listitem">Sustainable Drainage</div>
+            <div class="skill-chip" role="listitem">Environmental Impact</div>
+          </div>
+
+          <div class="about-actions reveal reveal-delay-4">
+            <a href="#contact" class="btn btn-primary">Work with me</a>
+            <!-- Update href to point to your actual CV PDF -->
+            <a href="cv.pdf" class="btn btn-outline" download>Download CV</a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════
+       PROJECTS
+  ═══════════════════════════════════════ -->
+  <section id="projects" aria-labelledby="projects-title">
+    <div class="container">
+      <div class="projects-header">
+        <div>
+          <span class="section-label reveal">Selected Work</span>
+          <h2 class="section-title reveal reveal-delay-1" id="projects-title">
+            Featured <em>projects</em>
+          </h2>
+          <div class="divider reveal reveal-delay-2"></div>
+        </div>
+        <a href="#contact" class="btn btn-outline reveal reveal-delay-2">All Projects →</a>
+      </div>
+
+      <div class="projects-grid">
+
+        <!-- Project 1 -->
+        <article class="project-card reveal" aria-label="Urban flood resilience project">
+          <div class="project-thumb" style="background: linear-gradient(135deg, #0b4f6c, #1a7a9a);" aria-hidden="true">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 340 180">
+              <circle cx="170" cy="90" r="70" stroke="rgba(255,255,255,0.08)" stroke-width="40" />
+              <circle cx="170" cy="90" r="40" stroke="rgba(77,184,160,0.3)" stroke-width="20" />
+              <circle cx="170" cy="90" r="14" fill="rgba(77,184,160,0.6)" />
+              <path d="M40,130 Q100,90 170,130 Q240,170 300,130" stroke="rgba(255,255,255,0.2)" stroke-width="2" fill="none" />
+              <path d="M40,150 Q100,110 170,150 Q240,190 300,150" stroke="rgba(255,255,255,0.12)" stroke-width="2" fill="none" />
+            </svg>
+            <span class="project-tag">Flood Risk</span>
+          </div>
+          <div class="project-body">
+            <h3 class="project-title">Urban Flood Resilience Framework</h3>
+            <p class="project-desc">Developed a multi-hazard flood risk model integrating 50-year rainfall projections and impervious surface change for three coastal cities.</p>
+            <div class="project-footer">
+              <span class="project-location">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="12" height="12" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a2 2 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                Southeast Asia
+              </span>
+              <a href="#" class="project-link">
+                View details
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                </svg>
+              </a>
+            </div>
+          </div>
+        </article>
+
+        <!-- Project 2 -->
+        <article class="project-card reveal reveal-delay-1" aria-label="Constructed wetlands project">
+          <div class="project-thumb" style="background: linear-gradient(135deg, #0f6e56, #1d9e75);" aria-hidden="true">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 340 180">
+              <ellipse cx="170" cy="110" rx="120" ry="40" fill="rgba(255,255,255,0.07)" />
+              <ellipse cx="170" cy="100" rx="80" ry="28" fill="rgba(255,255,255,0.07)" />
+              <line x1="130" y1="110" x2="130" y2="60" stroke="rgba(255,255,255,0.3)" stroke-width="3" stroke-linecap="round" />
+              <line x1="155" y1="110" x2="155" y2="45" stroke="rgba(255,255,255,0.3)" stroke-width="3" stroke-linecap="round" />
+              <line x1="180" y1="110" x2="180" y2="55" stroke="rgba(255,255,255,0.3)" stroke-width="3" stroke-linecap="round" />
+              <line x1="205" y1="110" x2="205" y2="50" stroke="rgba(255,255,255,0.3)" stroke-width="3" stroke-linecap="round" />
+              <ellipse cx="130" cy="60" rx="14" ry="10" fill="rgba(255,255,255,0.18)" />
+              <ellipse cx="155" cy="45" rx="14" ry="10" fill="rgba(255,255,255,0.18)" />
+              <ellipse cx="180" cy="55" rx="14" ry="10" fill="rgba(255,255,255,0.18)" />
+              <ellipse cx="205" cy="50" rx="14" ry="10" fill="rgba(255,255,255,0.18)" />
+            </svg>
+            <span class="project-tag">Nature-Based</span>
+          </div>
+          <div class="project-body">
+            <h3 class="project-title">Constructed Wetlands for Wastewater Treatment</h3>
+            <p class="project-desc">Designed and monitored 14 ha of constructed wetlands serving 40,000 people, achieving 92% nutrient removal at a fraction of conventional cost.</p>
+            <div class="project-footer">
+              <span class="project-location">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="12" height="12" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a2 2 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                Sub-Saharan Africa
+              </span>
+              <a href="#" class="project-link">
+                View details
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                </svg>
+              </a>
+            </div>
+          </div>
+        </article>
+
+        <!-- Project 3 -->
+        <article class="project-card reveal reveal-delay-2" aria-label="Climate-smart irrigation project">
+          <div class="project-thumb" style="background: linear-gradient(135deg, #633806, #ba7517);" aria-hidden="true">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 340 180">
+              <rect x="60" y="120" width="220" height="20" rx="4" fill="rgba(255,255,255,0.1)" />
+              <rect x="80" y="80" width="30" height="40" rx="3" fill="rgba(255,255,255,0.15)" />
+              <rect x="130" y="65" width="30" height="55" rx="3" fill="rgba(255,255,255,0.15)" />
+              <rect x="180" y="95" width="30" height="25" rx="3" fill="rgba(255,255,255,0.15)" />
+              <rect x="230" y="75" width="30" height="45" rx="3" fill="rgba(255,255,255,0.15)" />
+              <path d="M60,90 Q100,50 170,70 Q220,85 280,55" stroke="rgba(239,159,39,0.6)" stroke-width="2.5" fill="none" stroke-dasharray="5 3" />
+              <circle cx="170" cy="70" r="5" fill="rgba(239,159,39,0.9)" />
+            </svg>
+            <span class="project-tag">Climate Adaptation</span>
+          </div>
+          <div class="project-body">
+            <h3 class="project-title">Climate-Smart Irrigation Optimisation</h3>
+            <p class="project-desc">Applied machine learning to optimise irrigation scheduling for smallholder farmers under variable rainfall, reducing water use by 35% while sustaining yields.</p>
+            <div class="project-footer">
+              <span class="project-location">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="12" height="12" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a2 2 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                South Asia
+              </span>
+              <a href="#" class="project-link">
+                View details
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                </svg>
+              </a>
+            </div>
+          </div>
+        </article>
+
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════
+       PUBLICATIONS
+  ═══════════════════════════════════════ -->
+  <section id="publications" aria-labelledby="pub-title">
+    <div class="container">
+      <span class="section-label reveal">Research</span>
+      <h2 class="section-title reveal reveal-delay-1" id="pub-title">
+        Selected <em>publications</em>
+      </h2>
+      <div class="divider reveal reveal-delay-2"></div>
+
+      <div class="pub-list">
+
+        <article class="pub-item reveal">
+          <div class="pub-year" aria-label="Year 2024">2024</div>
+          <div class="pub-content">
+            <h3 class="pub-title">Compound flood risk under intensifying rainfall and sea-level rise: a probabilistic framework for coastal cities</h3>
+            <p class="pub-authors">Morgan, A., Tanaka, R., Silva, M. et al.</p>
+            <p class="pub-journal">Nature Water · Vol. 2, 210–225</p>
+            <div class="pub-badges">
+              <span class="pub-badge badge-water">Water</span>
+              <span class="pub-badge badge-climate">Climate</span>
+              <span class="pub-badge badge-model">Modelling</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="pub-item reveal reveal-delay-1">
+          <div class="pub-year" aria-label="Year 2023">2023</div>
+          <div class="pub-content">
+            <h3 class="pub-title">Machine-learning emulation of hydrological models for real-time urban flood forecasting</h3>
+            <p class="pub-authors">Morgan, A., Osei, K., Martínez, L.</p>
+            <p class="pub-journal">Journal of Hydrology · Vol. 621, 129562</p>
+            <div class="pub-badges">
+              <span class="pub-badge badge-water">Water</span>
+              <span class="pub-badge badge-model">Modelling</span>
+              <span class="pub-badge badge-urban">Urban</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="pub-item reveal reveal-delay-2">
+          <div class="pub-year" aria-label="Year 2022">2022</div>
+          <div class="pub-content">
+            <h3 class="pub-title">Performance of constructed wetlands in tropical climates: a 10-year longitudinal study on pollutant removal efficiency</h3>
+            <p class="pub-authors">Morgan, A., Ndegwa, P., Chen, W., Reyes, F.</p>
+            <p class="pub-journal">Water Research · Vol. 208, 117847</p>
+            <div class="pub-badges">
+              <span class="pub-badge badge-water">Water</span>
+              <span class="pub-badge badge-climate">Climate</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="pub-item reveal reveal-delay-3">
+          <div class="pub-year" aria-label="Year 2021">2021</div>
+          <div class="pub-content">
+            <h3 class="pub-title">Quantifying co-benefits of green infrastructure: carbon sequestration, biodiversity, and stormwater management synergies</h3>
+            <p class="pub-authors">Morgan, A., Johansson, E.</p>
+            <p class="pub-journal">Environmental Science &amp; Technology · Vol. 55(14), 9880–9893</p>
+            <div class="pub-badges">
+              <span class="pub-badge badge-climate">Climate</span>
+              <span class="pub-badge badge-urban">Urban</span>
+            </div>
+          </div>
+        </article>
+
+      </div>
+
+      <div class="pub-cta reveal">
+        <a href="https://scholar.google.com" class="btn btn-outline" target="_blank" rel="noopener noreferrer">
+          Full publication list →
+        </a>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════
+       SERVICES
+  ═══════════════════════════════════════ -->
+  <section id="services" aria-labelledby="services-title">
+    <div class="services-bg" aria-hidden="true"></div>
+    <div class="container services-container">
+      <span class="section-label reveal">What I Offer</span>
+      <h2 class="section-title reveal reveal-delay-1" id="services-title">
+        Services &amp; <em>expertise</em>
+      </h2>
+      <div class="divider reveal reveal-delay-2"></div>
+      <p class="services-intro reveal reveal-delay-2">
+        From early-stage feasibility studies to detailed design and monitoring programmes,
+        I provide independent expert guidance across the full water and climate engineering lifecycle.
+      </p>
+
+      <div class="services-grid">
+
+        <div class="service-card reveal">
+          <div class="service-icon" aria-hidden="true">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path d="M12 2.69l5.66 5.66a8 8 0 11-11.31 0z" />
+            </svg>
+          </div>
+          <h3 class="service-name">Hydrological Assessment</h3>
+          <p class="service-desc">Catchment analysis, flood frequency estimation, low-flow analysis, and drought vulnerability assessments using state-of-the-art modelling tools.</p>
+        </div>
+
+        <div class="service-card reveal reveal-delay-1">
+          <div class="service-icon" aria-hidden="true">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" />
+            </svg>
+          </div>
+          <h3 class="service-name">Climate Risk &amp; Adaptation</h3>
+          <p class="service-desc">Translating IPCC scenarios into project-level climate risk profiles and designing adaptive management plans for long-lived infrastructure.</p>
+        </div>
+
+        <div class="service-card reveal reveal-delay-2">
+          <div class="service-icon" aria-hidden="true">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" />
+              <rect x="14" y="14" width="7" height="7" /><rect x="3" y="14" width="7" height="7" />
+            </svg>
+          </div>
+          <h3 class="service-name">Sustainable Drainage Design</h3>
+          <p class="service-desc">SuDS masterplanning, green roof design, bioretention systems, and permeable paving schemes integrated into wider urban greening strategies.</p>
+        </div>
+
+        <div class="service-card reveal reveal-delay-3">
+          <div class="service-icon" aria-hidden="true">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+            </svg>
+          </div>
+          <h3 class="service-name">Environmental Monitoring</h3>
+          <p class="service-desc">IoT sensor network design, remote sensing analysis, and real-time dashboards for continuous water quality and ecological health monitoring.</p>
+        </div>
+
+        <div class="service-card reveal">
+          <div class="service-icon" aria-hidden="true">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" /><circle cx="9" cy="7" r="4" />
+              <path d="M23 21v-2a4 4 0 00-3-3.87" /><path d="M16 3.13a4 4 0 010 7.75" />
+            </svg>
+          </div>
+          <h3 class="service-name">Stakeholder Engagement</h3>
+          <p class="service-desc">Facilitating participatory design processes, co-producing solutions with communities, and translating technical findings for non-specialist audiences.</p>
+        </div>
+
+        <div class="service-card reveal reveal-delay-1">
+          <div class="service-icon" aria-hidden="true">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z" />
+            </svg>
+          </div>
+          <h3 class="service-name">Research &amp; Technical Writing</h3>
+          <p class="service-desc">Peer-reviewed publications, technical reports, grant applications, and policy briefs connecting rigorous research to real-world decision-making.</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════
+       TOOLS
+  ═══════════════════════════════════════ -->
+  <section id="tools" aria-labelledby="tools-title">
+    <div class="container">
+
+      <span class="section-label reveal">Interactive Tools</span>
+      <h2 class="section-title reveal reveal-delay-1" id="tools-title">
+        Engineering <em>tools</em>
+      </h2>
+      <div class="divider reveal reveal-delay-2"></div>
+
+      <!-- Top-level tab switcher -->
+      <div class="tool-tabs reveal reveal-delay-2" role="tablist" aria-label="Select a tool">
+        <button class="tool-tab-btn active" role="tab" aria-selected="true"
+          aria-controls="panel-converter" id="tab-converter"
+          onclick="switchTool('converter')">
+          ⚙ Unit Converter
+        </button>
+        <button class="tool-tab-btn" role="tab" aria-selected="false"
+          aria-controls="panel-currency" id="tab-currency"
+          onclick="switchTool('currency')">
+          ₿ Currency Converter
+        </button>
+      </div>
+
+      <!-- ── TOOL 1: ENGINEERING UNIT CONVERTER ── -->
+      <div class="tool-panel active tool-card reveal" id="panel-converter"
+        role="tabpanel" aria-labelledby="tab-converter">
+
+        <p class="tool-intro">
+          Select a measurement category, enter a value, choose your units — result updates instantly.
+          Use <strong>⇄</strong> to swap units.
+        </p>
+
+        <!-- Category buttons — JS reads these labels to match UNITS keys -->
+        <div class="cat-tabs" role="group" aria-label="Measurement categories">
+          <button class="cat-btn active" onclick="setCategory('flowrate')">Flow Rate</button>
+          <button class="cat-btn" onclick="setCategory('velocity')">Velocity</button>
+          <button class="cat-btn" onclick="setCategory('pressure')">Pressure</button>
+          <button class="cat-btn" onclick="setCategory('force')">Force</button>
+          <button class="cat-btn" onclick="setCategory('length')">Length</button>
+          <button class="cat-btn" onclick="setCategory('area')">Area</button>
+          <button class="cat-btn" onclick="setCategory('volume')">Volume</button>
+        </div>
+
+        <!-- Converter: value | from | ⇄ | to | result -->
+        <div class="converter-row">
+          <div class="conv-col">
+            <div class="conv-label">Value</div>
+            <input class="conv-input" type="number" id="convValue"
+              placeholder="Enter value" value="1"
+              oninput="runConvert()" aria-label="Input value" />
+          </div>
+          <div class="conv-col">
+            <div class="conv-label">From</div>
+            <select class="conv-select" id="convFrom"
+              onchange="runConvert()" aria-label="From unit"></select>
+          </div>
+          <div class="conv-col conv-col-swap">
+            <button class="conv-swap" onclick="swapUnits()"
+              title="Swap units" aria-label="Swap units">⇄</button>
+          </div>
+          <div class="conv-col">
+            <div class="conv-label">To</div>
+            <select class="conv-select" id="convTo"
+              onchange="runConvert()" aria-label="To unit"></select>
+          </div>
+          <div class="conv-col conv-col-result">
+            <div class="conv-label">Result</div>
+            <div class="conv-result" id="convResult"
+              aria-live="polite" aria-label="Conversion result">—</div>
+          </div>
+        </div>
+
+        <p class="conv-note">
+          <strong>Tip:</strong> All conversions use exact SI-based factors.
+          Pressure values are absolute (not gauge). mH₂O uses standard gravity (9.80665 m/s²).
         </p>
       </div>
 
-      <div class="card">
-        <h3>Hydrology & Water Resources</h3>
-        <p>
-          Projects related to river basin modelling, water balance, drought management,
-          and integrated water resources management.
+      <!-- ── TOOL 2: LIVE CURRENCY CONVERTER ── -->
+      <div class="tool-panel tool-card reveal" id="panel-currency"
+        role="tabpanel" aria-labelledby="tab-currency">
+
+        <p class="tool-intro">
+          Live rates are fetched from the
+          <a href="https://www.frankfurter.app" target="_blank" rel="noopener noreferrer">Frankfurter API</a>
+          (free, open-source, no key required). If the request fails, verified fallback rates are used automatically.
         </p>
+
+        <!-- Amount + from | ⇄ | to -->
+        <div class="currency-grid">
+          <div>
+            <div class="conv-label">Amount &amp; Currency</div>
+            <input class="conv-input currency-amount-input" type="number"
+              id="currAmount" placeholder="Amount" value="100" min="0"
+              oninput="runCurrency()" aria-label="Amount to convert" />
+            <select class="conv-select" id="currFrom"
+              onchange="runCurrency()" aria-label="From currency"></select>
+          </div>
+          <div class="currency-swap-col">
+            <button class="conv-swap" onclick="swapCurrency()"
+              title="Swap currencies" aria-label="Swap currencies">⇄</button>
+          </div>
+          <div>
+            <div class="conv-label">Convert To</div>
+            <div class="currency-to-spacer">
+              <select class="conv-select" id="currTo"
+                onchange="runCurrency()" aria-label="To currency"></select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Result display -->
+        <div class="currency-result-box" aria-live="polite">
+          <div class="currency-result-amount" id="currResult">—</div>
+          <div class="currency-result-label" id="currResultLabel">Select currencies above</div>
+        </div>
+
+        <!-- Live / fallback status indicator -->
+        <div class="currency-status-bar">
+          <span class="status-dot loading" id="statusDot"></span>
+          <span id="statusText">Fetching live rates…</span>
+        </div>
+        <p class="currency-rate-note" id="currRateNote"></p>
+
       </div>
 
-      <div class="card">
-        <h3>Hydraulics & Infrastructure</h3>
-        <p>
-          Work related to hydraulic structures, spillways, stormwater systems,
-          drainage, and wet utilities.
-        </p>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════
+       CONTACT
+  ═══════════════════════════════════════ -->
+  <section id="contact" aria-labelledby="contact-title">
+    <div class="container">
+      <div class="contact-grid">
+
+        <!-- Left: intro + social links (no email, no location) -->
+        <div class="contact-info">
+          <span class="section-label reveal">Get in Touch</span>
+          <h2 class="section-title reveal reveal-delay-1" id="contact-title">
+            Let's solve<br /><em>something big</em>
+          </h2>
+          <div class="divider reveal reveal-delay-2"></div>
+
+          <p class="reveal reveal-delay-2">
+            Whether you're looking for an expert collaborator, a keynote speaker,
+            or independent technical review — I'd love to hear from you.
+            Use the form or connect via the links below.
+          </p>
+
+          <div class="social-links reveal reveal-delay-3" aria-label="Professional profiles">
+            <a href="https://linkedin.com" class="social-link" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6zM2 9h4v12H2zM4 6a2 2 0 100-4 2 2 0 000 4z" />
+              </svg>
+            </a>
+            <a href="https://github.com" class="social-link" target="_blank" rel="noopener noreferrer" aria-label="GitHub">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 00-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0020 4.77 5.07 5.07 0 0019.91 1S18.73.65 16 2.48a13.38 13.38 0 00-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 005 4.77a5.44 5.44 0 00-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 009 18.13V22" />
+              </svg>
+            </a>
+            <a href="https://scholar.google.com" class="social-link" target="_blank" rel="noopener noreferrer" aria-label="Google Scholar">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 14l9-5-9-5-9 5 9 5z" />
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0112 20.055a11.952 11.952 0 01-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
+              </svg>
+            </a>
+            <a href="https://orcid.org" class="social-link" target="_blank" rel="noopener noreferrer" aria-label="ORCID">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="16" />
+                <line x1="8" y1="12" x2="16" y2="12" />
+              </svg>
+            </a>
+          </div>
+        </div>
+
+        <!-- Right: contact form -->
+        <!-- To enable real email delivery, add action="https://formspree.io/f/YOUR_ID"
+             to the <form> tag and remove the JS submit handler in script.js -->
+        <div class="contact-form reveal reveal-delay-2" role="region" aria-label="Contact form">
+          <form id="contactForm" novalidate>
+            <div class="form-row-duo">
+              <div class="form-row">
+                <label class="form-label" for="fname">First name</label>
+                <input class="form-input" type="text" id="fname" name="fname"
+                  placeholder="Jane" required autocomplete="given-name" />
+              </div>
+              <div class="form-row">
+                <label class="form-label" for="lname">Last name</label>
+                <input class="form-input" type="text" id="lname" name="lname"
+                  placeholder="Smith" required autocomplete="family-name" />
+              </div>
+            </div>
+            <div class="form-row">
+              <label class="form-label" for="femail">Email address</label>
+              <input class="form-input" type="email" id="femail" name="email"
+                placeholder="jane@example.com" required autocomplete="email" />
+            </div>
+            <div class="form-row">
+              <label class="form-label" for="subject">Subject</label>
+              <input class="form-input" type="text" id="subject" name="subject"
+                placeholder="Project enquiry / Collaboration / Speaking" />
+            </div>
+            <div class="form-row">
+              <label class="form-label" for="message">Message</label>
+              <textarea class="form-textarea" id="message" name="message"
+                placeholder="Tell me about your project or enquiry…" required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary form-btn">Send Message →</button>
+          </form>
+          <div class="form-success" id="formSuccess" role="status" aria-live="polite">
+            ✓ Message sent — I'll be in touch shortly.
+          </div>
+        </div>
+
       </div>
     </div>
   </section>
 
-  <section id="publications">
-    <h2>Publications</h2>
 
-    <div class="card">
-      <h3>Water Management in the Chola Empire</h3>
-      <p>
-        Research on historical water engineering, community stewardship, and
-        traditional water management systems.
-      </p>
-    </div>
-
-    <div class="card">
-      <h3>Rejuvenation of Streams in Mula Basin</h3>
-      <p>
-        Research using geospatial and simulation tools for drought management
-        and stream rejuvenation.
-      </p>
-    </div>
-
-    <div class="card">
-      <h3>Energy Dissipation Devices for Spillways</h3>
-      <p>
-        Research focused on hydraulic infrastructure and damage to spillway profiles.
-      </p>
-    </div>
-  </section>
-
-  <section id="services">
-    <h2>Services</h2>
-
-    <div class="grid">
-      <div class="card">
-        <h3>Technical Writing</h3>
-        <p>Support for research writing, reports, articles, and water-related technical content.</p>
-      </div>
-
-      <div class="card">
-        <h3>Water & Climate Content</h3>
-        <p>Creating educational content on hydrology, climate risk, sustainability, and water systems.</p>
-      </div>
-
-      <div class="card">
-        <h3>Portfolio & Career Support</h3>
-        <p>Guidance for water, climate, sustainability, and engineering career materials.</p>
-      </div>
-    </div>
-  </section>
-
-  <section id="contact">
-    <h2>Contact</h2>
-
-    <div class="card">
-      <p>
-        Contact details will be added later.
-      </p>
-      <p>
-        For now, this website is under testing.
-      </p>
-    </div>
-  </section>
-
+  <!-- ═══════════════════════════════════════
+       FOOTER
+  ═══════════════════════════════════════ -->
   <footer>
-    <p>© 2026 Dipanshu Sharma. All rights reserved.</p>
+    <p>
+      © <span id="year"></span> Dr. Alex Morgan · Environmental &amp; Water Engineer ·
+      Built with ♥ for a resilient planet ·
+      <a href="https://github.com" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </p>
   </footer>
+
+  <!-- Site scripts — defer ensures DOM is ready before JS runs -->
+  <script src="script.js" defer></script>
 
 </body>
 </html>
