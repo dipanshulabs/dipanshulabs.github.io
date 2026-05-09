@@ -1,31 +1,24 @@
 /* ═══════════════════════════════════════════════════════════
-   script.js
-   Dipanshu Sharma | Water, Hydrology & Climate Portfolio
-   ─────────────────────────────────────────────────────────
-   SECTIONS
-     1. General UI  (navbar, drawer, reveal, particles)
-     2. Tool switcher
-     3. Engineering Unit Converter
-     4. Live Currency Converter  (Frankfurter API + fallback)
+   script.js — Dipanshu Sharma Portfolio
+   Handles: navbar, mobile drawer, scroll-reveal, particles,
+            active nav highlight, contact form demo mode.
+   Tool-specific JavaScript lives in tools/tools.js and
+   inside each individual tool HTML file.
 ═══════════════════════════════════════════════════════════ */
 
-
-/* ═══════════════════════════════════════════════════════════
-   1. GENERAL UI
-═══════════════════════════════════════════════════════════ */
-
-// ── Footer copyright year ─────────────────────────────────
+// ── Footer year ────────────────────────────────────────────
 document.getElementById('year').textContent = new Date().getFullYear();
 
 
-// ── Navbar — add white background after scrolling ─────────
+// ── Navbar scroll state ────────────────────────────────────
+// Adds a white background when the user scrolls past the hero.
 const navbar = document.getElementById('navbar');
 window.addEventListener('scroll', () => {
   navbar.classList.toggle('scrolled', window.scrollY > 40);
 }, { passive: true });
 
 
-// ── Mobile hamburger menu ─────────────────────────────────
+// ── Mobile hamburger menu ──────────────────────────────────
 const hamburger   = document.getElementById('hamburger');
 const drawer      = document.getElementById('mobileDrawer');
 const drawerLinks = drawer.querySelectorAll('a');
@@ -47,37 +40,34 @@ hamburger.addEventListener('click', () => {
 drawerLinks.forEach(link => link.addEventListener('click', closeDrawer));
 
 
-// ── Scroll-reveal ─────────────────────────────────────────
-// Elements with class "reveal" animate in when they enter the viewport.
-// They are unobserved once visible so there is no re-animation on scroll-up.
-const revealEls = document.querySelectorAll('.reveal');
+// ── Scroll-reveal ──────────────────────────────────────────
+// Watches .reveal elements; adds .visible when they enter the viewport.
 const revealObserver = new IntersectionObserver((entries) => {
   entries.forEach(entry => {
     if (entry.isIntersecting) {
       entry.target.classList.add('visible');
-      revealObserver.unobserve(entry.target);
+      revealObserver.unobserve(entry.target); // only animate once
     }
   });
 }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
 
-revealEls.forEach(el => revealObserver.observe(el));
+document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
 
 
-// ── Floating bubble particles in the hero ─────────────────
-// Creates small translucent circles that drift upward on a CSS animation.
+// ── Floating hero particles ────────────────────────────────
+// Creates small translucent bubbles that drift upward in the hero.
 (function spawnParticles() {
   const container = document.getElementById('particles');
   for (let i = 0; i < 22; i++) {
-    const p = document.createElement('div');
+    const p    = document.createElement('div');
     p.className = 'particle';
-    const size = Math.random() * 60 + 20;                  // 20–80 px diameter
+    const size = Math.random() * 60 + 20;
     p.style.cssText = [
-      `width:${size}px`,
-      `height:${size}px`,
-      `left:${Math.random() * 100}%`,                      // random horizontal
-      `top:${60 + Math.random() * 40}%`,                   // start in lower hero
-      `animation-duration:${8 + Math.random() * 14}s`,    // 8–22 s per cycle
-      `animation-delay:${Math.random() * -20}s`,           // stagger start times
+      `width:${size}px`, `height:${size}px`,
+      `left:${Math.random() * 100}%`,
+      `top:${60 + Math.random() * 40}%`,
+      `animation-duration:${8 + Math.random() * 14}s`,
+      `animation-delay:${Math.random() * -20}s`,
       `opacity:${0.1 + Math.random() * 0.3}`
     ].join(';');
     container.appendChild(p);
@@ -86,8 +76,7 @@ revealEls.forEach(el => revealObserver.observe(el));
 
 
 // ── Active nav-link highlight ──────────────────────────────
-// Highlights the nav link whose section is currently most visible.
-const sections   = document.querySelectorAll('section[id]');
+// Highlights the nav link whose section is currently visible.
 const navLinks   = document.querySelectorAll('#navbar .nav-links a');
 const navObserver = new IntersectionObserver((entries) => {
   entries.forEach(entry => {
@@ -101,17 +90,12 @@ const navObserver = new IntersectionObserver((entries) => {
   });
 }, { threshold: 0.35 });
 
-sections.forEach(s => navObserver.observe(s));
+document.querySelectorAll('section[id]').forEach(s => navObserver.observe(s));
 
 
-// ── Contact form (demo mode) ──────────────────────────────
-// Shows a success message after a short simulated delay.
-//
-// TO SEND REAL EMAILS:
-//   1. Sign up at https://formspree.io (free tier available).
-//   2. Add  action="https://formspree.io/f/YOUR_FORM_ID"  to the
-//      <form> element in index.html.
-//   3. Delete this entire event listener — Formspree handles the rest.
+// ── Contact form demo ──────────────────────────────────────
+// Shows a success message. Replace with Formspree for real delivery:
+// Add action="https://formspree.io/f/YOUR_ID" to <form> and remove this.
 document.getElementById('contactForm').addEventListener('submit', function (e) {
   e.preventDefault();
   const btn = this.querySelector('button[type="submit"]');
@@ -122,380 +106,3 @@ document.getElementById('contactForm').addEventListener('submit', function (e) {
     document.getElementById('formSuccess').style.display = 'block';
   }, 1200);
 });
-
-
-/* ═══════════════════════════════════════════════════════════
-   2. TOOL SWITCHER
-   Toggles between the Unit Converter and Currency Converter
-   panels when the top-level tab buttons are clicked.
-═══════════════════════════════════════════════════════════ */
-
-function switchTool(name) {
-  // Show only the panel whose id is "panel-{name}"
-  document.querySelectorAll('.tool-panel').forEach(panel => {
-    panel.classList.toggle('active', panel.id === 'panel-' + name);
-  });
-  // Update tab button styles and ARIA attributes
-  document.querySelectorAll('.tool-tab-btn').forEach(btn => {
-    const isActive = btn.getAttribute('onclick').includes(name);
-    btn.classList.toggle('active', isActive);
-    btn.setAttribute('aria-selected', String(isActive));
-  });
-}
-
-
-/* ═══════════════════════════════════════════════════════════
-   3. ENGINEERING UNIT CONVERTER
-   ─────────────────────────────────────────────────────────
-   CONVERSION METHOD:
-     Each unit stores a "toBase" multiplier (unit → SI base).
-     To convert A → B:  result = value × A.toBase ÷ B.toBase
-
-   SI BASE UNITS:
-     Flow Rate → m³/s    Velocity → m/s     Pressure → Pa
-     Force     → N       Length   → m       Area     → m²
-     Volume    → m³
-═══════════════════════════════════════════════════════════ */
-
-const UNITS = {
-  flowrate: {
-    label: 'Flow Rate',
-    units: [
-      { label: 'm³/s',  toBase: 1           },  // SI base
-      { label: 'L/s',   toBase: 1e-3        },  // 1 L = 0.001 m³
-      { label: 'm³/h',  toBase: 1 / 3600    },  // 1 h = 3600 s
-      { label: 'GPM',   toBase: 6.30902e-5  },  // US gallon per minute
-      { label: 'CFS',   toBase: 0.0283168   },  // cubic feet per second
-    ]
-  },
-  velocity: {
-    label: 'Velocity',
-    units: [
-      { label: 'm/s',  toBase: 1        },
-      { label: 'ft/s', toBase: 0.3048   },  // 1 foot = 0.3048 m
-      { label: 'km/h', toBase: 1 / 3.6  },  // 1 km/h = 1000/3600 m/s
-    ]
-  },
-  pressure: {
-    label: 'Pressure',
-    units: [
-      { label: 'Pa',    toBase: 1         },  // Pascal (SI base)
-      { label: 'kPa',   toBase: 1000      },  // 1 kPa = 1000 Pa
-      { label: 'bar',   toBase: 100000    },  // 1 bar = 100,000 Pa
-      { label: 'psi',   toBase: 6894.757  },  // pounds per square inch
-      { label: 'mH₂O',  toBase: 9806.65  },  // metres of water at standard g
-    ]
-  },
-  force: {
-    label: 'Force',
-    units: [
-      { label: 'N',   toBase: 1        },  // Newton (SI base)
-      { label: 'kN',  toBase: 1000     },  // kilonewton
-      { label: 'kgf', toBase: 9.80665  },  // kilogram-force
-      { label: 'lbf', toBase: 4.44822  },  // pound-force
-    ]
-  },
-  length: {
-    label: 'Length',
-    units: [
-      { label: 'm',    toBase: 1       },
-      { label: 'mm',   toBase: 0.001   },
-      { label: 'cm',   toBase: 0.01    },
-      { label: 'km',   toBase: 1000    },
-      { label: 'ft',   toBase: 0.3048  },
-      { label: 'inch', toBase: 0.0254  },
-    ]
-  },
-  area: {
-    label: 'Area',
-    units: [
-      { label: 'm²',   toBase: 1          },
-      { label: 'ha',   toBase: 10000      },  // 1 hectare = 10,000 m²
-      { label: 'acre', toBase: 4046.8564  },  // 1 acre ≈ 4046.86 m²
-      { label: 'ft²',  toBase: 0.092903   },  // square feet
-    ]
-  },
-  volume: {
-    label: 'Volume',
-    units: [
-      { label: 'm³',     toBase: 1         },
-      { label: 'L',      toBase: 0.001     },  // 1 litre = 0.001 m³
-      { label: 'gallon', toBase: 0.0037854 },  // US gallon
-      { label: 'ft³',    toBase: 0.028317  },  // cubic feet
-    ]
-  }
-};
-
-// Tracks which category pill is currently active
-let currentCategory = 'flowrate';
-
-// ── Activate a measurement category ──────────────────────
-function setCategory(catKey) {
-  currentCategory = catKey;
-  // Highlight the matching pill button
-  document.querySelectorAll('.cat-btn').forEach(btn => {
-    btn.classList.toggle('active', btn.textContent.trim() === UNITS[catKey].label);
-  });
-  populateSelects(catKey);
-  runConvert();
-}
-
-// ── Populate From / To <select> with units ────────────────
-function populateSelects(catKey) {
-  const fromSel = document.getElementById('convFrom');
-  const toSel   = document.getElementById('convTo');
-  const units   = UNITS[catKey].units;
-
-  const html = units.map((u, i) =>
-    `<option value="${i}">${u.label}</option>`
-  ).join('');
-
-  fromSel.innerHTML = html;
-  toSel.innerHTML   = html;
-
-  // Default: first unit → second unit (e.g. m³/s → L/s)
-  fromSel.value = '0';
-  toSel.value   = units.length > 1 ? '1' : '0';
-}
-
-// ── Perform conversion and display result ─────────────────
-function runConvert() {
-  const value    = parseFloat(document.getElementById('convValue').value);
-  const fromIdx  = parseInt(document.getElementById('convFrom').value, 10);
-  const toIdx    = parseInt(document.getElementById('convTo').value, 10);
-  const resultEl = document.getElementById('convResult');
-
-  if (isNaN(value)) { resultEl.textContent = '—'; return; }
-
-  const units    = UNITS[currentCategory].units;
-  const fromUnit = units[fromIdx];
-  const toUnit   = units[toIdx];
-
-  // Core formula: value → SI base unit → target unit
-  const result = value * fromUnit.toBase / toUnit.toBase;
-
-  resultEl.textContent = formatNumber(result) + ' ' + toUnit.label;
-}
-
-// ── Swap From and To unit selects ─────────────────────────
-function swapUnits() {
-  const fromSel = document.getElementById('convFrom');
-  const toSel   = document.getElementById('convTo');
-  const tmp     = fromSel.value;
-  fromSel.value = toSel.value;
-  toSel.value   = tmp;
-  runConvert();
-}
-
-// ── Smart number formatter ────────────────────────────────
-// Up to 8 significant figures; switches to scientific notation
-// automatically for very large or very small values.
-function formatNumber(n) {
-  if (n === 0) return '0';
-  const abs = Math.abs(n);
-  if (abs >= 1e9 || (abs < 1e-4 && abs > 0)) {
-    return n.toExponential(5);
-  }
-  return Number(n.toPrecision(8)).toString();
-}
-
-// Initialise the unit converter when the page loads
-populateSelects('flowrate');
-runConvert();
-
-
-/* ═══════════════════════════════════════════════════════════
-   4. LIVE CURRENCY CONVERTER
-   ─────────────────────────────────────────────────────────
-   PRIMARY SOURCE — Frankfurter API:
-     https://www.frankfurter.app
-     Endpoint : https://api.frankfurter.app/latest?from=USD
-     Response : { "base":"USD", "date":"YYYY-MM-DD",
-                  "rates":{ "EUR":0.92, "GBP":0.79, ... } }
-     • Free, open-source, no API key required.
-     • USD is the base and is NOT included in the rates object;
-       we add USD:1 manually after fetching.
-
-   CURRENCIES NOT SUPPORTED BY FRANKFURTER:
-     AED, NGN, EGP — these always use FALLBACK_RATES.
-
-   FALLBACK BEHAVIOUR:
-     If the fetch fails (network error / API down), ALL
-     currencies fall back to FALLBACK_RATES automatically.
-     The status strip below the result box reflects the state.
-
-   TO SWITCH API:
-     Replace FRANKFURTER_URL and adapt the fetch handler in
-     loadLiveRates() to match your API's response structure.
-═══════════════════════════════════════════════════════════ */
-
-// ── Currency list ─────────────────────────────────────────
-const CURRENCIES = [
-  { code: 'USD', name: 'US Dollar',          flag: '🇺🇸' },
-  { code: 'EUR', name: 'Euro',               flag: '🇪🇺' },
-  { code: 'GBP', name: 'British Pound',      flag: '🇬🇧' },
-  { code: 'AED', name: 'UAE Dirham',         flag: '🇦🇪' },
-  { code: 'JPY', name: 'Japanese Yen',       flag: '🇯🇵' },
-  { code: 'CNY', name: 'Chinese Yuan',       flag: '🇨🇳' },
-  { code: 'CAD', name: 'Canadian Dollar',    flag: '🇨🇦' },
-  { code: 'AUD', name: 'Australian Dollar',  flag: '🇦🇺' },
-  { code: 'CHF', name: 'Swiss Franc',        flag: '🇨🇭' },
-  { code: 'INR', name: 'Indian Rupee',       flag: '🇮🇳' },
-  { code: 'BRL', name: 'Brazilian Real',     flag: '🇧🇷' },
-  { code: 'ZAR', name: 'South African Rand', flag: '🇿🇦' },
-  { code: 'NGN', name: 'Nigerian Naira',     flag: '🇳🇬' },
-  { code: 'EGP', name: 'Egyptian Pound',     flag: '🇪🇬' },
-  { code: 'SGD', name: 'Singapore Dollar',   flag: '🇸🇬' },
-];
-
-// ── Fallback rates (all relative to USD = 1) ─────────────
-// Used when Frankfurter is unreachable, or for currencies
-// Frankfurter does not support (AED, NGN, EGP).
-const FALLBACK_RATES = {
-  USD: 1,
-  EUR: 0.92,
-  GBP: 0.79,
-  AED: 3.67,
-  JPY: 149.50,
-  CNY: 7.24,
-  CAD: 1.36,
-  AUD: 1.53,
-  CHF: 0.90,
-  INR: 83.10,
-  BRL: 4.97,
-  ZAR: 18.60,
-  NGN: 1520.00,
-  EGP: 48.50,
-  SGD: 1.34,
-};
-
-// Working rates object — starts as a copy of fallback,
-// then gets overwritten by live data where available.
-const RATES = { ...FALLBACK_RATES };
-
-// Tracks the current data source for the status indicator
-let ratesSource = 'loading';
-let ratesDate   = '';
-
-const FRANKFURTER_URL = 'https://api.frankfurter.app/latest?from=USD';
-
-// ── Fetch live rates from Frankfurter ─────────────────────
-async function loadLiveRates() {
-  setRatesStatus('loading');
-  try {
-    const response = await fetch(FRANKFURTER_URL);
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
-    const data = await response.json();
-
-    // Merge live rates on top of fallback.
-    // Currencies missing from the API (AED, NGN, EGP) keep
-    // their fallback values automatically.
-    Object.assign(RATES, data.rates);
-    RATES.USD   = 1;           // base currency always = 1
-    ratesDate   = data.date || '';
-    ratesSource = 'live';
-
-  } catch (err) {
-    // Network failure or API error — silently use fallback
-    console.warn('Frankfurter API unavailable. Using fallback rates.', err);
-    Object.assign(RATES, FALLBACK_RATES);
-    ratesSource = 'fallback';
-  }
-
-  setRatesStatus(ratesSource);
-  runCurrency();
-}
-
-// ── Update the status dot and message ─────────────────────
-function setRatesStatus(status) {
-  const dot      = document.getElementById('statusDot');
-  const text     = document.getElementById('statusText');
-  const rateNote = document.getElementById('currRateNote');
-
-  dot.className = 'status-dot ' + status;
-
-  if (status === 'loading') {
-    text.textContent     = 'Fetching live rates…';
-    rateNote.textContent = '';
-
-  } else if (status === 'live') {
-    text.textContent =
-      `Live rates${ratesDate ? ' · ' + ratesDate : ''} · Frankfurter API`;
-    rateNote.textContent =
-      'AED, NGN and EGP use verified fallback rates (not supported by Frankfurter).';
-
-  } else {
-    text.textContent =
-      'Using fallback rates (API unavailable)';
-    rateNote.textContent =
-      'Rates are pre-verified reference values. Connect a live API for real-time data.';
-  }
-}
-
-// ── Populate currency <select> elements ───────────────────
-function populateCurrencySelects() {
-  const fromSel = document.getElementById('currFrom');
-  const toSel   = document.getElementById('currTo');
-
-  const html = CURRENCIES.map(c =>
-    `<option value="${c.code}">${c.flag} ${c.code} — ${c.name}</option>`
-  ).join('');
-
-  fromSel.innerHTML = html;
-  toSel.innerHTML   = html;
-
-  // Default: USD → EUR (relevant for Netherlands-based user)
-  fromSel.value = 'USD';
-  toSel.value   = 'EUR';
-}
-
-// ── Run the conversion and update result display ──────────
-function runCurrency() {
-  const amount   = parseFloat(document.getElementById('currAmount').value);
-  const fromCode = document.getElementById('currFrom').value;
-  const toCode   = document.getElementById('currTo').value;
-  const resultEl = document.getElementById('currResult');
-  const labelEl  = document.getElementById('currResultLabel');
-
-  if (isNaN(amount) || amount < 0) {
-    resultEl.textContent = '—';
-    labelEl.textContent  = 'Enter a valid amount';
-    return;
-  }
-
-  const rateFrom = RATES[fromCode];
-  const rateTo   = RATES[toCode];
-
-  if (!rateFrom || !rateTo) {
-    resultEl.textContent = 'Rate unavailable';
-    labelEl.textContent  = '';
-    return;
-  }
-
-  // Conversion via USD pivot: fromCode → USD → toCode
-  const result   = (amount / rateFrom) * rateTo;
-  const unitRate = (1 / rateFrom) * rateTo;
-
-  resultEl.textContent = result.toLocaleString('en-US', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  }) + ' ' + toCode;
-
-  labelEl.textContent =
-    `${amount.toLocaleString()} ${fromCode}  ·  1 ${fromCode} = ${unitRate.toFixed(4)} ${toCode}`;
-}
-
-// ── Swap the two currency selects ─────────────────────────
-function swapCurrency() {
-  const fromSel = document.getElementById('currFrom');
-  const toSel   = document.getElementById('currTo');
-  const tmp     = fromSel.value;
-  fromSel.value = toSel.value;
-  toSel.value   = tmp;
-  runCurrency();
-}
-
-// ── Initialise on page load ───────────────────────────────
-populateCurrencySelects();
-loadLiveRates();  // fetches live data; falls back silently if it fails
