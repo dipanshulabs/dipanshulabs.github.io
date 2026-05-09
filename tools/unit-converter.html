@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Unit Converter | Dipanshu Sharma Engineering Tools</title>
+  <meta name="description" content="Engineering unit converter for flow rate, velocity, pressure, force, length, area, volume, rainfall, slope, and roughness reference tables." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="tools.css" />
+</head>
+<body>
+
+  <!-- ── Navigation ── -->
+  <nav class="tool-nav" role="navigation" aria-label="Tools navigation">
+    <div class="tool-nav-inner">
+      <a href="../index.html" class="tool-brand">Dipanshu Sharma</a>
+      <div class="tool-nav-links">
+        <a href="index.html" class="tool-nav-back">← All Tools</a>
+        <span class="tool-nav-breadcrumb">Unit Converter</span>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ── Page Header ── -->
+  <header class="tool-hero tool-hero-sm">
+    <div class="container">
+      <div class="tool-breadcrumb">Tools / Unit Converter</div>
+      <h1 class="tool-hero-title">Engineering <em>Unit Converter</em></h1>
+      <p class="tool-hero-sub">
+        Select a category, enter a value, choose your units — result updates instantly.
+        Includes Manning n and Hazen-Williams C reference tables.
+      </p>
+    </div>
+  </header>
+
+  <!-- ── Tool Content ── -->
+  <main class="tool-body">
+    <div class="container">
+
+      <!-- Category selector pills -->
+      <!-- These buttons correspond to keys in the CATEGORIES object in the <script> below -->
+      <div class="cat-tabs" role="group" aria-label="Unit categories" id="catTabs">
+        <!-- Populated by JavaScript -->
+      </div>
+
+      <!-- Converter card (shown for all categories except Roughness Reference) -->
+      <div class="tool-panel" id="converterPanel">
+
+        <!-- Category description -->
+        <p id="catDescription" style="font-size:0.85rem;color:var(--slate-mid);margin-bottom:1.25rem;line-height:1.6;"></p>
+
+        <!-- Main converter row: Value | From | ⇄ | To | Result -->
+        <div class="conv-row">
+          <div class="conv-col">
+            <div class="conv-label">Value</div>
+            <input class="conv-input" type="number" id="convValue"
+                   placeholder="Enter value" value="1"
+                   oninput="runConvert()" aria-label="Input value" />
+          </div>
+          <div class="conv-col">
+            <div class="conv-label">From</div>
+            <select class="conv-select" id="convFrom"
+                    onchange="runConvert()" aria-label="From unit"></select>
+          </div>
+          <!-- Swap button -->
+          <div class="conv-col conv-col-swap" style="padding-top:1.2rem;">
+            <button class="conv-swap" onclick="swapUnits()"
+                    title="Swap units" aria-label="Swap from and to units">⇄</button>
+          </div>
+          <div class="conv-col">
+            <div class="conv-label">To</div>
+            <select class="conv-select" id="convTo"
+                    onchange="runConvert()" aria-label="To unit"></select>
+          </div>
+          <div class="conv-col conv-col-result">
+            <div class="conv-label">Result</div>
+            <div class="conv-result" id="convResult"
+                 aria-live="polite" aria-label="Conversion result">—</div>
+          </div>
+        </div>
+
+        <!-- Special note shown for slope "1 in N" -->
+        <p id="slopeNote" class="tool-note" style="display:none;">
+          <strong>For "1 in N" slope notation:</strong> Enter the denominator N
+          (e.g. for a slope of 1 in 100, enter 100). Output also shows N.
+          Cannot convert when slope is exactly zero.
+        </p>
+
+        <div class="formula-box" style="margin-top:1rem;">
+          <h4>Conversion method</h4>
+          <div class="formula-text">result = value × (fromUnit factor ÷ toUnit factor)</div>
+          <div class="formula-vars">
+            <span>All units convert through a common SI base unit.</span>
+            <span id="baseUnitNote" style="color:var(--ocean);font-weight:500;"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Roughness Reference panel (shown only for that category) -->
+      <div class="tool-panel" id="roughnessPanel" style="display:none;">
+
+        <!-- Manning's n reference table -->
+        <h3 style="font-family:var(--font-display);font-size:1.3rem;font-weight:400;color:var(--ocean);margin-bottom:0.5rem;">
+          Manning's Roughness Coefficient (n)
+        </h3>
+        <p style="font-size:0.85rem;color:var(--slate-mid);margin-bottom:1rem;">
+          Used in Manning's equation for open channel flow: Q = (1/n) A R²/³ S¹/²
+        </p>
+        <div class="ref-table-wrap">
+          <table class="ref-table" aria-label="Manning roughness values">
+            <thead>
+              <tr><th>Surface / Channel Type</th><th style="text-align:right;">n (typical range)</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Smooth concrete lining</td><td>0.011 – 0.013</td></tr>
+              <tr><td>Rough concrete / gunite</td><td>0.015 – 0.017</td></tr>
+              <tr><td>PVC / HDPE pipe</td><td>0.009 – 0.011</td></tr>
+              <tr><td>Cast iron pipe (uncoated)</td><td>0.013 – 0.015</td></tr>
+              <tr><td>Welded steel pipe</td><td>0.010 – 0.014</td></tr>
+              <tr><td>Corrugated metal pipe</td><td>0.019 – 0.024</td></tr>
+              <tr><td>Brick lining</td><td>0.014 – 0.017</td></tr>
+              <tr><td>Rubble masonry</td><td>0.017 – 0.030</td></tr>
+              <tr><td>Natural channel — clean, straight</td><td>0.025 – 0.030</td></tr>
+              <tr><td>Natural channel — winding, some pools</td><td>0.033 – 0.045</td></tr>
+              <tr><td>Natural channel — heavy vegetation</td><td>0.050 – 0.100</td></tr>
+              <tr><td>Flood plain — pasture, farmland</td><td>0.025 – 0.035</td></tr>
+              <tr><td>Flood plain — dense brush / trees</td><td>0.070 – 0.150</td></tr>
+              <tr><td>Grass-lined swale</td><td>0.025 – 0.040</td></tr>
+              <tr><td>Rock-lined channel</td><td>0.025 – 0.045</td></tr>
+              <tr><td>Gravel river bed</td><td>0.025 – 0.038</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div style="margin-top:2rem;">
+          <h3 style="font-family:var(--font-display);font-size:1.3rem;font-weight:400;color:var(--ocean);margin-bottom:0.5rem;">
+            Hazen-Williams Coefficient (C)
+          </h3>
+          <p style="font-size:0.85rem;color:var(--slate-mid);margin-bottom:1rem;">
+            Used in Hazen-Williams formula for pressurised pipe flow: V = 0.849 C R⁰·⁶³ S⁰·⁵⁴
+            Higher C = smoother pipe = less friction.
+          </p>
+          <div class="ref-table-wrap">
+            <table class="ref-table" aria-label="Hazen-Williams C values">
+              <thead>
+                <tr><th>Pipe Material / Condition</th><th style="text-align:right;">C (typical)</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>PVC (new)</td><td>140 – 150</td></tr>
+                <tr><td>HDPE (new)</td><td>140 – 150</td></tr>
+                <tr><td>Smooth concrete (new)</td><td>130 – 140</td></tr>
+                <tr><td>Asbestos cement</td><td>130 – 140</td></tr>
+                <tr><td>Ductile iron (cement-lined)</td><td>130 – 140</td></tr>
+                <tr><td>Cast iron (new, unlined)</td><td>130</td></tr>
+                <tr><td>Steel (welded, new)</td><td>100 – 120</td></tr>
+                <tr><td>Galvanised iron</td><td>100 – 120</td></tr>
+                <tr><td>Cast iron (20 years old)</td><td>100 – 110</td></tr>
+                <tr><td>Cast iron (heavily tuberculated)</td><td>60 – 80</td></tr>
+                <tr><td>Concrete (rough / old)</td><td>85 – 100</td></tr>
+                <tr><td>Brick sewer</td><td>90 – 100</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <p class="tool-note" style="margin-top:1.5rem;">
+          Values are indicative ranges from standard hydraulic engineering references
+          (Chaudhry, Mays, CIRIA). Always verify with pipe manufacturer data and
+          local design standards for professional use.
+        </p>
+      </div>
+
+    </div>
+  </main>
+
+  <footer class="tool-footer">
+    <div class="container">
+      <p>© <span id="year"></span> Dipanshu Sharma · <a href="index.html">All Tools</a> · <a href="../index.html">Portfolio</a></p>
+    </div>
+  </footer>
+
+  <script src="tools.js"></script>
+  <script>
+  /* ═══════════════════════════════════════════════════════
+     Unit Converter — All logic lives here.
+     To add a new unit: add an entry to the matching
+     category's `units` array with a `label` and `factor`.
+     The `factor` converts that unit TO the base SI unit.
+  ═══════════════════════════════════════════════════════ */
+
+  // ── Category definitions ─────────────────────────────────
+  // Each category has a label, base unit, description, and
+  // an array of units with a `factor` = multiplier to base.
+  // Special categories have `special: true` or `reference: true`.
+
+  const CATEGORIES = {
+
+    flowrate: {
+      label: 'Flow Rate',
+      base: 'm³/s',
+      description: 'Volume of fluid passing a point per unit time. SI base unit: m³/s.',
+      units: [
+        { label: 'm³/s',   factor: 1             },  // SI base
+        { label: 'm³/day', factor: 1 / 86400      },  // 1 day = 86400 s
+        { label: 'L/s',    factor: 0.001          },  // 1 L = 0.001 m³
+        { label: 'L/min',  factor: 0.001 / 60     },  // 1 L/min = 0.001/60 m³/s
+        { label: 'm³/h',   factor: 1 / 3600       },  // 1 h = 3600 s
+        { label: 'GPM',    factor: 6.30902e-5     },  // US gallon per minute
+        { label: 'CFS',    factor: 0.0283168      },  // cubic feet per second
+        { label: 'MLD',    factor: 1000 / 86400   },  // megalitres per day (1 ML = 1000 m³)
+        { label: 'MGD US', factor: 0.0438126      },  // million US gallons/day
+        { label: 'MIGD',   factor: 0.0526168      },  // million imperial gallons/day
+      ]
+    },
+
+    velocity: {
+      label: 'Velocity',
+      base: 'm/s',
+      description: 'Speed of fluid flow. SI base unit: m/s.',
+      units: [
+        { label: 'm/s',  factor: 1        },
+        { label: 'ft/s', factor: 0.3048   },  // 1 ft = 0.3048 m
+        { label: 'km/h', factor: 1 / 3.6  },  // 1 km/h = 1000/3600 m/s
+        { label: 'mph',  factor: 0.44704  },  // 1 mile = 1609.344 m
+      ]
+    },
+
+    pressure: {
+      label: 'Pressure / Head',
+      base: 'Pa',
+      description: 'Force per unit area. mH₂O and ftH₂O are equivalent hydraulic head (water at 4°C, standard gravity). SI base unit: Pa.',
+      units: [
+        { label: 'Pa',    factor: 1         },  // Pascal (SI base)
+        { label: 'kPa',   factor: 1000      },
+        { label: 'MPa',   factor: 1e6       },
+        { label: 'bar',   factor: 100000    },
+        { label: 'psi',   factor: 6894.757  },  // pounds per square inch
+        { label: 'atm',   factor: 101325    },  // standard atmosphere
+        { label: 'mH₂O',  factor: 9806.65  },  // metres of water (g = 9.80665 m/s²)
+        { label: 'ftH₂O', factor: 2988.98  },  // feet of water
+      ]
+    },
+
+    force: {
+      label: 'Force',
+      base: 'N',
+      description: 'Mechanical force. SI base unit: Newton (N).',
+      units: [
+        { label: 'N',   factor: 1        },  // Newton (SI base)
+        { label: 'kN',  factor: 1000     },
+        { label: 'MN',  factor: 1e6      },
+        { label: 'kgf', factor: 9.80665  },  // kilogram-force
+        { label: 'lbf', factor: 4.44822  },  // pound-force
+        { label: 'kip', factor: 4448.22  },  // kilo-pound-force (1000 lbf)
+      ]
+    },
+
+    length: {
+      label: 'Length',
+      base: 'm',
+      description: 'Linear distance. SI base unit: metre (m).',
+      units: [
+        { label: 'mm',   factor: 0.001     },
+        { label: 'cm',   factor: 0.01      },
+        { label: 'm',    factor: 1         },
+        { label: 'km',   factor: 1000      },
+        { label: 'inch', factor: 0.0254    },
+        { label: 'ft',   factor: 0.3048    },
+        { label: 'yard', factor: 0.9144    },
+        { label: 'mile', factor: 1609.344  },
+      ]
+    },
+
+    area: {
+      label: 'Area',
+      base: 'm²',
+      description: 'Surface area. SI base unit: m².',
+      units: [
+        { label: 'm²',   factor: 1          },
+        { label: 'km²',  factor: 1e6        },
+        { label: 'ha',   factor: 10000      },  // 1 ha = 10,000 m²
+        { label: 'acre', factor: 4046.856   },  // 1 acre ≈ 4046.86 m²
+        { label: 'ft²',  factor: 0.092903   },
+        { label: 'yd²',  factor: 0.836127   },
+      ]
+    },
+
+    volume: {
+      label: 'Volume',
+      base: 'm³',
+      description: 'Volume of fluid. SI base unit: m³.',
+      units: [
+        { label: 'm³',        factor: 1          },
+        { label: 'L',         factor: 0.001      },  // 1 L = 0.001 m³
+        { label: 'ML',        factor: 1000       },  // megalitre
+        { label: 'gallon US', factor: 0.00378541 },  // US liquid gallon
+        { label: 'gallon UK', factor: 0.00454609 },  // imperial gallon
+        { label: 'ft³',       factor: 0.0283168  },  // cubic feet
+        { label: 'acre-ft',   factor: 1233.48    },  // common in irrigation
+      ]
+    },
+
+    rainfall_depth: {
+      label: 'Rainfall Depth',
+      base: 'mm',
+      description: 'Depth of rainfall accumulated over a period. SI base: mm.',
+      units: [
+        { label: 'mm',   factor: 1     },
+        { label: 'inch', factor: 25.4  },  // 1 inch = 25.4 mm
+      ]
+    },
+
+    rainfall_intensity: {
+      label: 'Rainfall Intensity',
+      base: 'mm/hr',
+      description: 'Rainfall rate. Base unit: mm/hr. Note: L/s/ha and m³/s/km² include catchment area — these convert as intensity (depth/time) assuming unit area basis.',
+      units: [
+        { label: 'mm/hr',    factor: 1        },  // base
+        { label: 'inch/hr',  factor: 25.4     },  // 1 inch/hr = 25.4 mm/hr
+        { label: 'L/s/ha',   factor: 0.36     },  // 1 L/s/ha = 0.36 mm/hr
+        { label: 'm³/s/km²', factor: 3.6      },  // 1 m³/s/km² = 3.6 mm/hr
+        { label: 'mm/day',   factor: 1 / 24   },  // 1 mm/day = 1/24 mm/hr
+      ]
+    },
+
+    // Discharge per unit area (specific runoff / unit hydrograph units)
+    discharge_per_area: {
+      label: 'Discharge / Area',
+      base: 'L/s/ha',
+      description: 'Specific discharge — flow rate per unit catchment area. Commonly used in hydrology and drainage design.',
+      units: [
+        { label: 'L/s/ha',    factor: 1         },  // base
+        { label: 'm³/s/km²',  factor: 10        },  // 1 m³/s/km² = 10 L/s/ha
+        { label: 'mm/hr',     factor: 1 / 0.36  },  // 1 mm/hr = 1/0.36 L/s/ha ≈ 2.778
+        { label: 'mm/day',    factor: 1 / 8.64  },  // 1 mm/day = 1/8.64 L/s/ha ≈ 0.1157
+      ]
+    },
+
+    // Slope: special handling needed for "1 in N" and "degrees"
+    slope: {
+      label: 'Slope / Gradient',
+      base: 'm/m',
+      special: true,
+      description: 'Channel or pipe slope. "1 in N" means 1 unit rise per N units of horizontal distance. Degrees uses trigonometry: slope = tan(θ).',
+      units: ['m/m', '%', '1 in N', 'degrees']
+    },
+
+    // Manning n and HW C are reference-only (no conversion)
+    roughness: {
+      label: 'Roughness Reference',
+      reference: true,
+      description: 'Reference tables for Manning roughness coefficient (n) and Hazen-Williams coefficient (C). No conversion — display only.'
+    }
+
+  };
+
+  // Tracks the currently active category key
+  let currentCat = 'flowrate';
+
+  // ── Build category tab buttons ───────────────────────────
+  function buildCatTabs() {
+    const container = document.getElementById('catTabs');
+    container.innerHTML = '';
+    Object.keys(CATEGORIES).forEach(key => {
+      const cat = CATEGORIES[key];
+      const btn = document.createElement('button');
+      btn.className = 'cat-btn' + (key === currentCat ? ' active' : '');
+      btn.textContent = cat.label;
+      btn.onclick = () => setCategory(key);
+      btn.setAttribute('aria-pressed', key === currentCat ? 'true' : 'false');
+      container.appendChild(btn);
+    });
+  }
+
+  // ── Switch to a category ────────────────────────────────
+  function setCategory(key) {
+    currentCat = key;
+    const cat = CATEGORIES[key];
+
+    // Update button active states
+    document.querySelectorAll('#catTabs .cat-btn').forEach((btn, i) => {
+      const k = Object.keys(CATEGORIES)[i];
+      btn.classList.toggle('active', k === key);
+      btn.setAttribute('aria-pressed', k === key ? 'true' : 'false');
+    });
+
+    // Show the right panel
+    const isRef = cat.reference === true;
+    document.getElementById('converterPanel').style.display = isRef ? 'none' : 'block';
+    document.getElementById('roughnessPanel').style.display = isRef ? 'block' : 'none';
+
+    if (!isRef) {
+      // Update description text
+      document.getElementById('catDescription').textContent = cat.description || '';
+
+      // Show/hide slope note
+      document.getElementById('slopeNote').style.display =
+        cat.special ? 'block' : 'none';
+
+      // Update base unit note
+      document.getElementById('baseUnitNote').textContent =
+        cat.special
+          ? 'Slope uses trigonometric conversion (not a simple multiplier).'
+          : 'Base unit: ' + cat.base;
+
+      // Populate From/To selects
+      populateSelects(key);
+      runConvert();
+    }
+  }
+
+  // ── Populate the From / To unit selects ─────────────────
+  function populateSelects(key) {
+    const cat = CATEGORIES[key];
+    const fromSel = document.getElementById('convFrom');
+    const toSel   = document.getElementById('convTo');
+
+    const unitLabels = cat.special ? cat.units : cat.units.map(u => u.label);
+    const html = unitLabels.map((label, i) =>
+      `<option value="${i}">${label}</option>`
+    ).join('');
+
+    fromSel.innerHTML = html;
+    toSel.innerHTML   = html;
+
+    // Sensible defaults: first unit → second unit
+    fromSel.value = '0';
+    toSel.value   = unitLabels.length > 1 ? '1' : '0';
+  }
+
+  // ── Convert and display the result ──────────────────────
+  function runConvert() {
+    const value    = parseFloat(document.getElementById('convValue').value);
+    const fromIdx  = parseInt(document.getElementById('convFrom').value, 10);
+    const toIdx    = parseInt(document.getElementById('convTo').value, 10);
+    const resultEl = document.getElementById('convResult');
+    const cat      = CATEGORIES[currentCat];
+
+    if (isNaN(value)) { resultEl.textContent = '—'; return; }
+
+    let result;
+    let toLabel;
+
+    if (cat.special) {
+      // ── Slope conversion (special trigonometric logic) ──
+      const fromLabel = cat.units[fromIdx];
+      toLabel = cat.units[toIdx];
+
+      // Step 1: convert FROM input unit → m/m (base slope value)
+      let slopeMpM;
+      if      (fromLabel === 'm/m')     { slopeMpM = value; }
+      else if (fromLabel === '%')        { slopeMpM = value / 100; }
+      else if (fromLabel === '1 in N')  {
+        if (value === 0) { resultEl.textContent = 'Error: N cannot be zero'; return; }
+        slopeMpM = 1 / value;
+      }
+      else if (fromLabel === 'degrees') { slopeMpM = Math.tan(value * Math.PI / 180); }
+
+      // Step 2: convert FROM m/m → TO unit
+      if      (toLabel === 'm/m')     { result = slopeMpM; }
+      else if (toLabel === '%')        { result = slopeMpM * 100; }
+      else if (toLabel === '1 in N')  {
+        if (slopeMpM === 0) { resultEl.textContent = 'Error: slope is zero'; return; }
+        result = 1 / slopeMpM;
+      }
+      else if (toLabel === 'degrees') { result = Math.atan(slopeMpM) * 180 / Math.PI; }
+
+    } else {
+      // ── Standard multiplicative conversion ──
+      const fromUnit = cat.units[fromIdx];
+      const toUnit   = cat.units[toIdx];
+      toLabel = toUnit.label;
+      // Convert via SI base: value × fromFactor ÷ toFactor
+      result = value * fromUnit.factor / toUnit.factor;
+    }
+
+    resultEl.textContent = formatNum(result) + ' ' + toLabel;
+  }
+
+  // ── Swap From and To unit selects ───────────────────────
+  function swapUnits() {
+    const fromSel = document.getElementById('convFrom');
+    const toSel   = document.getElementById('convTo');
+    const tmp = fromSel.value;
+    fromSel.value = toSel.value;
+    toSel.value   = tmp;
+    runConvert();
+  }
+
+  // ── Initialise on page load ──────────────────────────────
+  buildCatTabs();
+  setCategory('flowrate');
+  </script>
+</body>
+</html>
