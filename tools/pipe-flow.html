@@ -1,1 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pipe Flow Calculator | Dipanshu Sharma Tools</title>
+  <meta name="description" content="Pipe flow calculator — Hazen-Williams and Darcy-Weisbach. Coming soon." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="tools.css" />
+</head>
+<body>
 
+  <!-- Navigation -->
+  <nav class="tool-nav" role="navigation">
+    <div class="tool-nav-inner">
+      <a href="../index.html" class="tool-brand">Dipanshu Sharma</a>
+      <div class="tool-nav-links">
+        <a href="index.html" class="tool-nav-back">← All Tools</a>
+        <span class="tool-nav-breadcrumb">Pipe Flow</span>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Page header -->
+  <header class="tool-hero tool-hero-sm">
+    <div class="container">
+      <div class="tool-breadcrumb">Tools / Pipe Flow Calculator</div>
+      <h1 class="tool-hero-title">Pipe Flow <em>Calculator</em></h1>
+      <p class="tool-hero-sub">
+        Hazen-Williams and Darcy-Weisbach pipe flow calculations — coming soon.
+      </p>
+    </div>
+  </header>
+
+  <main class="tool-body">
+    <div class="container">
+
+      <!-- Coming soon panel -->
+      <div class="tool-panel" style="text-align:center;padding:3rem 2rem;
+                                     max-width:600px;margin:0 auto;">
+        <div style="font-size:3.5rem;margin-bottom:1rem;line-height:1;">⧖</div>
+        <h2 style="font-family:var(--font-display);font-size:1.8rem;
+                   font-weight:300;color:var(--ocean);margin-bottom:0.75rem;">
+          This tool is being built
+        </h2>
+        <p style="font-size:0.95rem;color:var(--slate-mid);
+                  line-height:1.75;margin-bottom:2rem;">
+          The Pipe Flow Calculator will include both
+          <strong>Hazen-Williams</strong> and <strong>Darcy-Weisbach</strong>
+          methods for pressurised pipe systems — calculating headloss, flow
+          velocity, and discharge given pipe diameter, length, material
+          roughness, and design flow.
+        </p>
+        <a href="index.html" class="btn btn-primary">← Back to All Tools</a>
+      </div>
+
+      <!-- Reference formulas shown while the calculator is not yet built -->
+      <div style="max-width:700px;margin:2rem auto 0;">
+
+        <div class="formula-box">
+          <h4>Hazen-Williams (velocity form)</h4>
+          <div class="formula-text">V = 0.849 × C × R^0.63 × S^0.54</div>
+          <div class="formula-vars">
+            <span>V = velocity (m/s)</span>
+            <span>C = Hazen-Williams roughness coefficient (dimensionless)</span>
+            <span>R = hydraulic radius (m) = D/4 for full circular pipe</span>
+            <span>S = hydraulic gradient = h_f / L (m/m)</span>
+            <span>Q = V × A — multiply by pipe area for discharge (m³/s)</span>
+          </div>
+        </div>
+
+        <div class="formula-box" style="margin-top:1rem;">
+          <h4>Darcy-Weisbach (headloss)</h4>
+          <div class="formula-text">h_f = f × (L / D) × (V² / 2g)</div>
+          <div class="formula-vars">
+            <span>h_f = friction headloss (m)</span>
+            <span>f   = Darcy-Weisbach friction factor (dimensionless)</span>
+            <span>L   = pipe length (m)</span>
+            <span>D   = internal pipe diameter (m)</span>
+            <span>V   = flow velocity (m/s)</span>
+            <span>g   = gravitational acceleration = 9.81 m/s²</span>
+          </div>
+        </div>
+
+        <div class="formula-box" style="margin-top:1rem;">
+          <h4>Colebrook-White (friction factor — turbulent flow)</h4>
+          <div class="formula-text">
+            1/√f = −2 log₁₀ ( ε / (3.7D) + 2.51 / (Re √f) )
+          </div>
+          <div class="formula-vars">
+            <span>ε   = equivalent pipe roughness height (m)</span>
+            <span>Re  = Reynolds number (dimensionless)</span>
+            <span>Solved iteratively — or use the Swamee-Jain explicit approximation</span>
+          </div>
+        </div>
+
+        <!-- Links to existing tools -->
+        <p class="tool-note" style="margin-top:1.5rem;">
+          While this calculator is under development, you can use the
+          <a href="unit-converter.html"
+             style="color:var(--ocean-mid);text-decoration:underline;">
+            Roughness Reference table
+          </a>
+          for Hazen-Williams C values, and the
+          <a href="reynolds-number.html"
+             style="color:var(--ocean-mid);text-decoration:underline;">
+            Reynolds Number Calculator
+          </a>
+          to determine the flow regime before selecting a friction factor.
+        </p>
+
+      </div>
+
+    </div>
+  </main>
+
+  <footer class="tool-footer">
+    <div class="container">
+      <p>
+        © <span id="year"></span> Dipanshu Sharma ·
+        <a href="index.html">All Tools</a> ·
+        <a href="../index.html">Portfolio</a>
+      </p>
+    </div>
+  </footer>
+
+  <script src="tools.js"></script>
+</body>
+</html>
