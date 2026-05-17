@@ -4,11 +4,107 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Pipe Flow Calculator | Dipanshu Sharma Tools</title>
-  <meta name="description" content="Pipe flow calculator — Hazen-Williams and Darcy-Weisbach. Coming soon." />
+  <meta name="description" content="Pipe flow calculator using Hazen-Williams and Darcy-Weisbach methods. Calculate headloss, velocity, and discharge for pressurised pipe systems." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="tools.css" />
+  <style>
+    /* ── Extra styles only used on this page ── */
+
+    /* Tab switcher between HW and DW methods */
+    .method-tabs {
+      display: flex;
+      gap: 0;
+      margin-bottom: 1.75rem;
+      background: var(--mist);
+      border-radius: 10px;
+      padding: 5px;
+      width: fit-content;
+    }
+    .method-btn {
+      padding: 0.6rem 1.5rem;
+      border: none;
+      border-radius: 7px;
+      background: transparent;
+      font-family: var(--font-body);
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--slate-mid);
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .method-btn.active {
+      background: var(--ocean);
+      color: var(--white);
+      box-shadow: 0 2px 8px rgba(11,79,108,0.25);
+    }
+    .method-btn:hover:not(.active) { color: var(--ocean); }
+
+    /* Solve-for radio toggle */
+    .solve-toggle {
+      display: flex;
+      gap: 0;
+      margin-bottom: 1.25rem;
+      border: 1.5px solid rgba(11,79,108,0.18);
+      border-radius: 8px;
+      overflow: hidden;
+      width: fit-content;
+    }
+    .solve-btn {
+      padding: 0.5rem 1.1rem;
+      border: none;
+      background: transparent;
+      font-family: var(--font-body);
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--slate-mid);
+      cursor: pointer;
+      transition: all 0.18s;
+    }
+    .solve-btn:first-child { border-right: 1.5px solid rgba(11,79,108,0.18); }
+    .solve-btn.active { background: var(--ocean); color: var(--white); }
+    .solve-btn:hover:not(.active) { background: var(--mist); }
+
+    /* Preset material buttons */
+    .preset-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-top: 0.4rem;
+    }
+    .preset-btn {
+      padding: 0.3rem 0.75rem;
+      border: 1.5px solid rgba(11,79,108,0.18);
+      border-radius: 100px;
+      background: transparent;
+      font-family: var(--font-body);
+      font-size: 0.72rem;
+      font-weight: 500;
+      color: var(--slate-mid);
+      cursor: pointer;
+      transition: all 0.18s;
+    }
+    .preset-btn:hover { border-color: var(--ocean); color: var(--ocean); }
+
+    /* Section divider inside a panel */
+    .panel-divider {
+      border: none;
+      border-top: 1px solid var(--mist);
+      margin: 1.25rem 0;
+    }
+
+    /* Label above a group of inputs or toggles */
+    .group-label {
+      font-size: 0.72rem;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--slate-lt);
+      margin-bottom: 0.5rem;
+    }
+  </style>
 </head>
 <body>
 
@@ -18,7 +114,7 @@
       <a href="../index.html" class="tool-brand">Dipanshu Sharma</a>
       <div class="tool-nav-links">
         <a href="index.html" class="tool-nav-back">← All Tools</a>
-        <span class="tool-nav-breadcrumb">Pipe Flow</span>
+        <span class="tool-nav-breadcrumb">Pipe Flow Calculator</span>
       </div>
     </div>
   </nav>
@@ -29,7 +125,8 @@
       <div class="tool-breadcrumb">Tools / Pipe Flow Calculator</div>
       <h1 class="tool-hero-title">Pipe Flow <em>Calculator</em></h1>
       <p class="tool-hero-sub">
-        Hazen-Williams and Darcy-Weisbach pipe flow calculations — coming soon.
+        Calculate headloss, velocity, and discharge for full-bore pressurised
+        pipe flow using Hazen-Williams or Darcy-Weisbach methods.
       </p>
     </div>
   </header>
@@ -37,81 +134,319 @@
   <main class="tool-body">
     <div class="container">
 
-      <!-- Coming soon panel -->
-      <div class="tool-panel" style="text-align:center;padding:3rem 2rem;
-                                     max-width:600px;margin:0 auto;">
-        <div style="font-size:3.5rem;margin-bottom:1rem;line-height:1;">⧖</div>
-        <h2 style="font-family:var(--font-display);font-size:1.8rem;
-                   font-weight:300;color:var(--ocean);margin-bottom:0.75rem;">
-          This tool is being built
-        </h2>
-        <p style="font-size:0.95rem;color:var(--slate-mid);
-                  line-height:1.75;margin-bottom:2rem;">
-          The Pipe Flow Calculator will include both
-          <strong>Hazen-Williams</strong> and <strong>Darcy-Weisbach</strong>
-          methods for pressurised pipe systems — calculating headloss, flow
-          velocity, and discharge given pipe diameter, length, material
-          roughness, and design flow.
-        </p>
-        <a href="index.html" class="btn btn-primary">← Back to All Tools</a>
+      <!-- Method tab switcher -->
+      <div class="method-tabs" role="tablist" aria-label="Calculation method">
+        <button class="method-btn active" id="btnHW" role="tab"
+                aria-selected="true" aria-controls="panelHW"
+                onclick="switchMethod('hw')">
+          Hazen-Williams
+        </button>
+        <button class="method-btn" id="btnDW" role="tab"
+                aria-selected="false" aria-controls="panelDW"
+                onclick="switchMethod('dw')">
+          Darcy-Weisbach
+        </button>
       </div>
 
-      <!-- Reference formulas shown while the calculator is not yet built -->
-      <div style="max-width:700px;margin:2rem auto 0;">
+      <!-- ══════════════════════════════════════════
+           HAZEN-WILLIAMS PANEL
+      ══════════════════════════════════════════ -->
+      <div id="panelHW" role="tabpanel">
+        <div class="tool-layout">
 
-        <div class="formula-box">
-          <h4>Hazen-Williams (velocity form)</h4>
-          <div class="formula-text">V = 0.849 × C × R^0.63 × S^0.54</div>
-          <div class="formula-vars">
-            <span>V = velocity (m/s)</span>
-            <span>C = Hazen-Williams roughness coefficient (dimensionless)</span>
-            <span>R = hydraulic radius (m) = D/4 for full circular pipe</span>
-            <span>S = hydraulic gradient = h_f / L (m/m)</span>
-            <span>Q = V × A — multiply by pipe area for discharge (m³/s)</span>
+          <!-- LEFT: HW Inputs -->
+          <div class="tool-panel">
+            <h2 class="tool-panel-title">Hazen-Williams — Inputs</h2>
+
+            <!-- Pipe material presets for C -->
+            <div class="field-group">
+              <label class="field-label" for="hwC">
+                Hazen-Williams Coefficient (C)
+              </label>
+              <div class="field-row">
+                <input class="field-input" type="number" id="hwC"
+                       placeholder="e.g. 140" min="1" max="200"
+                       step="1" value="140" />
+              </div>
+              <small class="group-label" style="margin-top:0.6rem;">
+                Quick material presets:
+              </small>
+              <div class="preset-row">
+                <button class="preset-btn" onclick="setHWC(150)">PVC / HDPE (150)</button>
+                <button class="preset-btn" onclick="setHWC(140)">New concrete (140)</button>
+                <button class="preset-btn" onclick="setHWC(130)">Cast iron new (130)</button>
+                <button class="preset-btn" onclick="setHWC(120)">Welded steel (120)</button>
+                <button class="preset-btn" onclick="setHWC(100)">Cast iron old (100)</button>
+                <button class="preset-btn" onclick="setHWC(90)">Old/tuberculated (90)</button>
+              </div>
+            </div>
+
+            <!-- Pipe diameter -->
+            <div class="field-group">
+              <label class="field-label" for="hwD">Pipe Internal Diameter (D)</label>
+              <div class="field-row">
+                <input class="field-input has-unit" type="number" id="hwD"
+                       placeholder="e.g. 300" min="0" step="1" />
+                <span class="field-unit">mm</span>
+              </div>
+            </div>
+
+            <!-- Pipe length -->
+            <div class="field-group">
+              <label class="field-label" for="hwL">Pipe Length (L)</label>
+              <div class="field-row">
+                <input class="field-input has-unit" type="number" id="hwL"
+                       placeholder="e.g. 500" min="0" step="1" />
+                <span class="field-unit">m</span>
+              </div>
+            </div>
+
+            <hr class="panel-divider" />
+
+            <!-- Solve-for toggle -->
+            <div class="group-label">Solve for:</div>
+            <div class="solve-toggle" role="group" aria-label="Choose what to solve">
+              <button class="solve-btn active" id="hwBtnHf"
+                      onclick="setHWSolve('headloss')">
+                Headloss from Flow
+              </button>
+              <button class="solve-btn" id="hwBtnQ"
+                      onclick="setHWSolve('flow')">
+                Flow from Headloss
+              </button>
+            </div>
+
+            <!-- Input shown when solving for headloss (need Q) -->
+            <div id="hwInputQ" class="field-group">
+              <label class="field-label" for="hwQ">Flow Rate (Q)</label>
+              <div class="field-row">
+                <input class="field-input has-unit" type="number" id="hwQ"
+                       placeholder="e.g. 50" min="0" step="0.1" />
+                <select class="field-select" id="hwQUnit"
+                        style="max-width:85px;border-left:none;
+                               border-radius:0 8px 8px 0;">
+                  <option value="Ls">L/s</option>
+                  <option value="m3s">m³/s</option>
+                  <option value="m3h">m³/h</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Input shown when solving for flow (need hf) -->
+            <div id="hwInputHf" class="field-group" style="display:none;">
+              <label class="field-label" for="hwHf">Headloss (h_f)</label>
+              <div class="field-row">
+                <input class="field-input has-unit" type="number" id="hwHf"
+                       placeholder="e.g. 3.5" min="0" step="0.01" />
+                <span class="field-unit">m</span>
+              </div>
+            </div>
+
+            <button class="btn btn-primary btn-calc"
+                    onclick="calcHW()">Calculate</button>
           </div>
+
+          <!-- RIGHT: HW Results + formula -->
+          <div>
+            <div class="result-box" id="hwResults" style="min-height:260px;">
+              <div class="result-box-title">Results — Hazen-Williams</div>
+              <p style="color:rgba(255,255,255,0.5);font-size:0.9rem;margin-top:0.5rem;">
+                Fill in the inputs and press Calculate.
+              </p>
+            </div>
+
+            <div class="formula-box" style="margin-top:1rem;">
+              <h4>Hazen-Williams Formula</h4>
+              <div class="formula-text">
+                V = 0.849 × C × R^0.63 × S^0.54<br />
+                Q = V × A = V × π(D/2)²
+              </div>
+              <div class="formula-vars">
+                <span>V = mean velocity (m/s)</span>
+                <span>C = Hazen-Williams coefficient</span>
+                <span>R = hydraulic radius = D/4 for full circular pipe (m)</span>
+                <span>S = hydraulic gradient = h_f / L (m/m)</span>
+                <span>Q = flow rate (m³/s)</span>
+                <span>A = pipe cross-section area = π(D/2)² (m²)</span>
+              </div>
+            </div>
+
+            <div class="tool-note" style="margin-top:1rem;">
+              Hazen-Williams is empirical and valid for water at normal
+              temperatures in full pipe flow. For highly viscous fluids,
+              very small pipes, or laminar flow conditions, use Darcy-Weisbach.
+            </div>
+          </div>
+
         </div>
+      </div><!-- /panelHW -->
 
-        <div class="formula-box" style="margin-top:1rem;">
-          <h4>Darcy-Weisbach (headloss)</h4>
-          <div class="formula-text">h_f = f × (L / D) × (V² / 2g)</div>
-          <div class="formula-vars">
-            <span>h_f = friction headloss (m)</span>
-            <span>f   = Darcy-Weisbach friction factor (dimensionless)</span>
-            <span>L   = pipe length (m)</span>
-            <span>D   = internal pipe diameter (m)</span>
-            <span>V   = flow velocity (m/s)</span>
-            <span>g   = gravitational acceleration = 9.81 m/s²</span>
+
+      <!-- ══════════════════════════════════════════
+           DARCY-WEISBACH PANEL
+      ══════════════════════════════════════════ -->
+      <div id="panelDW" style="display:none;" role="tabpanel">
+        <div class="tool-layout">
+
+          <!-- LEFT: DW Inputs -->
+          <div class="tool-panel">
+            <h2 class="tool-panel-title">Darcy-Weisbach — Inputs</h2>
+
+            <!-- Roughness ε with material presets -->
+            <div class="field-group">
+              <label class="field-label" for="dwEps">
+                Pipe Roughness Height (ε)
+              </label>
+              <div class="field-row">
+                <input class="field-input has-unit" type="number" id="dwEps"
+                       placeholder="e.g. 0.0015" min="0" step="0.0001"
+                       value="0.0015" />
+                <span class="field-unit">mm</span>
+              </div>
+              <small class="group-label" style="margin-top:0.6rem;">
+                Quick material presets (ε in mm):
+              </small>
+              <div class="preset-row">
+                <button class="preset-btn" onclick="setDWEps(0.0015)">PVC / smooth (0.0015)</button>
+                <button class="preset-btn" onclick="setDWEps(0.045)">Welded steel (0.045)</button>
+                <button class="preset-btn" onclick="setDWEps(0.15)">Galv. iron (0.15)</button>
+                <button class="preset-btn" onclick="setDWEps(0.26)">Cast iron (0.26)</button>
+                <button class="preset-btn" onclick="setDWEps(0.3)">Concrete good (0.3)</button>
+                <button class="preset-btn" onclick="setDWEps(1.0)">Concrete rough (1.0)</button>
+              </div>
+            </div>
+
+            <!-- Pipe diameter -->
+            <div class="field-group">
+              <label class="field-label" for="dwD">Pipe Internal Diameter (D)</label>
+              <div class="field-row">
+                <input class="field-input has-unit" type="number" id="dwD"
+                       placeholder="e.g. 300" min="0" step="1" />
+                <span class="field-unit">mm</span>
+              </div>
+            </div>
+
+            <!-- Pipe length -->
+            <div class="field-group">
+              <label class="field-label" for="dwL">Pipe Length (L)</label>
+              <div class="field-row">
+                <input class="field-input has-unit" type="number" id="dwL"
+                       placeholder="e.g. 500" min="0" step="1" />
+                <span class="field-unit">m</span>
+              </div>
+            </div>
+
+            <!-- Kinematic viscosity with temperature presets -->
+            <div class="field-group">
+              <label class="field-label" for="dwNu">
+                Kinematic Viscosity of Water (ν)
+              </label>
+              <div class="field-row">
+                <input class="field-input has-unit" type="number" id="dwNu"
+                       placeholder="e.g. 1.004e-6" step="any"
+                       value="0.000001004" />
+                <span class="field-unit">m²/s</span>
+              </div>
+              <div class="preset-row" style="margin-top:0.5rem;">
+                <button class="preset-btn" onclick="setDWNu(0.000001787)">0 °C</button>
+                <button class="preset-btn" onclick="setDWNu(0.000001307)">10 °C</button>
+                <button class="preset-btn" onclick="setDWNu(0.000001004)">20 °C</button>
+                <button class="preset-btn" onclick="setDWNu(0.000000801)">30 °C</button>
+                <button class="preset-btn" onclick="setDWNu(0.000000658)">40 °C</button>
+              </div>
+            </div>
+
+            <hr class="panel-divider" />
+
+            <!-- Solve-for toggle -->
+            <div class="group-label">Solve for:</div>
+            <div class="solve-toggle" role="group">
+              <button class="solve-btn active" id="dwBtnHf"
+                      onclick="setDWSolve('headloss')">
+                Headloss from Flow
+              </button>
+              <button class="solve-btn" id="dwBtnQ"
+                      onclick="setDWSolve('flow')">
+                Flow from Headloss
+              </button>
+            </div>
+
+            <!-- Q input (when solving for headloss) -->
+            <div id="dwInputQ" class="field-group">
+              <label class="field-label" for="dwQ">Flow Rate (Q)</label>
+              <div class="field-row">
+                <input class="field-input has-unit" type="number" id="dwQ"
+                       placeholder="e.g. 50" min="0" step="0.1" />
+                <select class="field-select" id="dwQUnit"
+                        style="max-width:85px;border-left:none;
+                               border-radius:0 8px 8px 0;">
+                  <option value="Ls">L/s</option>
+                  <option value="m3s">m³/s</option>
+                  <option value="m3h">m³/h</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- hf input (when solving for flow) -->
+            <div id="dwInputHf" class="field-group" style="display:none;">
+              <label class="field-label" for="dwHf">Headloss (h_f)</label>
+              <div class="field-row">
+                <input class="field-input has-unit" type="number" id="dwHf"
+                       placeholder="e.g. 3.5" min="0" step="0.01" />
+                <span class="field-unit">m</span>
+              </div>
+            </div>
+
+            <button class="btn btn-primary btn-calc"
+                    onclick="calcDW()">Calculate</button>
           </div>
+
+          <!-- RIGHT: DW Results + formula -->
+          <div>
+            <div class="result-box" id="dwResults" style="min-height:280px;">
+              <div class="result-box-title">Results — Darcy-Weisbach</div>
+              <p style="color:rgba(255,255,255,0.5);font-size:0.9rem;margin-top:0.5rem;">
+                Fill in the inputs and press Calculate.
+              </p>
+            </div>
+
+            <div class="formula-box" style="margin-top:1rem;">
+              <h4>Darcy-Weisbach Formula</h4>
+              <div class="formula-text">
+                h_f = f × (L / D) × (V² / 2g)
+              </div>
+              <div class="formula-vars">
+                <span>h_f = friction headloss (m)</span>
+                <span>f   = Darcy friction factor (Colebrook-White, dimensionless)</span>
+                <span>L   = pipe length (m)</span>
+                <span>D   = internal diameter (m)</span>
+                <span>V   = mean velocity (m/s)</span>
+                <span>g   = 9.81 m/s²</span>
+              </div>
+            </div>
+
+            <div class="formula-box" style="margin-top:1rem;">
+              <h4>Colebrook-White (friction factor)</h4>
+              <div class="formula-text">
+                1/√f = −2 log₁₀(ε/3.7D + 2.51/Re√f)
+              </div>
+              <div class="formula-vars">
+                <span>ε  = roughness height (m)</span>
+                <span>Re = V × D / ν (Reynolds number)</span>
+                <span>Solved iteratively — converges in &lt; 20 iterations</span>
+                <span>Laminar (Re &lt; 2000): f = 64 / Re</span>
+              </div>
+            </div>
+
+            <div class="tool-note" style="margin-top:1rem;">
+              Darcy-Weisbach is theoretically rigorous and works for all fluids,
+              temperatures, and pipe sizes. Preferred over Hazen-Williams for
+              design work requiring accuracy across varying conditions.
+            </div>
+          </div>
+
         </div>
-
-        <div class="formula-box" style="margin-top:1rem;">
-          <h4>Colebrook-White (friction factor — turbulent flow)</h4>
-          <div class="formula-text">
-            1/√f = −2 log₁₀ ( ε / (3.7D) + 2.51 / (Re √f) )
-          </div>
-          <div class="formula-vars">
-            <span>ε   = equivalent pipe roughness height (m)</span>
-            <span>Re  = Reynolds number (dimensionless)</span>
-            <span>Solved iteratively — or use the Swamee-Jain explicit approximation</span>
-          </div>
-        </div>
-
-        <!-- Links to existing tools -->
-        <p class="tool-note" style="margin-top:1.5rem;">
-          While this calculator is under development, you can use the
-          <a href="unit-converter.html"
-             style="color:var(--ocean-mid);text-decoration:underline;">
-            Roughness Reference table
-          </a>
-          for Hazen-Williams C values, and the
-          <a href="reynolds-number.html"
-             style="color:var(--ocean-mid);text-decoration:underline;">
-            Reynolds Number Calculator
-          </a>
-          to determine the flow regime before selecting a friction factor.
-        </p>
-
-      </div>
+      </div><!-- /panelDW -->
 
     </div>
   </main>
@@ -127,5 +462,348 @@
   </footer>
 
   <script src="tools.js"></script>
+  <script>
+  /* ═══════════════════════════════════════════════════════════
+     Pipe Flow Calculator
+     Two methods: Hazen-Williams and Darcy-Weisbach
+     Each method can solve for:
+       (a) Headloss given flow rate
+       (b) Flow rate given headloss
+  ═══════════════════════════════════════════════════════════ */
+
+  const g = 9.81; // gravitational acceleration m/s²
+
+  // ── Track current solve mode for each method ─────────────
+  let hwSolveMode = 'headloss'; // 'headloss' or 'flow'
+  let dwSolveMode = 'headloss';
+
+  // ── Method tab switcher ───────────────────────────────────
+  function switchMethod(method) {
+    const isHW = method === 'hw';
+    document.getElementById('panelHW').style.display = isHW ? 'block' : 'none';
+    document.getElementById('panelDW').style.display = isHW ? 'none' : 'block';
+    document.getElementById('btnHW').classList.toggle('active', isHW);
+    document.getElementById('btnDW').classList.toggle('active', !isHW);
+    document.getElementById('btnHW').setAttribute('aria-selected', String(isHW));
+    document.getElementById('btnDW').setAttribute('aria-selected', String(!isHW));
+  }
+
+  // ── Hazen-Williams: set C from preset ────────────────────
+  function setHWC(val) {
+    document.getElementById('hwC').value = val;
+  }
+
+  // ── Hazen-Williams: toggle solve-for mode ────────────────
+  function setHWSolve(mode) {
+    hwSolveMode = mode;
+    const solveHf = mode === 'headloss';
+    document.getElementById('hwBtnHf').classList.toggle('active', solveHf);
+    document.getElementById('hwBtnQ').classList.toggle('active', !solveHf);
+    document.getElementById('hwInputQ').style.display  = solveHf ? 'block' : 'none';
+    document.getElementById('hwInputHf').style.display = solveHf ? 'none'  : 'block';
+    // Clear results when mode changes
+    resetResultBox('hwResults', 'Results — Hazen-Williams');
+  }
+
+  // ── Darcy-Weisbach: set ε from preset ────────────────────
+  function setDWEps(val) {
+    document.getElementById('dwEps').value = val;
+  }
+
+  // ── Darcy-Weisbach: set viscosity from temperature preset ─
+  function setDWNu(val) {
+    document.getElementById('dwNu').value = val;
+  }
+
+  // ── Darcy-Weisbach: toggle solve-for mode ────────────────
+  function setDWSolve(mode) {
+    dwSolveMode = mode;
+    const solveHf = mode === 'headloss';
+    document.getElementById('dwBtnHf').classList.toggle('active', solveHf);
+    document.getElementById('dwBtnQ').classList.toggle('active', !solveHf);
+    document.getElementById('dwInputQ').style.display  = solveHf ? 'block' : 'none';
+    document.getElementById('dwInputHf').style.display = solveHf ? 'none'  : 'block';
+    resetResultBox('dwResults', 'Results — Darcy-Weisbach');
+  }
+
+  // ── Helper: reset a result box to its idle state ─────────
+  function resetResultBox(id, title) {
+    document.getElementById(id).innerHTML =
+      `<div class="result-box-title">${title}</div>
+       <p style="color:rgba(255,255,255,0.5);font-size:0.9rem;margin-top:0.5rem;">
+         Fill in the inputs and press Calculate.
+       </p>`;
+  }
+
+  // ── Helper: show error in a result box ───────────────────
+  function showResultError(id, msg) {
+    document.getElementById(id).innerHTML =
+      `<div class="result-box-title">Error</div>
+       <p style="color:#ffb3b3;font-size:0.9rem;margin-top:0.5rem;">${msg}</p>`;
+  }
+
+  // ── Helper: convert flow input to m³/s ───────────────────
+  function qToM3s(value, unit) {
+    if (unit === 'Ls')  return value / 1000;
+    if (unit === 'm3h') return value / 3600;
+    return value; // already m³/s
+  }
+
+  // ── Helper: build flow rate display rows ─────────────────
+  function qRows(Q_m3s) {
+    return `
+      <div class="result-row">
+        <span class="result-label">Flow rate Q</span>
+        <span class="result-value">
+          ${formatNum(Q_m3s * 1000, 5)}<span class="result-unit">L/s</span>
+        </span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Flow rate Q</span>
+        <span class="result-value">
+          ${formatNum(Q_m3s, 5)}<span class="result-unit">m³/s</span>
+        </span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Flow rate Q</span>
+        <span class="result-value">
+          ${formatNum(Q_m3s * 3600, 5)}<span class="result-unit">m³/h</span>
+        </span>
+      </div>
+    `;
+  }
+
+  /* ─────────────────────────────────────────────────────────
+     HAZEN-WILLIAMS CALCULATOR
+     Formula: V = 0.849 × C × R^0.63 × S^0.54
+     Full pipe: R = D/4, A = π(D/2)²
+     S = hf / L
+
+     Solve for headloss: given Q → V → S → hf
+     Solve for flow:     given hf → S → V → Q
+  ───────────────────────────────────────────────────────── */
+  function calcHW() {
+    const C   = parseFloat(document.getElementById('hwC').value);
+    const D_mm = parseFloat(document.getElementById('hwD').value);
+    const L   = parseFloat(document.getElementById('hwL').value);
+    const rb  = document.getElementById('hwResults');
+
+    // Basic validation
+    if (isNaN(C) || C <= 0)    { showResultError('hwResults', 'C must be a positive number.'); return; }
+    if (isNaN(D_mm) || D_mm <= 0) { showResultError('hwResults', 'Diameter must be a positive number.'); return; }
+    if (isNaN(L) || L <= 0)   { showResultError('hwResults', 'Length must be a positive number.'); return; }
+
+    const D = D_mm / 1000;           // convert mm → m
+    const R = D / 4;                  // hydraulic radius for full circular pipe
+    const A = Math.PI * (D / 2) ** 2; // cross-section area m²
+
+    let V, S, hf, Q_m3s;
+
+    if (hwSolveMode === 'headloss') {
+      // ── Given Q, find headloss ──────────────────────────
+      const Qraw  = parseFloat(document.getElementById('hwQ').value);
+      const Qunit = document.getElementById('hwQUnit').value;
+      if (isNaN(Qraw) || Qraw < 0) { showResultError('hwResults', 'Flow rate Q must be zero or positive.'); return; }
+
+      Q_m3s = qToM3s(Qraw, Qunit);
+      V     = Q_m3s / A;
+
+      // Rearrange HW: S = [V / (0.849 × C × R^0.63)]^(1/0.54)
+      const coeff = 0.849 * C * Math.pow(R, 0.63);
+      S   = Math.pow(V / coeff, 1 / 0.54);
+      hf  = S * L;
+
+    } else {
+      // ── Given headloss, find Q ──────────────────────────
+      hf = parseFloat(document.getElementById('hwHf').value);
+      if (isNaN(hf) || hf < 0) { showResultError('hwResults', 'Headloss h_f must be zero or positive.'); return; }
+
+      S     = hf / L;
+      // HW velocity: V = 0.849 × C × R^0.63 × S^0.54
+      V     = 0.849 * C * Math.pow(R, 0.63) * Math.pow(S, 0.54);
+      Q_m3s = V * A;
+    }
+
+    // Reynolds number (informational — using ν for water at 20°C)
+    const nu20 = 1.004e-6;
+    const Re   = (V * D) / nu20;
+
+    rb.innerHTML = `
+      <div class="result-box-title">Results — Hazen-Williams</div>
+      ${qRows(Q_m3s)}
+      <div class="result-row">
+        <span class="result-label">Velocity V</span>
+        <span class="result-value">
+          ${formatNum(V, 5)}<span class="result-unit">m/s</span>
+        </span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Headloss h_f</span>
+        <span class="result-value">
+          ${formatNum(hf, 5)}<span class="result-unit">m</span>
+        </span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Hydraulic gradient S</span>
+        <span class="result-value">
+          ${formatNum(S * 1000, 4)}<span class="result-unit">m/km</span>
+        </span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Hydraulic gradient S</span>
+        <span class="result-value">
+          ${formatNum(S * 100, 4)}<span class="result-unit">%</span>
+        </span>
+      </div>
+      <div style="margin-top:0.75rem;font-size:0.74rem;color:var(--seafoam-lt);">
+        Re ≈ ${Re.toLocaleString('en-US',{maximumFractionDigits:0})}
+        (using ν at 20°C — informational only) ·
+        C = ${C} · D = ${D_mm} mm · L = ${L} m
+      </div>
+    `;
+  }
+
+
+  /* ─────────────────────────────────────────────────────────
+     DARCY-WEISBACH CALCULATOR
+     Formula: hf = f × (L/D) × (V²/2g)
+     Friction factor f from Colebrook-White (iterative):
+       1/√f = −2 log₁₀(ε/3.7D + 2.51/Re√f)
+     Laminar (Re < 2000): f = 64/Re
+
+     Solve for headloss: given Q → V → Re → f → hf
+     Solve for flow:     given hf → iterate f and V until convergent
+  ───────────────────────────────────────────────────────── */
+
+  // Calculate Darcy friction factor using Colebrook-White iteration
+  function colebrookWhite(Re, eps_m, D) {
+    if (Re < 1)  return 64; // avoid division by zero
+    if (Re < 2000) return 64 / Re; // laminar
+
+    // Initial guess using Swamee-Jain approximation
+    let f = 0.25 / Math.pow(
+      Math.log10(eps_m / (3.7 * D) + 5.74 / Math.pow(Re, 0.9)), 2
+    );
+
+    // Iterate Colebrook-White (converges in ~10–15 steps)
+    for (let i = 0; i < 50; i++) {
+      const rhs   = -2 * Math.log10(eps_m / (3.7 * D) + 2.51 / (Re * Math.sqrt(f)));
+      const f_new = 1 / (rhs * rhs);
+      if (Math.abs(f_new - f) < 1e-10) { f = f_new; break; }
+      f = f_new;
+    }
+    return f;
+  }
+
+  // Classify Reynolds number into flow regime
+  function flowRegime(Re) {
+    if (Re < 2000)  return { label: 'Laminar',      cls: 'regime-laminar'      };
+    if (Re <= 4000) return { label: 'Transitional',  cls: 'regime-transitional' };
+    return              { label: 'Turbulent',     cls: 'regime-turbulent'    };
+  }
+
+  function calcDW() {
+    const eps_mm = parseFloat(document.getElementById('dwEps').value);
+    const D_mm   = parseFloat(document.getElementById('dwD').value);
+    const L      = parseFloat(document.getElementById('dwL').value);
+    const nu     = parseFloat(document.getElementById('dwNu').value);
+    const rb     = document.getElementById('dwResults');
+
+    // Validate common inputs
+    if (isNaN(eps_mm) || eps_mm < 0) { showResultError('dwResults', 'Roughness ε must be zero or positive.'); return; }
+    if (isNaN(D_mm) || D_mm <= 0)    { showResultError('dwResults', 'Diameter must be a positive number.'); return; }
+    if (isNaN(L) || L <= 0)          { showResultError('dwResults', 'Length must be a positive number.'); return; }
+    if (isNaN(nu) || nu <= 0)        { showResultError('dwResults', 'Kinematic viscosity must be a positive number.'); return; }
+
+    const D     = D_mm / 1000;          // mm → m
+    const eps_m = eps_mm / 1000;        // mm → m (roughness in metres)
+    const A     = Math.PI * (D / 2) ** 2; // pipe area m²
+
+    let V, Re, f, hf, Q_m3s;
+
+    if (dwSolveMode === 'headloss') {
+      // ── Given Q, calculate headloss ─────────────────────
+      const Qraw  = parseFloat(document.getElementById('dwQ').value);
+      const Qunit = document.getElementById('dwQUnit').value;
+      if (isNaN(Qraw) || Qraw < 0) { showResultError('dwResults', 'Flow rate Q must be zero or positive.'); return; }
+
+      Q_m3s = qToM3s(Qraw, Qunit);
+      V     = Q_m3s / A;
+      Re    = V * D / nu;
+      f     = colebrookWhite(Re, eps_m, D);
+      hf    = f * (L / D) * (V * V) / (2 * g);
+
+    } else {
+      // ── Given headloss, iterate to find Q ───────────────
+      hf = parseFloat(document.getElementById('dwHf').value);
+      if (isNaN(hf) || hf < 0) { showResultError('dwResults', 'Headloss h_f must be zero or positive.'); return; }
+      if (hf === 0) {
+        // Zero headloss means zero flow
+        V = 0; Re = 0; Q_m3s = 0;
+        f = colebrookWhite(1, eps_m, D);
+      } else {
+        // Start with an initial guess for f (fully turbulent rough pipe)
+        f = 0.25 / Math.pow(Math.log10(eps_m / (3.7 * D)), 2);
+        if (!isFinite(f) || f <= 0) f = 0.02; // fallback for smooth pipes
+
+        // Iterate: V from f, Re from V, new f from Colebrook-White
+        for (let i = 0; i < 50; i++) {
+          // From D-W rearranged: V = sqrt(2g × hf × D / (f × L))
+          V  = Math.sqrt(2 * g * hf * D / (f * L));
+          Re = V * D / nu;
+          const f_new = colebrookWhite(Re, eps_m, D);
+          if (Math.abs(f_new - f) < 1e-10) { f = f_new; break; }
+          f = f_new;
+        }
+        // Final values after convergence
+        V     = Math.sqrt(2 * g * hf * D / (f * L));
+        Re    = V * D / nu;
+        Q_m3s = V * A;
+      }
+    }
+
+    const regime = flowRegime(Re);
+
+    rb.innerHTML = `
+      <div class="result-box-title">Results — Darcy-Weisbach</div>
+      ${qRows(Q_m3s)}
+      <div class="result-row">
+        <span class="result-label">Velocity V</span>
+        <span class="result-value">
+          ${formatNum(V, 5)}<span class="result-unit">m/s</span>
+        </span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Headloss h_f</span>
+        <span class="result-value">
+          ${formatNum(hf, 5)}<span class="result-unit">m</span>
+        </span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Hydraulic gradient</span>
+        <span class="result-value">
+          ${formatNum((hf/L)*1000, 4)}<span class="result-unit">m/km</span>
+        </span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Reynolds number Re</span>
+        <span class="result-value">
+          ${Re.toLocaleString('en-US',{maximumFractionDigits:0})}
+        </span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Friction factor f</span>
+        <span class="result-value">${formatNum(f, 5)}</span>
+      </div>
+      <div style="margin-top:0.85rem;">
+        <span class="regime-badge ${regime.cls}">${regime.label} Flow</span>
+      </div>
+      <div style="margin-top:0.85rem;font-size:0.74rem;color:var(--seafoam-lt);">
+        ε = ${eps_mm} mm · D = ${D_mm} mm · L = ${L} m ·
+        ν = ${nu.toExponential(3)} m²/s
+      </div>
+    `;
+  }
+  </script>
 </body>
 </html>
