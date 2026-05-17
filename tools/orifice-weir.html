@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Orifice & Weir Flow Calculator | Dipanshu Sharma Tools</title>
+  <meta name="description" content="Calculate flow through orifices and over weirs. Supports sharp-crested, broad-crested, and V-notch weirs plus submerged and free orifice flow." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="tools.css" />
+  <style>
+    .type-tabs {
+      display: flex;
+      gap: 0;
+      margin-bottom: 1.75rem;
+      background: var(--mist);
+      border-radius: 10px;
+      padding: 5px;
+      width: fit-content;
+      flex-wrap: wrap;
+    }
+    .type-btn {
+      padding: 0.55rem 1.2rem;
+      border: none;
+      border-radius: 7px;
+      background: transparent;
+      font-family: var(--font-body);
+      font-size: 0.82rem;
+      font-weight: 500;
+      color: var(--slate-mid);
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .type-btn.active {
+      background: var(--ocean);
+      color: var(--white);
+      box-shadow: 0 2px 8px rgba(11,79,108,0.25);
+    }
+    .type-btn:hover:not(.active) { color: var(--ocean); }
+    .type-panel { display: none; }
+    .type-panel.active { display: block; }
+  </style>
+</head>
+<body>
+
+  <nav class="tool-nav" role="navigation">
+    <div class="tool-nav-inner">
+      <a href="../index.html" class="tool-brand">Ir. Dipanshu Sharma</a>
+      <div class="tool-nav-links">
+        <a href="index.html" class="tool-nav-back">← All Tools</a>
+        <span class="tool-nav-breadcrumb">Orifice &amp; Weir Flow</span>
+      </div>
+    </div>
+  </nav>
+
+  <header class="tool-hero tool-hero-sm">
+    <div class="container">
+      <div class="tool-breadcrumb">Tools / Orifice &amp; Weir Flow</div>
+      <h1 class="tool-hero-title">Orifice &amp; Weir <em>Calculator</em></h1>
+      <p class="tool-hero-sub">
+        Calculate flow through orifices and over weirs for hydraulic
+        structure design — outlet controls, detention basins, spillways
+        and flow measurement structures.
+      </p>
+    </div>
+  </header>
+
+  <main class="tool-body">
+    <div class="container">
+
+      <!-- Type selector -->
+      <div class="type-tabs" role="tablist" aria-label="Structure type">
+        <button class="type-btn active" onclick="setType('orifice')">
+          Orifice
+        </button>
+        <button class="type-btn" onclick="setType('rectweir')">
+          Rectangular Weir
+        </button>
+        <button class="type-btn" onclick="setType('vnotch')">
+          V-Notch Weir
+        </button>
+        <button class="type-btn" onclick="setType('broad')">
+          Broad-Crested Weir
+        </button>
+      </div>
+
+      <div class="tool-layout">
+
+        <!-- LEFT: Inputs -->
+        <div>
+
+          <!-- Orifice -->
+          <div class="tool-panel type-panel active" id="panelOrifice">
+            <h2 class="tool-panel-title">Orifice — Inputs</h2>
+            <p style="font-size:0.85rem;color:var(--slate-mid);
+                      margin-bottom:1.25rem;line-height:1.6;">
+              Free (unsubmerged) orifice flow. Suitable for pipe outlets,
+              sluice gates, and detention basin outlet structures.
+            </p>
+            <div class="field-group">
+              <label class="field-label" for="orCd">
+                Discharge Coefficient (C_d)
+              </label>
+              <div class="field-row">
+                <input class="field-input" type="number" id="orCd"
+                       placeholder="e.g. 0.61" min="0" max="1"
+                       step="0.01" value="0.61" />
+              </div>
+              <small style="color:var(--slate-lt);font-size:0.75rem;
+                            margin-top:0.25rem;display:block;">
+                Sharp-edged: 0.61 · Well-rounded: 0.98 · Short pipe: 0.80
+              </small>
+            </div>
+            <div class="field-group">
+              <label class="field-label" for="orA">
+                Orifice Area (A)
+              </label>
+              <div class="field-row">
+                <input class="field-input has-unit" type="number" id="orA"
+                       placeholder="e.g. 0.05" min="0" step="0.001" />
+                <span class="field-unit">m²</span>
+              </div>
+              <small style="color:var(--slate-lt);font-size:0.75rem;
+                            margin-top:0.25rem;display:block;">
+                Circular pipe: A = π(D/2)² · e.g. 300 mm pipe = 0.0707 m²
+              </small>
+            </div>
+            <div class="field-group">
+              <label class="field-label" for="orH">
+                Head above Orifice Centre (H)
+              </label>
+              <div class="field-row">
+                <input class="field-input has-unit" type="number" id="orH"
+                       placeholder="e.g. 1.5" min="0" step="0.01" />
+                <span class="field-unit">m</span>
+              </div>
+            </div>
+            <button class="btn btn-primary btn-calc"
+                    onclick="calcOrifice()">Calculate Flow</button>
+          </div>
+
+          <!-- Rectangular Weir -->
+          <div class="tool-panel type-panel" id="panelRectweir">
+            <h2 class="tool-panel-title">Rectangular Weir — Inputs</h2>
+            <p style="font-size:0.85rem;color:var(--slate-mid);
+                      margin-bottom:1.25rem;line-height:1.6;">
+              Sharp-crested rectangular weir. Standard for overflow
+              spillways, detention basin outlets and flow measurement.
+            </p>
+            <div class="field-group">
+              <label class="field-label" for="rwCd">
+                Discharge Coefficient (C_d)
+              </label>
+              <div class="field-row">
+                <input class="field-input" type="number" id="rwCd"
+                       placeholder="e.g. 0.611" min="0" max="1"
+                       step="0.001" value="0.611" />
+              </div>
+              <small style="color:var(--slate-lt);font-size:0.75rem;
+                            margin-top:0.25rem;display:block;">
+                Sharp-crested: 0.611 · Suppressed (no contractions): 0.623
+              </small>
+            </div>
+            <div class="field-group">
+              <label class="field-label" for="rwL">
+                Weir Crest Length (L)
+              </label>
+              <div class="field-row">
+                <input class="field-input has-unit" type="number" id="rwL"
+                       placeholder="e.g. 2.0" min="0" step="0.01" />
+                <span class="field-unit">m</span>
+              </div>
+            </div>
+            <div class="field-group">
+              <label class="field-label" for="rwH">
+                Head over Weir Crest (H)
+              </label>
+              <div class="field-row">
+                <input class="field-input has-unit" type="number" id="rwH"
+                       placeholder="e.g. 0.3" min="0" step="0.001" />
+                <span class="field-unit">m</span>
+              </div>
+            </div>
+            <button class="btn btn-primary btn-calc"
+                    onclick="calcRectWeir()">Calculate Flow</button>
+          </div>
+
+          <!-- V-Notch Weir -->
+          <div class="tool-panel type-panel" id="panelVnotch">
+            <h2 class="tool-panel-title">V-Notch Weir — Inputs</h2>
+            <p style="font-size:0.85rem;color:var(--slate-mid);
+                      margin-bottom:1.25rem;line-height:1.6;">
+              Triangular notch weir. More accurate than rectangular weirs
+              for low flow measurement. Common in field monitoring.
+            </p>
+            <div class="field-group">
+              <label class="field-label" for="vnCd">
+                Discharge Coefficient (C_d)
+              </label>
+              <div class="field-row">
+                <input class="field-input" type="number" id="vnCd"
+                       placeholder="e.g. 0.611" min="0" max="1"
+                       step="0.001" value="0.611" />
+              </div>
+            </div>
+            <div class="field-group">
+              <label class="field-label" for="vnTheta">
+                Notch Angle (θ)
+              </label>
+              <div class="field-row">
+                <input class="field-input has-unit" type="number" id="vnTheta"
+                       placeholder="e.g. 90" min="0" max="180"
+                       step="1" value="90" />
+                <span class="field-unit">degrees</span>
+              </div>
+              <small style="color:var(--slate-lt);font-size:0.75rem;
+                            margin-top:0.25rem;display:block;">
+                Common angles: 90° (standard) · 60° · 45°
+              </small>
+            </div>
+            <div class="field-group">
+              <label class="field-label" for="vnH">Head above Notch Vertex (H)</label>
+              <div class="field-row">
+                <input class="field-input has-unit" type="number" id="vnH"
+                       placeholder="e.g. 0.25" min="0" step="0.001" />
+                <span class="field-unit">m</span>
+              </div>
+            </div>
+            <button class="btn btn-primary btn-calc"
+                    onclick="calcVNotch()">Calculate Flow</button>
+          </div>
+
+          <!-- Broad-Crested Weir -->
+          <div class="tool-panel type-panel" id="panelBroad">
+            <h2 class="tool-panel-title">Broad-Crested Weir — Inputs</h2>
+            <p style="font-size:0.85rem;color:var(--slate-mid);
+                      margin-bottom:1.25rem;line-height:1.6;">
+              Used for road embankments, dam spillways and wide overflow
+              structures where critical flow conditions develop on the crest.
+            </p>
+            <div class="field-group">
+              <label class="field-label" for="bcCd">
+                Discharge Coefficient (C_d)
+              </label>
+              <div class="field-row">
+                <input class="field-input" type="number" id="bcCd"
+                       placeholder="e.g. 0.848" min="0" max="1"
+                       step="0.001" value="0.848" />
+              </div>
+              <small style="color:var(--slate-lt);font-size:0.75rem;
+                            margin-top:0.25rem;display:block;">
+                Theoretical maximum: 0.848 · Practical range: 0.50–0.848
+              </small>
+            </div>
+            <div class="field-group">
+              <label class="field-label" for="bcL">Weir Crest Length (L)</label>
+              <div class="field-row">
+                <input class="field-input has-unit" type="number" id="bcL"
+                       placeholder="e.g. 5.0" min="0" step="0.1" />
+                <span class="field-unit">m</span>
+              </div>
+            </div>
+            <div class="field-group">
+              <label class="field-label" for="bcH">Head over Weir Crest (H)</label>
+              <div class="field-row">
+                <input class="field-input has-unit" type="number" id="bcH"
+                       placeholder="e.g. 0.5" min="0" step="0.01" />
+                <span class="field-unit">m</span>
+              </div>
+            </div>
+            <button class="btn btn-primary btn-calc"
+                    onclick="calcBroadWeir()">Calculate Flow</button>
+          </div>
+
+        </div>
+
+        <!-- RIGHT: Results -->
+        <div>
+          <div class="result-box" id="owResult" style="min-height:240px;">
+            <div class="result-box-title">Result</div>
+            <p style="color:rgba(255,255,255,0.5);font-size:0.9rem;margin-top:0.5rem;">
+              Select a structure type and press Calculate.
+            </p>
+          </div>
+
+          <div class="formula-box" style="margin-top:1rem;" id="fmOrifice">
+            <h4>Orifice (Free Flow)</h4>
+            <div class="formula-text">Q = C_d × A × √(2gH)</div>
+            <div class="formula-vars">
+              <span>Q   = discharge (m³/s)</span>
+              <span>C_d = discharge coefficient</span>
+              <span>A   = orifice area (m²)</span>
+              <span>H   = head above orifice centre (m)</span>
+              <span>g   = 9.81 m/s²</span>
+            </div>
+          </div>
+
+          <div class="formula-box" style="margin-top:1rem;display:none;" id="fmRectweir">
+            <h4>Rectangular Sharp-Crested Weir</h4>
+            <div class="formula-text">Q = (2/3) × C_d × L × √(2g) × H^(3/2)</div>
+            <div class="formula-vars">
+              <span>Q   = discharge (m³/s)</span>
+              <span>C_d = discharge coefficient (~0.611)</span>
+              <span>L   = weir crest length (m)</span>
+              <span>H   = head over crest (m)</span>
+            </div>
+          </div>
+
+          <div class="formula-box" style="margin-top:1rem;display:none;" id="fmVnotch">
+            <h4>V-Notch (Triangular) Weir</h4>
+            <div class="formula-text">Q = (8/15) × C_d × √(2g) × tan(θ/2) × H^(5/2)</div>
+            <div class="formula-vars">
+              <span>Q   = discharge (m³/s)</span>
+              <span>θ   = notch angle (degrees)</span>
+              <span>H   = head above vertex (m)</span>
+            </div>
+          </div>
+
+          <div class="formula-box" style="margin-top:1rem;display:none;" id="fmBroad">
+            <h4>Broad-Crested Weir</h4>
+            <div class="formula-text">Q = C_d × L × H × √(g × H)</div>
+            <div class="formula-vars">
+              <span>Q   = discharge (m³/s)</span>
+              <span>C_d = discharge coefficient (≤0.848)</span>
+              <span>L   = crest length (m)</span>
+              <span>H   = upstream head (m)</span>
+            </div>
+          </div>
+
+          <div class="tool-note" style="margin-top:1rem;">
+            Discharge coefficients are empirical and vary with geometry
+            and flow conditions. Always verify against applicable design
+            standards and physical model tests for critical structures.
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="tool-footer">
+    <div class="container">
+      <p>© <span id="year"></span> Ir. Dipanshu Sharma ·
+        <a href="index.html">All Tools</a> ·
+        <a href="../index.html">Portfolio</a></p>
+    </div>
+  </footer>
+
+  <script src="tools.js"></script>
+  <script>
+  const g = 9.81;
+  const types = ['orifice','rectweir','vnotch','broad'];
+
+  function setType(name) {
+    types.forEach(t => {
+      document.getElementById('panel' + cap(t)).classList.toggle('active', t === name);
+      document.getElementById('fm' + cap(t)).style.display = t === name ? 'block' : 'none';
+    });
+    document.querySelectorAll('.type-btn').forEach((btn, i) => {
+      btn.classList.toggle('active', types[i] === name);
+    });
+    resetOW();
+  }
+
+  function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+  function resetOW() {
+    document.getElementById('owResult').innerHTML =
+      `<div class="result-box-title">Result</div>
+       <p style="color:rgba(255,255,255,0.5);font-size:0.9rem;margin-top:0.5rem;">
+         Select a structure type and press Calculate.
+       </p>`;
+  }
+
+  function showQ(Q, label, inputs) {
+    document.getElementById('owResult').innerHTML = `
+      <div class="result-box-title">Result — ${label}</div>
+      <div class="result-row">
+        <span class="result-label">Discharge Q</span>
+        <span class="result-value">
+          ${formatNum(Q, 5)}<span class="result-unit">m³/s</span>
+        </span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Discharge Q</span>
+        <span class="result-value">
+          ${formatNum(Q * 1000, 5)}<span class="result-unit">L/s</span>
+        </span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Discharge Q</span>
+        <span class="result-value">
+          ${formatNum(Q * 3600, 5)}<span class="result-unit">m³/h</span>
+        </span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Discharge Q</span>
+        <span class="result-value">
+          ${formatNum(Q * 86400, 5)}<span class="result-unit">m³/day</span>
+        </span>
+      </div>
+      <div style="margin-top:0.85rem;font-size:0.74rem;color:var(--seafoam-lt);">
+        ${inputs}
+      </div>`;
+  }
+
+  function errOW(msg) {
+    document.getElementById('owResult').innerHTML =
+      `<div class="result-box-title">Error</div>
+       <p style="color:#ffb3b3;font-size:0.9rem;margin-top:0.5rem;">${msg}</p>`;
+  }
+
+  function calcOrifice() {
+    const Cd = parseFloat(document.getElementById('orCd').value);
+    const A  = parseFloat(document.getElementById('orA').value);
+    const H  = parseFloat(document.getElementById('orH').value);
+    if (isNaN(Cd)||Cd<=0) { errOW('C_d must be positive.'); return; }
+    if (isNaN(A)||A<=0)   { errOW('Area A must be positive.'); return; }
+    if (isNaN(H)||H<=0)   { errOW('Head H must be positive.'); return; }
+    const Q = Cd * A * Math.sqrt(2 * g * H);
+    showQ(Q, 'Orifice (Free Flow)', `C_d = ${Cd} · A = ${A} m² · H = ${H} m`);
+  }
+
+  function calcRectWeir() {
+    const Cd = parseFloat(document.getElementById('rwCd').value);
+    const L  = parseFloat(document.getElementById('rwL').value);
+    const H  = parseFloat(document.getElementById('rwH').value);
+    if (isNaN(Cd)||Cd<=0) { errOW('C_d must be positive.'); return; }
+    if (isNaN(L)||L<=0)   { errOW('Crest length L must be positive.'); return; }
+    if (isNaN(H)||H<=0)   { errOW('Head H must be positive.'); return; }
+    const Q = (2/3) * Cd * L * Math.sqrt(2 * g) * Math.pow(H, 1.5);
+    showQ(Q, 'Rectangular Weir', `C_d = ${Cd} · L = ${L} m · H = ${H} m`);
+  }
+
+  function calcVNotch() {
+    const Cd    = parseFloat(document.getElementById('vnCd').value);
+    const theta = parseFloat(document.getElementById('vnTheta').value);
+    const H     = parseFloat(document.getElementById('vnH').value);
+    if (isNaN(Cd)||Cd<=0)       { errOW('C_d must be positive.'); return; }
+    if (isNaN(theta)||theta<=0) { errOW('Angle θ must be positive.'); return; }
+    if (isNaN(H)||H<=0)         { errOW('Head H must be positive.'); return; }
+    const thetaRad = theta * Math.PI / 180;
+    const Q = (8/15) * Cd * Math.sqrt(2 * g) * Math.tan(thetaRad/2) * Math.pow(H, 2.5);
+    showQ(Q, 'V-Notch Weir', `C_d = ${Cd} · θ = ${theta}° · H = ${H} m`);
+  }
+
+  function calcBroadWeir() {
+    const Cd = parseFloat(document.getElementById('bcCd').value);
+    const L  = parseFloat(document.getElementById('bcL').value);
+    const H  = parseFloat(document.getElementById('bcH').value);
+    if (isNaN(Cd)||Cd<=0) { errOW('C_d must be positive.'); return; }
+    if (isNaN(L)||L<=0)   { errOW('Crest length L must be positive.'); return; }
+    if (isNaN(H)||H<=0)   { errOW('Head H must be positive.'); return; }
+    const Q = Cd * L * H * Math.sqrt(g * H);
+    showQ(Q, 'Broad-Crested Weir', `C_d = ${Cd} · L = ${L} m · H = ${H} m`);
+  }
+
+  /* Init formula panels */
+  ['rectweir','vnotch','broad'].forEach(t =>
+    document.getElementById('fm' + cap(t)).style.display = 'none'
+  );
+  </script>
+</body>
+</html>
