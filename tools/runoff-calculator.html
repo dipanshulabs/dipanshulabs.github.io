@@ -1,1 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Runoff Calculator — Rational Method | Dipanshu Sharma Tools</title>
+  <meta name="description" content="Peak discharge calculator using the Rational Method Q = CiA. For small urban and rural catchments." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="tools.css" />
+</head>
+<body>
 
+  <!-- Navigation -->
+  <nav class="tool-nav" role="navigation">
+    <div class="tool-nav-inner">
+      <a href="../index.html" class="tool-brand">Dipanshu Sharma</a>
+      <div class="tool-nav-links">
+        <a href="index.html" class="tool-nav-back">← All Tools</a>
+        <span class="tool-nav-breadcrumb">Runoff Calculator</span>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Page header -->
+  <header class="tool-hero tool-hero-sm">
+    <div class="container">
+      <div class="tool-breadcrumb">Tools / Runoff Calculator</div>
+      <h1 class="tool-hero-title">Runoff <em>Calculator</em></h1>
+      <p class="tool-hero-sub">
+        Peak discharge estimation using the Rational Method (Q = CiA).
+        Suitable for small catchments — typically less than 200 ha.
+      </p>
+    </div>
+  </header>
+
+  <main class="tool-body">
+    <div class="container">
+      <div class="tool-layout">
+
+        <!-- LEFT: Inputs -->
+        <div class="tool-panel">
+          <h2 class="tool-panel-title">Inputs</h2>
+
+          <!-- Runoff coefficient C -->
+          <div class="field-group">
+            <label class="field-label" for="roCeff">
+              Runoff Coefficient (C)
+            </label>
+            <div class="field-row">
+              <input class="field-input" type="number" id="roCeff"
+                     placeholder="0.0 – 1.0" min="0" max="1" step="0.01" />
+            </div>
+            <small style="color:var(--slate-lt);font-size:0.75rem;
+                          margin-top:0.3rem;display:block;">
+              Dimensionless. See reference table on the right for typical values.
+            </small>
+
+            <!-- Quick C presets -->
+            <small style="color:var(--slate-lt);font-size:0.72rem;
+                          margin-top:0.6rem;display:block;margin-bottom:0.35rem;">
+              Quick presets:
+            </small>
+            <div style="display:flex;flex-wrap:wrap;gap:0.4rem;">
+              <button class="btn btn-outline btn-sm" onclick="setC(0.95)">Roof (0.95)</button>
+              <button class="btn btn-outline btn-sm" onclick="setC(0.85)">Pavement (0.85)</button>
+              <button class="btn btn-outline btn-sm" onclick="setC(0.70)">Dense urban (0.70)</button>
+              <button class="btn btn-outline btn-sm" onclick="setC(0.40)">Suburban (0.40)</button>
+              <button class="btn btn-outline btn-sm" onclick="setC(0.25)">Lawn (0.25)</button>
+              <button class="btn btn-outline btn-sm" onclick="setC(0.10)">Forest (0.10)</button>
+            </div>
+          </div>
+
+          <!-- Rainfall intensity i -->
+          <div class="field-group">
+            <label class="field-label" for="roIntensity">
+              Design Rainfall Intensity (i)
+            </label>
+            <div class="field-row">
+              <input class="field-input has-unit" type="number" id="roIntensity"
+                     placeholder="e.g. 25" min="0" step="0.1" />
+              <span class="field-unit">mm/hr</span>
+            </div>
+            <small style="color:var(--slate-lt);font-size:0.75rem;
+                          margin-top:0.3rem;display:block;">
+              Use the design storm intensity for the required return period.
+              Derived from IDF curves or national rainfall atlases.
+            </small>
+          </div>
+
+          <!-- Catchment area A with unit selector -->
+          <div class="field-group">
+            <label class="field-label" for="roArea">
+              Catchment Area (A)
+            </label>
+            <div class="field-row">
+              <input class="field-input has-unit" type="number" id="roArea"
+                     placeholder="e.g. 5.5" min="0" step="0.01" />
+              <!-- Unit selector — JS converts to hectares automatically -->
+              <select class="field-select" id="roAreaUnit"
+                      style="max-width:90px;border-left:none;border-radius:0 8px 8px 0;"
+                      onchange="updateAreaHint()">
+                <option value="ha">ha</option>
+                <option value="km2">km²</option>
+                <option value="m2">m²</option>
+                <option value="acre">acre</option>
+              </select>
+            </div>
+            <small id="areaHint" style="color:var(--slate-lt);font-size:0.75rem;
+                                        margin-top:0.3rem;display:block;">
+              Enter area in hectares (1 ha = 10,000 m²).
+            </small>
+          </div>
+
+          <button class="btn btn-primary btn-calc"
+                  onclick="calcRunoff()">
+            Calculate Peak Discharge
+          </button>
+        </div>
+
+        <!-- RIGHT: Results + reference table -->
+        <div>
+
+          <!-- Result display box -->
+          <div class="result-box" id="roResults" style="min-height:240px;">
+            <div class="result-box-title">Peak Discharge — Q</div>
+            <p style="color:rgba(255,255,255,0.5);font-size:0.9rem;margin-top:0.5rem;">
+              Fill in the inputs and press Calculate.
+            </p>
+          </div>
+
+          <!-- Formula reference -->
+          <div class="formula-box" style="margin-top:1rem;">
+            <h4>Rational Method Formula</h4>
+            <div class="formula-text">Q = (C × i × A) / 360</div>
+            <div class="formula-vars">
+              <span>Q = peak discharge (m³/s)</span>
+              <span>C = runoff coefficient (dimensionless, 0 to 1)</span>
+              <span>i = rainfall intensity (mm/hr)</span>
+              <span>A = catchment area (ha)</span>
+              <span>360 = unit conversion constant</span>
+              <span style="margin-top:0.3rem;color:var(--slate-lt);">
+                Derivation: 1 mm/hr × 1 ha = 10,000 m² × (1/3,600,000) m/s = 1/360 m³/s
+              </span>
+            </div>
+          </div>
+
+          <!-- Assumptions -->
+          <div class="tool-note" style="margin-top:1rem;">
+            <strong>Assumptions:</strong> Rainfall duration equals or exceeds
+            the catchment time of concentration T_c. Rainfall is uniformly
+            distributed. Best suited to catchments &lt; 200 ha. For larger
+            catchments, use hydrograph methods (e.g. unit hydrograph, SCS CN).
+          </div>
+
+          <!-- Runoff coefficient reference table -->
+          <div class="tool-panel" style="margin-top:1.25rem;">
+            <h3 style="font-family:var(--font-display);font-size:1.05rem;
+                       font-weight:400;color:var(--ocean);margin-bottom:0.75rem;">
+              Runoff Coefficient Reference (C)
+            </h3>
+            <div class="ref-table-wrap">
+              <table class="ref-table">
+                <thead>
+                  <tr>
+                    <th>Land Use / Surface Type</th>
+                    <th style="text-align:right;">C (typical range)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><td>Rooftops / impervious roofs</td><td>0.90 – 0.95</td></tr>
+                  <tr><td>Asphalt / concrete paving</td><td>0.80 – 0.90</td></tr>
+                  <tr><td>Gravel surface</td><td>0.35 – 0.70</td></tr>
+                  <tr><td>Dense urban / commercial</td><td>0.70 – 0.90</td></tr>
+                  <tr><td>Residential — small lots</td><td>0.50 – 0.70</td></tr>
+                  <tr><td>Residential — single family</td><td>0.25 – 0.40</td></tr>
+                  <tr><td>Suburban / low density</td><td>0.20 – 0.35</td></tr>
+                  <tr><td>Grass lawn (clay soil)</td><td>0.25 – 0.35</td></tr>
+                  <tr><td>Grass lawn (sandy soil)</td><td>0.10 – 0.20</td></tr>
+                  <tr><td>Agricultural / arable land</td><td>0.20 – 0.40</td></tr>
+                  <tr><td>Woodland / forest</td><td>0.05 – 0.15</td></tr>
+                  <tr><td>Wetland / open water</td><td>0.95 – 1.00</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p style="font-size:0.75rem;color:var(--slate-lt);margin-top:0.6rem;line-height:1.5;">
+              Indicative values from standard references (CIRIA C753, local
+              national drainage standards). Always refer to applicable local
+              design guidance and verify with site-specific conditions.
+            </p>
+          </div>
+
+        </div>
+      </div><!-- /tool-layout -->
+    </div>
+  </main>
+
+  <footer class="tool-footer">
+    <div class="container">
+      <p>
+        © <span id="year"></span> Dipanshu Sharma ·
+        <a href="index.html">All Tools</a> ·
+        <a href="../index.html">Portfolio</a>
+      </p>
+    </div>
+  </footer>
+
+  <script src="tools.js"></script>
+  <script>
+  /* ── Runoff Calculator — Rational Method ──────────────────
+     Formula: Q (m³/s) = C × i (mm/hr) × A (ha) / 360
+
+     Unit conversion proof:
+       1 mm/hr × 1 ha
+       = (1/1000 m) / (3600 s) × 10000 m²
+       = 10000 / 3,600,000 m³/s
+       = 1/360 m³/s  ✓
+  ─────────────────────────────────────────────────────── */
+
+  /* Set C field to a preset value */
+  function setC(val) {
+    document.getElementById('roCeff').value = val;
+  }
+
+  /* Update the area hint text when the unit selector changes */
+  function updateAreaHint() {
+    const unit = document.getElementById('roAreaUnit').value;
+    const hints = {
+      ha:   '1 ha = 10,000 m²',
+      km2:  '1 km² = 100 ha',
+      m2:   '10,000 m² = 1 ha',
+      acre: '1 acre ≈ 0.405 ha'
+    };
+    document.getElementById('areaHint').textContent =
+      'Enter area in ' + unit + ' — ' + (hints[unit] || '');
+  }
+
+  /* Convert any area unit to hectares */
+  function toHectares(value, unit) {
+    const factors = { ha: 1, km2: 100, m2: 0.0001, acre: 0.404686 };
+    return value * (factors[unit] || 1);
+  }
+
+  function calcRunoff() {
+    const C     = parseFloat(document.getElementById('roCeff').value);
+    const i     = parseFloat(document.getElementById('roIntensity').value);
+    const Araw  = parseFloat(document.getElementById('roArea').value);
+    const aUnit = document.getElementById('roAreaUnit').value;
+    const rb    = document.getElementById('roResults');
+
+    // Validate inputs
+    if (isNaN(C) || isNaN(i) || isNaN(Araw)) {
+      rb.innerHTML = errorHTML('Please fill in all three inputs.');
+      return;
+    }
+    if (C < 0 || C > 1) {
+      rb.innerHTML = errorHTML('Runoff coefficient C must be between 0 and 1.');
+      return;
+    }
+    if (i < 0) {
+      rb.innerHTML = errorHTML('Rainfall intensity must be zero or positive.');
+      return;
+    }
+    if (Araw <= 0) {
+      rb.innerHTML = errorHTML('Catchment area must be a positive number.');
+      return;
+    }
+
+    // Convert area to hectares
+    const A_ha = toHectares(Araw, aUnit);
+
+    // ── Rational Method ─────────────────────────────────
+    const Q_m3s = (C * i * A_ha) / 360;   // m³/s
+    const Q_Ls  = Q_m3s * 1000;           // L/s
+    const Q_m3h = Q_m3s * 3600;           // m³/h
+    const Q_MLD = Q_m3s * 86.4;           // megalitres/day
+
+    rb.innerHTML = `
+      <div class="result-box-title">Peak Discharge — Rational Method</div>
+
+      <div class="result-row">
+        <span class="result-label">Q</span>
+        <span class="result-value">
+          ${formatNum(Q_m3s, 5)}<span class="result-unit">m³/s</span>
+        </span>
+      </div>
+
+      <div class="result-row">
+        <span class="result-label">Q</span>
+        <span class="result-value">
+          ${formatNum(Q_Ls, 5)}<span class="result-unit">L/s</span>
+        </span>
+      </div>
+
+      <div class="result-row">
+        <span class="result-label">Q</span>
+        <span class="result-value">
+          ${formatNum(Q_m3h, 5)}<span class="result-unit">m³/h</span>
+        </span>
+      </div>
+
+      <div class="result-row">
+        <span class="result-label">Q</span>
+        <span class="result-value">
+          ${formatNum(Q_MLD, 5)}<span class="result-unit">MLD</span>
+        </span>
+      </div>
+
+      <div style="margin-top:1rem;font-size:0.74rem;color:var(--seafoam-lt);">
+        C = ${C} · i = ${i} mm/hr · A = ${formatNum(A_ha, 5)} ha
+      </div>
+    `;
+  }
+
+  /* Helper: red error message inside the result box */
+  function errorHTML(msg) {
+    return `<div class="result-box-title">Error</div>
+      <p style="color:#ffb3b3;font-size:0.9rem;margin-top:0.5rem;">${msg}</p>`;
+  }
+  </script>
+</body>
+</html>
