@@ -1,1 +1,1433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WWTP Preliminary Design Tool | Dipanshu Sharma Tools</title>
+  <meta name="description" content="Wastewater treatment plant preliminary design calculator with live process schematic. Activated sludge and extended aeration configurations." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="tools.css" />
+  <style>
+    /* ── Page layout ─────────────────────────────────────── */
+    .wwtp-layout {
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      gap: 1.5rem;
+      align-items: start;
+    }
 
+    /* ── Input panel ─────────────────────────────────────── */
+    .input-panel {
+      background: var(--white);
+      border-radius: var(--radius);
+      border: 1px solid rgba(11,79,108,0.08);
+      padding: 1.5rem;
+      position: sticky;
+      top: 1rem;
+    }
+    .input-panel-title {
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+      font-weight: 400;
+      color: var(--ocean);
+      margin-bottom: 1.25rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid var(--mist);
+    }
+
+    /* ── Section labels inside input panel ───────────────── */
+    .inp-section {
+      font-size: 0.68rem;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--seafoam);
+      margin: 1.1rem 0 0.6rem;
+      padding-bottom: 0.3rem;
+      border-bottom: 1px solid var(--mist);
+    }
+    .inp-section:first-of-type { margin-top: 0; }
+
+    /* ── Input field ─────────────────────────────────────── */
+    .inp-group { margin-bottom: 0.75rem; }
+    .inp-label {
+      display: block;
+      font-size: 0.73rem;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--slate-mid);
+      margin-bottom: 0.3rem;
+    }
+    .inp-row { display: flex; gap: 0; }
+    .inp-field {
+      flex: 1;
+      padding: 0.55rem 0.75rem;
+      border: 1.5px solid rgba(11,79,108,0.15);
+      border-right: none;
+      border-radius: 7px 0 0 7px;
+      font-family: var(--font-body);
+      font-size: 0.88rem;
+      color: var(--slate);
+      background: var(--off-white);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .inp-field:focus { border-color: var(--ocean-mid); background: var(--white); }
+    .inp-unit {
+      padding: 0 0.75rem;
+      background: var(--mist);
+      border: 1.5px solid rgba(11,79,108,0.15);
+      border-radius: 0 7px 7px 0;
+      font-size: 0.78rem;
+      color: var(--slate-mid);
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      white-space: nowrap;
+    }
+    .inp-select {
+      width: 100%;
+      padding: 0.55rem 0.75rem;
+      border: 1.5px solid rgba(11,79,108,0.15);
+      border-radius: 7px;
+      font-family: var(--font-body);
+      font-size: 0.88rem;
+      color: var(--slate);
+      background: var(--off-white);
+      outline: none;
+      cursor: pointer;
+    }
+
+    /* ── Calculate button ────────────────────────────────── */
+    .calc-btn {
+      width: 100%;
+      padding: 0.8rem;
+      background: var(--ocean);
+      color: var(--white);
+      border: none;
+      border-radius: 8px;
+      font-family: var(--font-body);
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      margin-top: 1rem;
+      transition: background 0.2s;
+      letter-spacing: 0.04em;
+    }
+    .calc-btn:hover { background: var(--ocean-mid); }
+
+    /* ── Right panel: schematic + results ────────────────── */
+    .output-panel { display: flex; flex-direction: column; gap: 1.25rem; }
+
+    /* ── Process schematic container ─────────────────────── */
+    .schematic-panel {
+      background: var(--white);
+      border-radius: var(--radius);
+      border: 1px solid rgba(11,79,108,0.08);
+      padding: 1.5rem;
+    }
+    .schematic-title {
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+      font-weight: 400;
+      color: var(--ocean);
+      margin-bottom: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .schematic-title button {
+      padding: 0.35rem 0.9rem;
+      border: 1.5px solid var(--ocean);
+      border-radius: 100px;
+      background: transparent;
+      font-family: var(--font-body);
+      font-size: 0.72rem;
+      font-weight: 500;
+      color: var(--ocean);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .schematic-title button:hover { background: var(--ocean); color: var(--white); }
+
+    /* SVG schematic area */
+    #schematicSVG {
+      width: 100%;
+      border-radius: 8px;
+      background: #f8fafc;
+      border: 1px solid rgba(11,79,108,0.08);
+      overflow: visible;
+    }
+
+    /* Idle state */
+    .schematic-idle {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 2rem;
+      text-align: center;
+      background: var(--off-white);
+      border-radius: 8px;
+      border: 2px dashed rgba(11,79,108,0.15);
+    }
+    .schematic-idle-icon { font-size: 2.5rem; margin-bottom: 0.75rem; }
+    .schematic-idle-text {
+      font-family: var(--font-display);
+      font-size: 1.2rem;
+      color: var(--slate-lt);
+      margin-bottom: 0.4rem;
+    }
+    .schematic-idle-sub { font-size: 0.82rem; color: var(--slate-lt); }
+
+    /* ── Results cards grid ───────────────────────────────── */
+    .results-panel {
+      background: var(--white);
+      border-radius: var(--radius);
+      border: 1px solid rgba(11,79,108,0.08);
+      padding: 1.5rem;
+      display: none;
+    }
+    .results-panel.visible { display: block; }
+    .results-title {
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+      font-weight: 400;
+      color: var(--ocean);
+      margin-bottom: 1.25rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid var(--mist);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .results-title button {
+      padding: 0.35rem 0.9rem;
+      border: 1.5px solid var(--ocean);
+      border-radius: 100px;
+      background: transparent;
+      font-family: var(--font-body);
+      font-size: 0.72rem;
+      font-weight: 500;
+      color: var(--ocean);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .results-title button:hover { background: var(--ocean); color: var(--white); }
+
+    /* Unit process result sections */
+    .process-section {
+      margin-bottom: 1.5rem;
+    }
+    .process-section-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 0.75rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 8px;
+      background: var(--ocean);
+      color: var(--white);
+    }
+    .process-section-icon {
+      font-size: 1.2rem;
+      line-height: 1;
+    }
+    .process-section-title {
+      font-family: var(--font-display);
+      font-size: 1rem;
+      font-weight: 400;
+    }
+    .process-section-sub {
+      font-size: 0.72rem;
+      color: var(--seafoam-lt);
+      margin-left: auto;
+    }
+    .result-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 0.6rem;
+    }
+    .result-item {
+      background: var(--off-white);
+      border-radius: 7px;
+      padding: 0.65rem 0.85rem;
+      border: 1px solid rgba(11,79,108,0.06);
+    }
+    .result-item-label {
+      font-size: 0.68rem;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--slate-lt);
+      margin-bottom: 0.25rem;
+    }
+    .result-item-value {
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+      font-weight: 400;
+      color: var(--ocean);
+      line-height: 1.1;
+    }
+    .result-item-unit {
+      font-size: 0.72rem;
+      color: var(--slate-lt);
+      margin-left: 0.2rem;
+    }
+
+    /* Design check badges */
+    .check-ok   { color: #0f6e56; background: #e1f5ee; padding: 0.15rem 0.5rem; border-radius: 4px; font-size: 0.72rem; font-weight: 500; }
+    .check-warn { color: #854f0b; background: #faeeda; padding: 0.15rem 0.5rem; border-radius: 4px; font-size: 0.72rem; font-weight: 500; }
+    .check-fail { color: #7a1a1a; background: #fde8e8; padding: 0.15rem 0.5rem; border-radius: 4px; font-size: 0.72rem; font-weight: 500; }
+
+    /* ── Print styles ─────────────────────────────────────── */
+    @media print {
+      .input-panel, .tool-nav, .tool-hero,
+      .calc-btn, .schematic-title button,
+      .results-title button { display: none !important; }
+      .wwtp-layout { grid-template-columns: 1fr; }
+      .schematic-panel, .results-panel { border: none; padding: 0; }
+      body { background: white; }
+    }
+
+    /* ── Responsive ──────────────────────────────────────── */
+    @media (max-width: 900px) {
+      .wwtp-layout { grid-template-columns: 1fr; }
+      .input-panel { position: static; }
+    }
+    @media (max-width: 480px) {
+      .result-grid { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation -->
+  <nav class="tool-nav" role="navigation">
+    <div class="tool-nav-inner">
+      <a href="../index.html" class="tool-brand">Ir. Dipanshu Sharma</a>
+      <div class="tool-nav-links">
+        <a href="index.html" class="tool-nav-back">← All Tools</a>
+        <span class="tool-nav-breadcrumb">WWTP Design</span>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Page header -->
+  <header class="tool-hero tool-hero-sm">
+    <div class="container">
+      <div class="tool-breadcrumb">Tools / WWTP Preliminary Design</div>
+      <h1 class="tool-hero-title">Wastewater Treatment Plant <em>Design Tool</em></h1>
+      <p class="tool-hero-sub">
+        Preliminary design of municipal WWTP unit processes with live
+        process schematic. Supports Activated Sludge and Extended
+        Aeration configurations. For feasibility and concept-level design.
+      </p>
+    </div>
+  </header>
+
+  <main class="tool-body">
+    <div class="container">
+
+      <div class="wwtp-layout">
+
+        <!-- ════════════════════════════════════════
+             LEFT: INPUT PANEL
+        ════════════════════════════════════════ -->
+        <div class="input-panel">
+          <div class="input-panel-title">Design Inputs</div>
+
+          <!-- Treatment configuration -->
+          <div class="inp-section">Treatment Configuration</div>
+          <div class="inp-group">
+            <label class="inp-label" for="config">Process Configuration</label>
+            <select class="inp-select" id="config" onchange="onConfigChange()">
+              <option value="cas">Conventional Activated Sludge (CAS)</option>
+              <option value="ea">Extended Aeration (EA)</option>
+            </select>
+          </div>
+          <div class="inp-group">
+            <label class="inp-label" for="effStd">Effluent Standard</label>
+            <select class="inp-select" id="effStd">
+              <option value="secondary">Secondary (BOD ≤30 mg/L, TSS ≤30 mg/L)</option>
+              <option value="tertiary">Tertiary (BOD ≤10 mg/L, TSS ≤10 mg/L)</option>
+              <option value="advanced">Advanced (BOD ≤5 mg/L, TSS ≤5 mg/L)</option>
+            </select>
+          </div>
+
+          <!-- Population and flow -->
+          <div class="inp-section">Population &amp; Flow</div>
+          <div class="inp-group">
+            <label class="inp-label" for="pop">Design Population (PE)</label>
+            <div class="inp-row">
+              <input class="inp-field" type="number" id="pop"
+                     value="50000" min="100" step="100" />
+              <span class="inp-unit">PE</span>
+            </div>
+          </div>
+          <div class="inp-group">
+            <label class="inp-label" for="percapita">Per Capita Flow</label>
+            <div class="inp-row">
+              <input class="inp-field" type="number" id="percapita"
+                     value="200" min="50" step="10" />
+              <span class="inp-unit">L/PE/day</span>
+            </div>
+          </div>
+          <div class="inp-group">
+            <label class="inp-label" for="peakFactor">Peak Flow Factor</label>
+            <div class="inp-row">
+              <input class="inp-field" type="number" id="peakFactor"
+                     value="2.5" min="1.5" max="5" step="0.1" />
+              <span class="inp-unit">—</span>
+            </div>
+            <small style="color:var(--slate-lt);font-size:0.72rem;margin-top:0.2rem;display:block;">
+              Typical: 2.0–3.0 for municipal sewers
+            </small>
+          </div>
+
+          <!-- Influent quality -->
+          <div class="inp-section">Influent Quality</div>
+          <div class="inp-group">
+            <label class="inp-label" for="inflBOD">BOD₅ Influent</label>
+            <div class="inp-row">
+              <input class="inp-field" type="number" id="inflBOD"
+                     value="250" min="50" step="10" />
+              <span class="inp-unit">mg/L</span>
+            </div>
+          </div>
+          <div class="inp-group">
+            <label class="inp-label" for="inflCOD">COD Influent</label>
+            <div class="inp-row">
+              <input class="inp-field" type="number" id="inflCOD"
+                     value="500" min="100" step="10" />
+              <span class="inp-unit">mg/L</span>
+            </div>
+          </div>
+          <div class="inp-group">
+            <label class="inp-label" for="inflTSS">TSS Influent</label>
+            <div class="inp-row">
+              <input class="inp-field" type="number" id="inflTSS"
+                     value="250" min="50" step="10" />
+              <span class="inp-unit">mg/L</span>
+            </div>
+          </div>
+          <div class="inp-group">
+            <label class="inp-label" for="inflTKN">TKN Influent</label>
+            <div class="inp-row">
+              <input class="inp-field" type="number" id="inflTKN"
+                     value="45" min="10" step="5" />
+              <span class="inp-unit">mg/L</span>
+            </div>
+          </div>
+
+          <!-- Design parameters -->
+          <div class="inp-section">Biological Design Parameters</div>
+          <div class="inp-group">
+            <label class="inp-label" for="mlss">MLSS Concentration</label>
+            <div class="inp-row">
+              <input class="inp-field" type="number" id="mlss"
+                     value="3500" min="1000" max="8000" step="100" />
+              <span class="inp-unit">mg/L</span>
+            </div>
+            <small style="color:var(--slate-lt);font-size:0.72rem;margin-top:0.2rem;display:block;">
+              CAS: 2,000–4,000 · EA: 3,000–6,000
+            </small>
+          </div>
+          <div class="inp-group">
+            <label class="inp-label" for="srt" id="srtLabel">Sludge Retention Time (SRT)</label>
+            <div class="inp-row">
+              <input class="inp-field" type="number" id="srt"
+                     value="10" min="3" max="30" step="1" />
+              <span class="inp-unit">days</span>
+            </div>
+            <small style="color:var(--slate-lt);font-size:0.72rem;margin-top:0.2rem;display:block;" id="srtHint">
+              CAS: 8–15 days · EA: 20–30 days
+            </small>
+          </div>
+
+          <!-- Primary settlement toggle -->
+          <div class="inp-section">Unit Processes</div>
+          <div class="inp-group">
+            <label class="inp-label">Primary Settlement</label>
+            <div style="display:flex;gap:0.4rem;flex-wrap:wrap;">
+              <button class="preset-btn sel" id="psYes"
+                      onclick="setPrimary(true)">Include</button>
+              <button class="preset-btn" id="psNo"
+                      onclick="setPrimary(false)">Exclude (EA typical)</button>
+            </div>
+          </div>
+          <div class="inp-group">
+            <label class="inp-label">Sludge Thickening</label>
+            <select class="inp-select" id="sludgeType">
+              <option value="gravity">Gravity Thickener</option>
+              <option value="daf">DAF Thickener</option>
+              <option value="centrifuge">Centrifuge</option>
+            </select>
+          </div>
+
+          <button class="calc-btn" onclick="runDesign()">
+            ⚙ Run Design Calculation
+          </button>
+
+          <div class="tool-note" style="margin-top:1rem;font-size:0.75rem;">
+            <strong>Preliminary design only.</strong> Results are for
+            feasibility and concept-level sizing. Full detail design
+            requires site-specific data, treatability studies, and
+            compliance with applicable standards (e.g. EN 12255,
+            ATV-DVWK-A 131, WEF MOP-8).
+          </div>
+        </div>
+
+
+        <!-- ════════════════════════════════════════
+             RIGHT: SCHEMATIC + RESULTS
+        ════════════════════════════════════════ -->
+        <div class="output-panel">
+
+          <!-- Process schematic -->
+          <div class="schematic-panel">
+            <div class="schematic-title">
+              Process Flow Schematic
+              <button onclick="downloadSVG()">⬇ Download SVG</button>
+            </div>
+
+            <!-- Idle state shown before first calculation -->
+            <div class="schematic-idle" id="schematicIdle">
+              <div class="schematic-idle-icon">🏭</div>
+              <div class="schematic-idle-text">Process schematic will appear here</div>
+              <div class="schematic-idle-sub">
+                Enter your design parameters and press<br />
+                "Run Design Calculation"
+              </div>
+            </div>
+
+            <!-- SVG generated by JavaScript -->
+            <svg id="schematicSVG" style="display:none;"
+                 xmlns="http://www.w3.org/2000/svg">
+            </svg>
+          </div>
+
+          <!-- Results panel -->
+          <div class="results-panel" id="resultsPanel">
+            <div class="results-title">
+              Design Calculations
+              <button onclick="window.print()">🖨 Print Design Sheet</button>
+            </div>
+            <div id="resultsContent"></div>
+          </div>
+
+        </div><!-- /output-panel -->
+      </div><!-- /wwtp-layout -->
+
+    </div>
+  </main>
+
+  <footer class="tool-footer">
+    <div class="container">
+      <p>
+        © <span id="year"></span> Ir. Dipanshu Sharma ·
+        <a href="index.html">All Tools</a> ·
+        <a href="../index.html">Portfolio</a>
+      </p>
+    </div>
+  </footer>
+
+  <script src="tools.js"></script>
+  <script>
+  /* ═══════════════════════════════════════════════════════════
+     WWTP Preliminary Design Tool
+     ─────────────────────────────────────────────────────────
+     Configurations: Conventional Activated Sludge (CAS)
+                     Extended Aeration (EA)
+     Unit Processes:
+       1. Inlet Works (screen + grit channel)
+       2. Primary Settlement Tank (optional)
+       3. Aeration Tank (biological reactor)
+       4. Secondary Clarifier
+       5. Sludge Thickener
+       6. Disinfection Contact Tank
+     ─────────────────────────────────────────────────────────
+     Design references:
+       ATV-DVWK-A 131 (activated sludge)
+       Metcalf & Eddy WWTP 5th Ed.
+       EN 12255 series
+       WEF Manual of Practice MOP-8
+  ═══════════════════════════════════════════════════════════ */
+
+  let includePrimary = true;
+  let designResults  = null; // store last results for SVG download
+
+  /* ── Config change: update hints ────────────────────────── */
+  function onConfigChange() {
+    const config = document.getElementById('config').value;
+    if (config === 'ea') {
+      document.getElementById('srt').value  = 25;
+      document.getElementById('mlss').value = 4000;
+      document.getElementById('srtHint').textContent = 'EA: 20–30 days recommended';
+      setPrimary(false);
+    } else {
+      document.getElementById('srt').value  = 10;
+      document.getElementById('mlss').value = 3500;
+      document.getElementById('srtHint').textContent = 'CAS: 8–15 days recommended';
+      setPrimary(true);
+    }
+  }
+
+  /* ── Primary settlement toggle ──────────────────────────── */
+  function setPrimary(include) {
+    includePrimary = include;
+    document.getElementById('psYes').classList.toggle('sel',  include);
+    document.getElementById('psNo').classList.toggle('sel',  !include);
+  }
+
+  /* ── Number formatter ───────────────────────────────────── */
+  function f(n, d=2) {
+    if (!isFinite(n)) return '—';
+    return Number(n).toLocaleString('en-US', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: d
+    });
+  }
+
+  /* ── Design check badge ─────────────────────────────────── */
+  function badge(val, lo, hi, unit='') {
+    const ok   = val >= lo && val <= hi;
+    const warn = !ok && (val >= lo*0.8 && val <= hi*1.2);
+    const cls  = ok ? 'check-ok' : warn ? 'check-warn' : 'check-fail';
+    const txt  = ok ? '✓ OK' : warn ? '⚠ Check' : '✗ Review';
+    return `<span class="${cls}">${txt}</span>`;
+  }
+
+  /* ── Circular tank diameter from surface area ───────────── */
+  function tankDiam(area) { return Math.sqrt(4 * area / Math.PI); }
+
+  /* ══════════════════════════════════════════════════════════
+     MAIN DESIGN FUNCTION
+  ══════════════════════════════════════════════════════════ */
+  function runDesign() {
+    /* ── Read inputs ─────────────────────────────────────── */
+    const config     = document.getElementById('config').value;
+    const effStd     = document.getElementById('effStd').value;
+    const PE         = parseFloat(document.getElementById('pop').value);
+    const qPC        = parseFloat(document.getElementById('percapita').value); // L/PE/day
+    const pf         = parseFloat(document.getElementById('peakFactor').value);
+    const BOD_in     = parseFloat(document.getElementById('inflBOD').value);
+    const COD_in     = parseFloat(document.getElementById('inflCOD').value);
+    const TSS_in     = parseFloat(document.getElementById('inflTSS').value);
+    const TKN_in     = parseFloat(document.getElementById('inflTKN').value);
+    const MLSS       = parseFloat(document.getElementById('mlss').value);
+    const SRT        = parseFloat(document.getElementById('srt').value);
+    const sludgeType = document.getElementById('sludgeType').value;
+
+    /* ── Validate ────────────────────────────────────────── */
+    if ([PE,qPC,pf,BOD_in,COD_in,TSS_in,TKN_in,MLSS,SRT]
+        .some(v => isNaN(v) || v <= 0)) {
+      alert('Please fill in all input fields with valid positive values.');
+      return;
+    }
+
+    /* ── Effluent standards ───────────────────────────────── */
+    const effStds = {
+      secondary: { BOD: 30, TSS: 30 },
+      tertiary:  { BOD: 10, TSS: 10 },
+      advanced:  { BOD: 5,  TSS: 5  }
+    };
+    const EFF = effStds[effStd];
+
+    /* ═══ 1. FLOW CALCULATIONS ═══════════════════════════ */
+    const Q_avg_m3d  = PE * qPC / 1000;          // m³/day (average daily)
+    const Q_avg_m3h  = Q_avg_m3d / 24;           // m³/hr
+    const Q_avg_Ls   = Q_avg_m3d / 86.4;         // L/s
+    const Q_peak_Ls  = Q_avg_Ls * pf;            // L/s (peak)
+    const Q_peak_m3h = Q_avg_m3h * pf;           // m³/hr
+    const Q_peak_m3d = Q_avg_m3d * pf;           // m³/day
+
+    /* ═══ 2. LOAD CALCULATIONS ═══════════════════════════ */
+    const BOD_load_kgd = BOD_in * Q_avg_m3d / 1000; // kg/day
+    const COD_load_kgd = COD_in * Q_avg_m3d / 1000;
+    const TSS_load_kgd = TSS_in * Q_avg_m3d / 1000;
+    const TKN_load_kgd = TKN_in * Q_avg_m3d / 1000;
+
+    /* ═══ 3. INLET WORKS ══════════════════════════════════
+       Screen + Grit Removal Channel
+       Design for peak flow conditions                       */
+    const screenVel    = 0.6;   // m/s — velocity through screen openings
+    const screenBar    = 6;     // mm — bar spacing (fine screen)
+    const channelVel   = 0.3;   // m/s — grit channel design velocity
+    const channelDepth = 0.8;   // m — typical grit channel depth
+
+    const screenArea   = (Q_peak_Ls / 1000) / screenVel; // m²
+    const screenWidth  = Math.sqrt(screenArea);           // approximate
+    const channelArea  = (Q_peak_Ls / 1000) / channelVel;
+    const channelWidth = channelArea / channelDepth;
+
+    // Grit removal — 30 mL/person/day typical
+    const gritVol_m3d  = PE * 30 / 1e6;
+
+    /* ═══ 4. PRIMARY SETTLEMENT (if included) ══════════
+       Circular radial flow tank
+       Surface loading rate: 25–45 m³/m²/day (avg flow)
+       Retention time: 1.5–2.5 hours
+       TSS removal: 55–65%  BOD removal: 25–35%            */
+    let pst = null;
+    let BOD_afterPST = BOD_in;
+    let TSS_afterPST = TSS_in;
+
+    if (includePrimary) {
+      const SOR_pst    = 35;   // m³/m²/day surface overflow rate
+      const pstArea    = Q_avg_m3d / SOR_pst;        // m²
+      const pstDiam    = tankDiam(pstArea);           // m
+      const pstDepth   = 3.0;                         // m side water depth
+      const pstVol     = pstArea * pstDepth;          // m³
+      const pstRT      = pstVol / Q_avg_m3h;          // hours
+
+      const BOD_rem_pst = 0.30; // 30% BOD removal
+      const TSS_rem_pst = 0.60; // 60% TSS removal
+      BOD_afterPST = BOD_in * (1 - BOD_rem_pst);
+      TSS_afterPST = TSS_in * (1 - TSS_rem_pst);
+
+      // Primary sludge
+      const pSludge_kgd  = TSS_load_kgd * TSS_rem_pst;
+      const pSludge_m3d  = pSludge_kgd / (1.5 * 1000) * 1000; // ~1.5% DS
+
+      pst = { pstArea, pstDiam, pstDepth, pstVol, pstRT,
+              BOD_rem_pst, TSS_rem_pst, pSludge_kgd, pSludge_m3d,
+              SOR: Q_avg_m3d / pstArea };
+    }
+
+    /* ═══ 5. BIOLOGICAL TREATMENT (Aeration Tank) ══════
+       Based on ATV-DVWK-A 131 / Metcalf & Eddy
+       Key equations:
+         Px (net sludge production) = Q(Y·S_removed/(1+kd·SRT))
+         V = (Px × SRT) / MLSS × 1000
+         HRT = V / Q_avg
+         O2 demand = 1.5 × BOD_removed - 1.42 × Px/Q      */
+    const Y    = config === 'ea' ? 0.50 : 0.55; // yield coefficient g VSS/g BOD
+    const kd   = config === 'ea' ? 0.04  : 0.06; // endogenous decay 1/day
+    const VSS_TSS = 0.80; // VSS/MLSS ratio
+
+    const BOD_removed = BOD_afterPST - EFF.BOD; // mg/L removed
+    const S_removed   = BOD_removed;
+
+    // Net sludge production (kg VSS/day)
+    const Px_VSS = Q_avg_m3d * Y * S_removed / (1 + kd * SRT);
+    const Px_TSS = Px_VSS / VSS_TSS; // kg TSS/day
+
+    // Aeration tank volume (m³)
+    const MLVSS     = MLSS * VSS_TSS;
+    const aerVol    = (Px_VSS * SRT * 1000) / MLVSS; // m³
+    const aerHRT    = aerVol / Q_avg_m3h;              // hours
+    const aerHRT_d  = aerHRT / 24;                     // days
+
+    // Tank dimensions (rectangular, L:W = 4:1, depth 4–5 m)
+    const aerDepth  = 4.5; // m
+    const aerArea   = aerVol / aerDepth; // m²
+    const aerWidth  = Math.sqrt(aerArea / 4); // m (L:W = 4:1)
+    const aerLength = aerWidth * 4; // m
+
+    // Oxygen demand (kg O2/day)
+    const O2_BOD    = 1.5 * BOD_removed * Q_avg_m3d / 1000; // kg/day
+    const O2_nitr   = 4.57 * TKN_in * Q_avg_m3d / 1000;     // kg/day (nitrification)
+    const O2_endoge = 1.42 * Px_VSS;
+    const O2_total  = O2_BOD + O2_nitr - O2_endoge;
+    const O2_hr     = O2_total / 24;     // kg O2/hr
+    const O2_peak   = O2_hr * 1.5;       // peak hourly demand
+
+    // Specific oxygen uptake rate (g O2/kg MLVSS/hr)
+    const SOUR = (O2_hr * 1000) / (MLVSS * aerVol / 1000);
+
+    // F/M ratio
+    const FM = (BOD_afterPST * Q_avg_m3d / 1000) / (MLVSS * aerVol / 1000);
+
+    /* ═══ 6. SECONDARY CLARIFIER ═══════════════════════
+       Surface loading rate: 15–30 m³/m²/day (avg)
+       Solids loading rate (SLR): 4–6 kg/m²/hr
+       Side water depth: 3.5–4.5 m                      */
+    const SOR_sec  = 20;   // m³/m²/day (average)
+    const secArea  = Q_avg_m3d / SOR_sec;       // m²
+    // Check SLR
+    const RAS_ratio   = 0.5;   // return activated sludge ratio
+    const Q_total_sec = Q_avg_Ls * (1 + RAS_ratio) * 3600; // m³/hr through clarifier
+    const SLR         = (MLSS * Q_total_sec / 1000) / secArea;
+
+    const secDiam  = tankDiam(secArea);          // m
+    const secDepth = 4.0;                        // m SWD
+    const secVol   = secArea * secDepth;         // m³
+    const secRT    = secVol / Q_avg_m3h;         // hours
+
+    // Effluent quality estimate
+    const BOD_eff  = EFF.BOD;
+    const TSS_eff  = EFF.TSS;
+    const BOD_rem_overall = ((BOD_in - BOD_eff) / BOD_in) * 100;
+    const TSS_rem_overall = ((TSS_in - TSS_eff) / TSS_in) * 100;
+
+    /* ═══ 7. SLUDGE HANDLING ═══════════════════════════
+       Gravity Thickener: SOR = 25–35 kg/m²/day
+       Target thickened sludge: 4–6% DS                  */
+    const WAS_kgd     = Px_TSS;               // waste activated sludge kg/day
+    const WAS_total   = (pst ? pst.pSludge_kgd : 0) + WAS_kgd; // total sludge
+
+    let thickenerArea, thickenerDiam, thickenedConc, thickVol_m3d;
+    if (sludgeType === 'gravity') {
+      const SOR_thick   = 30;  // kg TSS/m²/day
+      thickenerArea     = WAS_total / SOR_thick;
+      thickenerDiam     = tankDiam(thickenerArea);
+      thickenedConc     = 5;   // % DS
+      thickVol_m3d      = WAS_total / (thickenedConc * 10); // m³/day
+    } else if (sludgeType === 'daf') {
+      const DAF_SLR     = 150; // kg/m²/day
+      thickenerArea     = WAS_total / DAF_SLR;
+      thickenerDiam     = tankDiam(thickenerArea);
+      thickenedConc     = 4;
+      thickVol_m3d      = WAS_total / (thickenedConc * 10);
+    } else {
+      thickenerArea     = WAS_total / 5000; // small footprint
+      thickenerDiam     = 3;
+      thickenedConc     = 20;
+      thickVol_m3d      = WAS_total / (thickenedConc * 10);
+    }
+
+    /* ═══ 8. DISINFECTION CONTACT TANK ═══════════════════
+       Chlorine contact time: 30 minutes minimum
+       Design for peak flow                               */
+    const contactTime_min = 30;    // minutes
+    const contactVol = (Q_peak_m3h / 60) * contactTime_min; // m³
+    const contactDepth = 2.0;      // m
+    const contactArea  = contactVol / contactDepth; // m²
+    const contactL     = Math.sqrt(contactArea * 4); // L:W = 4:1
+    const contactW     = contactL / 4;
+
+    /* ═══ STORE RESULTS ══════════════════════════════════ */
+    designResults = {
+      config, PE, Q_avg_m3d, Q_avg_m3h, Q_avg_Ls,
+      Q_peak_Ls, Q_peak_m3h, Q_peak_m3d,
+      BOD_in, COD_in, TSS_in, TKN_in,
+      BOD_load_kgd, COD_load_kgd, TSS_load_kgd,
+      BOD_afterPST, TSS_afterPST,
+      // inlet
+      screenArea, screenWidth, channelWidth, channelDepth, gritVol_m3d,
+      // pst
+      pst, includePrimary,
+      // aeration
+      aerVol, aerHRT, aerHRT_d, aerWidth, aerLength, aerDepth,
+      Px_VSS, Px_TSS, MLSS, MLVSS, SRT, FM,
+      O2_total, O2_hr, O2_peak, SOUR,
+      // clarifier
+      secArea, secDiam, secDepth, secVol, secRT,
+      SOR_sec, SLR,
+      // effluent
+      BOD_eff, TSS_eff, BOD_rem_overall, TSS_rem_overall,
+      // sludge
+      WAS_kgd, WAS_total, thickenerDiam, thickenerArea,
+      thickenedConc, thickVol_m3d, sludgeType,
+      // disinfection
+      contactVol, contactDepth, contactL, contactW, contactTime_min,
+      EFF, effStd
+    };
+
+    /* ── Render outputs ──────────────────────────────────── */
+    renderSchematic(designResults);
+    renderResults(designResults);
+  }
+
+
+  /* ══════════════════════════════════════════════════════════
+     RENDER PROCESS SCHEMATIC (SVG)
+  ══════════════════════════════════════════════════════════ */
+  function renderSchematic(R) {
+    const svg   = document.getElementById('schematicSVG');
+    const idle  = document.getElementById('schematicIdle');
+    idle.style.display = 'none';
+    svg.style.display  = 'block';
+
+    /* ── Canvas size ─────────────────────────────────────── */
+    const W     = 900;
+    const H     = R.includePrimary ? 520 : 460;
+    svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+    svg.setAttribute('style', `width:100%;display:block;`);
+
+    /* ── Colour palette ──────────────────────────────────── */
+    const C = {
+      ocean:    '#0b4f6c',
+      oceanMid: '#1a7a9a',
+      seafoam:  '#4db8a0',
+      mist:     '#e8f4f1',
+      slate:    '#2c3e50',
+      white:    '#ffffff',
+      sand:     '#c4a87c',
+      bg:       '#f8fafc',
+      flow:     '#1a7a9a',
+      sludge:   '#c4a87c',
+      text:     '#2c3e50',
+      textLt:   '#8fa8b8'
+    };
+
+    /* ── SVG helpers ─────────────────────────────────────── */
+    function rect(x,y,w,h,fill,stroke,rx=6) {
+      return `<rect x="${x}" y="${y}" width="${w}" height="${h}"
+        fill="${fill}" stroke="${stroke}" stroke-width="1.5"
+        rx="${rx}" />`;
+    }
+    function circle(cx,cy,r,fill,stroke) {
+      return `<circle cx="${cx}" cy="${cy}" r="${r}"
+        fill="${fill}" stroke="${stroke}" stroke-width="1.5" />`;
+    }
+    function text(x,y,txt,size,fill,anchor='middle',weight='400') {
+      return `<text x="${x}" y="${y}" font-family="DM Sans,system-ui,sans-serif"
+        font-size="${size}" fill="${fill}" text-anchor="${anchor}"
+        font-weight="${weight}">${txt}</text>`;
+    }
+    function italicText(x,y,txt,size,fill,anchor='middle') {
+      return `<text x="${x}" y="${y}"
+        font-family="Cormorant Garamond,Georgia,serif"
+        font-size="${size}" fill="${fill}" text-anchor="${anchor}"
+        font-style="italic" font-weight="300">${txt}</text>`;
+    }
+    function arrow(x1,y1,x2,y2,col,dashed=false) {
+      const dash = dashed ? 'stroke-dasharray="5 3"' : '';
+      return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"
+        stroke="${col}" stroke-width="2" ${dash}
+        marker-end="url(#arrowhead)" />`;
+    }
+    function downArrow(x1,y1,x2,y2,col,dashed=false) {
+      const dash = dashed ? 'stroke-dasharray="5 3"' : '';
+      return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"
+        stroke="${col}" stroke-width="2" ${dash}
+        marker-end="url(#arrowheadDown)" />`;
+    }
+    function label(x,y,title,val,unit,col='#0b4f6c') {
+      return `
+        ${text(x, y,   title, 8,  C.textLt)}
+        ${text(x, y+13, val,  10, col, 'middle','600')}
+        ${text(x, y+24, unit, 8,  C.textLt)}`;
+    }
+
+    /* ── Build process boxes ─────────────────────────────── */
+    // Layout: 6 boxes horizontally with sludge line below
+    // Boxes: [Inlet] → [PST?] → [Aeration] → [Clarifier] → [Disinfection] → EFFLUENT
+    //                                ↓ sludge
+    //                          [Thickener]
+
+    const processes = [];
+
+    // Always: Inlet works
+    processes.push({
+      id: 'inlet', label: 'Inlet Works',
+      sub: 'Screen + Grit',
+      vals: [
+        { t: 'Peak Flow', v: R.Q_peak_Ls.toFixed(1), u: 'L/s' },
+        { t: 'Channel W', v: R.channelWidth.toFixed(2), u: 'm' }
+      ],
+      color: C.ocean, shape: 'rect'
+    });
+
+    // Conditionally: PST
+    if (R.includePrimary) {
+      processes.push({
+        id: 'pst', label: 'Primary Settlement',
+        sub: 'Circular Tank',
+        vals: [
+          { t: 'Diameter', v: R.pst.pstDiam.toFixed(1), u: 'm' },
+          { t: 'RT', v: R.pst.pstRT.toFixed(1), u: 'hr' }
+        ],
+        color: C.oceanMid, shape: 'circle'
+      });
+    }
+
+    // Aeration tank
+    processes.push({
+      id: 'aeration', label: 'Aeration Tank',
+      sub: R.config === 'cas' ? 'Activated Sludge' : 'Extended Aeration',
+      vals: [
+        { t: 'Volume', v: R.aerVol.toFixed(0), u: 'm³' },
+        { t: 'HRT', v: R.aerHRT.toFixed(1), u: 'hr' }
+      ],
+      color: C.seafoam, shape: 'rect'
+    });
+
+    // Secondary clarifier
+    processes.push({
+      id: 'clarifier', label: 'Secondary Clarifier',
+      sub: 'Circular Tank',
+      vals: [
+        { t: 'Diameter', v: R.secDiam.toFixed(1), u: 'm' },
+        { t: 'SOR', v: R.SOR_sec.toFixed(0), u: 'm³/m²/d' }
+      ],
+      color: C.oceanMid, shape: 'circle'
+    });
+
+    // Disinfection
+    processes.push({
+      id: 'disinfect', label: 'Disinfection',
+      sub: 'Chlorine Contact',
+      vals: [
+        { t: 'Volume', v: R.contactVol.toFixed(0), u: 'm³' },
+        { t: 'CT', v: R.contactTime_min, u: 'min' }
+      ],
+      color: C.ocean, shape: 'rect'
+    });
+
+    const nProc  = processes.length;
+    const bw     = 110;  // box width
+    const bh     = 110;  // box height
+    const margin = 40;
+    const spacing = (W - margin*2 - bw*nProc) / (nProc - 1);
+    const topY   = 100;
+
+    /* ── Start building SVG content ──────────────────────── */
+    let s = '';
+
+    // Defs: arrowhead markers, gradient
+    s += `<defs>
+      <marker id="arrowhead" markerWidth="8" markerHeight="6"
+              refX="8" refY="3" orient="auto">
+        <polygon points="0 0, 8 3, 0 6" fill="${C.flow}" />
+      </marker>
+      <marker id="arrowheadDown" markerWidth="8" markerHeight="6"
+              refX="8" refY="3" orient="auto">
+        <polygon points="0 0, 8 3, 0 6" fill="${C.sludge}" />
+      </marker>
+      <marker id="arrowheadRAS" markerWidth="8" markerHeight="6"
+              refX="8" refY="3" orient="auto">
+        <polygon points="0 0, 8 3, 0 6" fill="${C.seafoam}" />
+      </marker>
+      <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#f0f8ff"/>
+        <stop offset="100%" stop-color="#f8fafc"/>
+      </linearGradient>
+    </defs>`;
+
+    // Background
+    s += `<rect width="${W}" height="${H}" fill="url(#bgGrad)" rx="8"/>`;
+
+    // Title bar
+    s += rect(0, 0, W, 40, C.ocean, 'none', 0);
+    s += italicText(W/2, 26, 'Wastewater Treatment Plant — Process Flow Schematic', 14, C.white);
+
+    // Subtitle: config and population
+    const configLabel = R.config === 'cas' ? 'Conventional Activated Sludge' : 'Extended Aeration';
+    s += text(margin, 68, `Configuration: ${configLabel}`, 10, C.text, 'start');
+    s += text(margin, 82, `Design Population: ${R.PE.toLocaleString()} PE  |  Avg. Flow: ${R.Q_avg_m3d.toFixed(0)} m³/day  |  Peak Flow: ${R.Q_peak_Ls.toFixed(1)} L/s`, 9, C.textLt, 'start');
+
+    // INFLUENT label
+    s += text(margin - 5, topY + bh/2 - 5, 'INFLUENT', 8, C.ocean, 'middle', '600');
+    s += text(margin - 5, topY + bh/2 + 7, `${R.BOD_in} mg/L BOD`, 7, C.textLt, 'middle');
+    s += text(margin - 5, topY + bh/2 + 17, `${R.TSS_in} mg/L TSS`, 7, C.textLt, 'middle');
+
+    // Draw process boxes and connecting arrows
+    let aerationX = 0, clarifierX = 0;
+
+    processes.forEach((proc, i) => {
+      const x = margin + i * (bw + spacing);
+      const y = topY;
+      const cx = x + bw/2;
+      const cy = y + bh/2;
+
+      if (proc.id === 'aeration') aerationX = x;
+      if (proc.id === 'clarifier') clarifierX = x;
+
+      // Draw arrow from previous box (or influent)
+      if (i === 0) {
+        // Influent arrow
+        s += arrow(margin - 30, cy, x - 2, cy, C.flow);
+      } else {
+        const prevX = margin + (i-1) * (bw + spacing);
+        s += arrow(prevX + bw + 2, topY + bh/2, x - 2, topY + bh/2, C.flow);
+      }
+
+      // Draw the process unit
+      if (proc.shape === 'circle') {
+        // Circular tank (clarifier / PST)
+        const r = bh / 2 - 5;
+        s += circle(cx, cy, r, proc.color + '22', proc.color);
+        // Inner circle to suggest radial flow
+        s += circle(cx, cy, r*0.4, proc.color + '33', proc.color + '66');
+        // Scraper arm suggestion
+        s += `<line x1="${cx}" y1="${cy}" x2="${cx}" y2="${cy - r + 5}"
+          stroke="${proc.color}" stroke-width="1" stroke-dasharray="2 2"/>`;
+        s += `<line x1="${cx}" y1="${cy}" x2="${cx + r - 5}" y2="${cy}"
+          stroke="${proc.color}" stroke-width="1" stroke-dasharray="2 2"/>`;
+      } else {
+        // Rectangular tank
+        if (proc.id === 'aeration') {
+          // Aeration tank — show bubbles
+          s += rect(x, y+5, bw, bh-10, proc.color + '22', proc.color);
+          // Bubble dots
+          for (let bx = 0; bx < 4; bx++)
+            for (let by = 0; by < 3; by++)
+              s += circle(x + 18 + bx*22, y + 40 + by*18, 3,
+                'rgba(77,184,160,0.4)', 'rgba(77,184,160,0.6)');
+          // Diffuser line at bottom
+          s += `<line x1="${x+8}" y1="${y+bh-18}" x2="${x+bw-8}" y2="${y+bh-18}"
+            stroke="${proc.color}" stroke-width="2" stroke-dasharray="4 3"/>`;
+        } else if (proc.id === 'disinfect') {
+          // Serpentine contact tank
+          s += rect(x, y+5, bw, bh-10, proc.color + '22', proc.color);
+          // Baffle lines
+          s += `<line x1="${x+30}" y1="${y+5}" x2="${x+30}" y2="${y+bh-25}"
+            stroke="${proc.color}" stroke-width="1.5"/>`;
+          s += `<line x1="${x+60}" y1="${y+25}" x2="${x+60}" y2="${y+bh-10}"
+            stroke="${proc.color}" stroke-width="1.5"/>`;
+          s += `<line x1="${x+85}" y1="${y+5}" x2="${x+85}" y2="${y+bh-25}"
+            stroke="${proc.color}" stroke-width="1.5"/>`;
+        } else {
+          s += rect(x, y+5, bw, bh-10, proc.color + '22', proc.color);
+          // Screen bars for inlet
+          if (proc.id === 'inlet') {
+            for (let b = 0; b < 5; b++)
+              s += `<line x1="${x+20+b*14}" y1="${y+25}"
+                x2="${x+20+b*14}" y2="${y+bh-20}"
+                stroke="${proc.color}" stroke-width="2"/>`;
+          }
+        }
+      }
+
+      // Box label
+      s += text(cx, y - 5, proc.label, 9, C.ocean, 'middle', '600');
+      s += text(cx, y + 8, proc.sub,   7, C.textLt, 'middle');
+
+      // Key values inside / below box
+      proc.vals.forEach((v, vi) => {
+        const vy = cy + (vi === 0 ? -8 : 8);
+        s += text(cx, vy - 4, v.t, 7, C.textLt);
+        s += text(cx, vy + 7, `${v.v} ${v.u}`, 9, proc.color === C.seafoam ? '#0f6e56' : C.ocean, 'middle', '600');
+      });
+    });
+
+    // EFFLUENT label (after last box)
+    const lastX = margin + (nProc - 1) * (bw + spacing) + bw;
+    s += arrow(lastX + 2, topY + bh/2, lastX + 40, topY + bh/2, C.flow);
+    s += text(lastX + 45, topY + bh/2 - 8,  'EFFLUENT', 8, '#0f6e56', 'start', '600');
+    s += text(lastX + 45, topY + bh/2 + 4,  `BOD: ${R.BOD_eff} mg/L`, 7, C.textLt, 'start');
+    s += text(lastX + 45, topY + bh/2 + 14, `TSS: ${R.TSS_eff} mg/L`, 7, C.textLt, 'start');
+
+    // ── SLUDGE LINE (below main process) ─────────────────
+    const sludgeY   = topY + bh + 80;
+    const thickW    = 90;
+    const thickH    = 70;
+
+    // Sludge box position (under aeration/clarifier area)
+    const thickX = aerationX + (clarifierX - aerationX) / 2 + bw/2 - thickW/2;
+    const thickY = sludgeY;
+
+    // Sludge label
+    s += text(thickX + thickW/2, thickY - 12, 'SLUDGE HANDLING', 8, C.sand, 'middle', '600');
+
+    // Sludge thickener box
+    s += rect(thickX, thickY, thickW, thickH, C.sand + '33', C.sand);
+    s += text(thickX + thickW/2, thickY + 22,
+      R.sludgeType === 'gravity' ? 'Gravity' : R.sludgeType === 'daf' ? 'DAF' : 'Centrifuge',
+      9, '#854f0b', 'middle', '600');
+    s += text(thickX + thickW/2, thickY + 36, 'Thickener', 8, C.textLt, 'middle');
+    s += text(thickX + thickW/2, thickY + 52,
+      `Ø ${R.thickenerDiam.toFixed(1)} m`, 9, '#854f0b', 'middle', '600');
+    s += text(thickX + thickW/2, thickY + 64,
+      `${R.thickenedConc}% DS`, 7, C.textLt, 'middle');
+
+    // WAS arrow (from aeration/clarifier down to thickener)
+    const wasX = clarifierX + bw/2;
+    s += downArrow(wasX, topY + bh + 5, wasX, thickY + thickH/2, C.sludge, true);
+    s += `<line x1="${wasX}" y1="${thickY + thickH/2}"
+      x2="${thickX + thickW}" y2="${thickY + thickH/2}"
+      stroke="${C.sludge}" stroke-width="2" stroke-dasharray="5 3"
+      marker-end="url(#arrowheadDown)"/>`;
+    s += text(wasX + 5, topY + bh + 35, 'WAS', 7, C.sand, 'start');
+    s += text(wasX + 5, topY + bh + 45,
+      `${R.WAS_kgd.toFixed(0)} kg/d`, 7, C.textLt, 'start');
+
+    // Primary sludge arrow (if PST)
+    if (R.includePrimary) {
+      const pstIdx = 1;
+      const pstCX  = margin + pstIdx * (bw + spacing) + bw/2;
+      s += downArrow(pstCX, topY + bh + 5, pstCX, thickY + thickH/2, C.sludge, true);
+      s += `<line x1="${pstCX}" y1="${thickY + thickH/2}"
+        x2="${thickX}" y2="${thickY + thickH/2}"
+        stroke="${C.sludge}" stroke-width="2" stroke-dasharray="5 3"/>`;
+      s += text(pstCX + 5, topY + bh + 35, 'Primary', 7, C.sand, 'start');
+      s += text(pstCX + 5, topY + bh + 45,
+        'Sludge', 7, C.textLt, 'start');
+    }
+
+    // RAS arrow (from clarifier back to aeration inlet)
+    const rasY = topY + bh + 45;
+    const rasStartX = clarifierX + bw/2;
+    const rasEndX   = aerationX + 10;
+    s += `<polyline points="${rasStartX},${topY+bh+5} ${rasStartX},${rasY} ${rasEndX},${rasY} ${rasEndX},${topY+bh+5}"
+      fill="none" stroke="${C.seafoam}" stroke-width="1.5"
+      stroke-dasharray="5 3"/>`;
+    s += `<polygon points="${rasEndX},${topY+bh+4} ${rasEndX-4},${topY+bh+12} ${rasEndX+4},${topY+bh+12}"
+      fill="${C.seafoam}"/>`;
+    s += text((rasStartX + rasEndX)/2, rasY + 11, 'RAS (Return Activated Sludge)', 7, C.seafoam, 'middle');
+
+    // Legend
+    const legX = W - 180;
+    const legY = H - 70;
+    s += rect(legX, legY, 170, 60, C.white, 'rgba(11,79,108,0.1)');
+    s += text(legX + 85, legY + 13, 'Legend', 8, C.ocean, 'middle', '600');
+    s += `<line x1="${legX+10}" y1="${legY+25}" x2="${legX+45}" y2="${legY+25}"
+      stroke="${C.flow}" stroke-width="2" marker-end="url(#arrowhead)"/>`;
+    s += text(legX + 50, legY + 29, 'Flow', 8, C.text, 'start');
+    s += `<line x1="${legX+10}" y1="${legY+40}" x2="${legX+45}" y2="${legY+40}"
+      stroke="${C.sludge}" stroke-width="2" stroke-dasharray="5 3"
+      marker-end="url(#arrowheadDown)"/>`;
+    s += text(legX + 50, legY + 44, 'Sludge', 8, C.text, 'start');
+    s += `<line x1="${legX+90}" y1="${legY+40}" x2="${legX+125}" y2="${legY+40}"
+      stroke="${C.seafoam}" stroke-width="2" stroke-dasharray="5 3"/>`;
+    s += text(legX + 130, legY + 44, 'RAS', 8, C.text, 'start');
+
+    // Footer note
+    s += text(20, H - 12,
+      `Preliminary design only — for feasibility purposes | Ir. Dipanshu Sharma Engineering Tools | dipanshulabs.github.io`,
+      7, C.textLt, 'start');
+
+    svg.innerHTML = s;
+  }
+
+
+  /* ══════════════════════════════════════════════════════════
+     RENDER CALCULATION RESULTS
+  ══════════════════════════════════════════════════════════ */
+  function renderResults(R) {
+    const panel = document.getElementById('resultsPanel');
+    const cont  = document.getElementById('resultsContent');
+    panel.classList.add('visible');
+
+    function ri(label, val, unit, check='') {
+      return `<div class="result-item">
+        <div class="result-item-label">${label}</div>
+        <div class="result-item-value">${f(val,2)}<span class="result-item-unit">${unit}</span>
+        ${check}</div>
+      </div>`;
+    }
+
+    let html = '';
+
+    /* ── Flow summary ─────────────────────────────────────── */
+    html += `<div class="process-section">
+      <div class="process-section-header">
+        <span class="process-section-icon">💧</span>
+        <span class="process-section-title">Flow &amp; Load Summary</span>
+        <span class="process-section-sub">Design basis</span>
+      </div>
+      <div class="result-grid">
+        ${ri('Design Population', R.PE, 'PE')}
+        ${ri('Avg Daily Flow', R.Q_avg_m3d, 'm³/day')}
+        ${ri('Avg Hourly Flow', R.Q_avg_m3h, 'm³/hr')}
+        ${ri('Avg Flow', R.Q_avg_Ls, 'L/s')}
+        ${ri('Peak Flow', R.Q_peak_Ls, 'L/s')}
+        ${ri('Peak Flow', R.Q_peak_m3h, 'm³/hr')}
+        ${ri('BOD Load', R.BOD_load_kgd, 'kg/day')}
+        ${ri('COD Load', R.COD_load_kgd, 'kg/day')}
+        ${ri('TSS Load', R.TSS_load_kgd, 'kg/day')}
+      </div>
+    </div>`;
+
+    /* ── Inlet works ─────────────────────────────────────── */
+    html += `<div class="process-section">
+      <div class="process-section-header">
+        <span class="process-section-icon">🔧</span>
+        <span class="process-section-title">1. Inlet Works</span>
+        <span class="process-section-sub">Screen + Grit Removal</span>
+      </div>
+      <div class="result-grid">
+        ${ri('Screen Open Area', R.screenArea, 'm²',
+             badge(R.screenArea, 0.01, 10))}
+        ${ri('Grit Channel Width', R.channelWidth, 'm',
+             badge(R.channelWidth, 0.3, 3.0))}
+        ${ri('Grit Channel Depth', R.channelDepth, 'm')}
+        ${ri('Grit Volume', R.gritVol_m3d*1000, 'L/day')}
+        ${ri('Design Velocity', 0.3, 'm/s')}
+        ${ri('Bar Spacing', 6, 'mm')}
+      </div>
+    </div>`;
+
+    /* ── Primary settlement (if included) ────────────────── */
+    if (R.includePrimary && R.pst) {
+      html += `<div class="process-section">
+        <div class="process-section-header">
+          <span class="process-section-icon">⭕</span>
+          <span class="process-section-title">2. Primary Settlement Tank</span>
+          <span class="process-section-sub">Circular Radial Flow</span>
+        </div>
+        <div class="result-grid">
+          ${ri('Tank Diameter', R.pst.pstDiam, 'm',
+               badge(R.pst.pstDiam, 5, 60))}
+          ${ri('Surface Area', R.pst.pstArea, 'm²')}
+          ${ri('Side Water Depth', R.pst.pstDepth, 'm',
+               badge(R.pst.pstDepth, 2.5, 4.0))}
+          ${ri('Tank Volume', R.pst.pstVol, 'm³')}
+          ${ri('Retention Time', R.pst.pstRT, 'hr',
+               badge(R.pst.pstRT, 1.5, 2.5))}
+          ${ri('Surface Overflow Rate', R.pst.SOR, 'm³/m²/d',
+               badge(R.pst.SOR, 25, 45))}
+          ${ri('BOD Removal', R.pst.BOD_rem_pst*100, '%')}
+          ${ri('TSS Removal', R.pst.TSS_rem_pst*100, '%')}
+          ${ri('Primary Sludge', R.pst.pSludge_kgd, 'kg TSS/day')}
+          ${ri('Sludge Volume', R.pst.pSludge_m3d, 'm³/day')}
+        </div>
+      </div>`;
+    }
+
+    /* ── Aeration tank ───────────────────────────────────── */
+    const aerNo = R.includePrimary ? 3 : 2;
+    html += `<div class="process-section">
+      <div class="process-section-header">
+        <span class="process-section-icon">🫧</span>
+        <span class="process-section-title">${aerNo}. Aeration Tank — Biological Reactor</span>
+        <span class="process-section-sub">${R.config === 'cas' ? 'Conventional Activated Sludge' : 'Extended Aeration'}</span>
+      </div>
+      <div class="result-grid">
+        ${ri('Tank Volume', R.aerVol, 'm³',
+             badge(R.aerVol, 100, 100000))}
+        ${ri('HRT', R.aerHRT, 'hr',
+             badge(R.aerHRT, R.config==='cas' ? 6 : 18, R.config==='cas' ? 12 : 30))}
+        ${ri('Tank Length', R.aerLength, 'm')}
+        ${ri('Tank Width', R.aerWidth, 'm')}
+        ${ri('Tank Depth', R.aerDepth, 'm')}
+        ${ri('MLSS', R.MLSS, 'mg/L',
+             badge(R.MLSS, R.config==='cas' ? 2000 : 3000, R.config==='cas' ? 4000 : 6000))}
+        ${ri('MLVSS', R.MLVSS, 'mg/L')}
+        ${ri('SRT', R.SRT, 'days',
+             badge(R.SRT, R.config==='cas' ? 8 : 20, R.config==='cas' ? 15 : 30))}
+        ${ri('F/M Ratio', R.FM, 'kg BOD/kg VSS/d',
+             badge(R.FM, R.config==='cas' ? 0.2 : 0.04, R.config==='cas' ? 0.5 : 0.10))}
+        ${ri('Net Sludge (VSS)', R.Px_VSS, 'kg VSS/day')}
+        ${ri('Net Sludge (TSS)', R.Px_TSS, 'kg TSS/day')}
+        ${ri('O₂ Demand (avg)', R.O2_total, 'kg O₂/day')}
+        ${ri('O₂ Demand (hourly)', R.O2_hr, 'kg O₂/hr')}
+        ${ri('O₂ Demand (peak)', R.O2_peak, 'kg O₂/hr')}
+        ${ri('SOUR', R.SOUR, 'g O₂/kg VSS/hr',
+             badge(R.SOUR, 8, 20))}
+      </div>
+    </div>`;
+
+    /* ── Secondary clarifier ─────────────────────────────── */
+    const secNo = aerNo + 1;
+    html += `<div class="process-section">
+      <div class="process-section-header">
+        <span class="process-section-icon">⭕</span>
+        <span class="process-section-title">${secNo}. Secondary Clarifier</span>
+        <span class="process-section-sub">Circular Radial Flow</span>
+      </div>
+      <div class="result-grid">
+        ${ri('Tank Diameter', R.secDiam, 'm',
+             badge(R.secDiam, 5, 60))}
+        ${ri('Surface Area', R.secArea, 'm²')}
+        ${ri('Side Water Depth', R.secDepth, 'm',
+             badge(R.secDepth, 3.5, 4.5))}
+        ${ri('Tank Volume', R.secVol, 'm³')}
+        ${ri('Retention Time', R.secRT, 'hr',
+             badge(R.secRT, 2, 6))}
+        ${ri('Surface Overflow Rate', R.SOR_sec, 'm³/m²/d',
+             badge(R.SOR_sec, 15, 30))}
+        ${ri('Solids Loading Rate', R.SLR, 'kg TSS/m²/hr',
+             badge(R.SLR, 3, 6))}
+        ${ri('RAS Ratio', 50, '%')}
+      </div>
+    </div>`;
+
+    /* ── Effluent quality ────────────────────────────────── */
+    html += `<div class="process-section">
+      <div class="process-section-header">
+        <span class="process-section-icon">✅</span>
+        <span class="process-section-title">Effluent Quality</span>
+        <span class="process-section-sub">Estimated treated water quality</span>
+      </div>
+      <div class="result-grid">
+        ${ri('Effluent BOD₅', R.BOD_eff, 'mg/L',
+             `<span class="check-ok">✓ Meets ${R.effStd}</span>`)}
+        ${ri('Effluent TSS', R.TSS_eff, 'mg/L',
+             `<span class="check-ok">✓ Meets ${R.effStd}</span>`)}
+        ${ri('BOD Removal', R.BOD_rem_overall, '%')}
+        ${ri('TSS Removal', R.TSS_rem_overall, '%')}
+      </div>
+    </div>`;
+
+    /* ── Sludge handling ─────────────────────────────────── */
+    const sludgeNo = secNo + 1;
+    const sludgeLabel = R.sludgeType === 'gravity' ? 'Gravity Thickener'
+      : R.sludgeType === 'daf' ? 'DAF Thickener' : 'Centrifuge';
+    html += `<div class="process-section">
+      <div class="process-section-header">
+        <span class="process-section-icon">♻</span>
+        <span class="process-section-title">${sludgeNo}. Sludge Handling — ${sludgeLabel}</span>
+        <span class="process-section-sub">Sludge thickening</span>
+      </div>
+      <div class="result-grid">
+        ${ri('Total Sludge Production', R.WAS_total, 'kg TSS/day')}
+        ${ri('WAS (biological)', R.WAS_kgd, 'kg TSS/day')}
+        ${ri('Thickener Diameter', R.thickenerDiam, 'm')}
+        ${ri('Thickener Area', R.thickenerArea, 'm²')}
+        ${ri('Thickened DS Conc.', R.thickenedConc, '% DS')}
+        ${ri('Thickened Sludge Vol.', R.thickVol_m3d, 'm³/day')}
+      </div>
+    </div>`;
+
+    /* ── Disinfection ────────────────────────────────────── */
+    const disNo = sludgeNo + 1;
+    html += `<div class="process-section">
+      <div class="process-section-header">
+        <span class="process-section-icon">🧪</span>
+        <span class="process-section-title">${disNo}. Disinfection — Chlorine Contact Tank</span>
+        <span class="process-section-sub">Design for peak flow</span>
+      </div>
+      <div class="result-grid">
+        ${ri('Contact Tank Volume', R.contactVol, 'm³',
+             badge(R.contactVol, 10, 10000))}
+        ${ri('Contact Time', R.contactTime_min, 'min',
+             badge(R.contactTime_min, 30, 60))}
+        ${ri('Tank Length', R.contactL, 'm')}
+        ${ri('Tank Width', R.contactW, 'm')}
+        ${ri('Tank Depth', R.contactDepth, 'm')}
+        ${ri('Design Flow', R.Q_peak_m3h, 'm³/hr')}
+      </div>
+    </div>`;
+
+    cont.innerHTML = html;
+  }
+
+
+  /* ── Download SVG ───────────────────────────────────────── */
+  function downloadSVG() {
+    const svg = document.getElementById('schematicSVG');
+    if (svg.style.display === 'none') {
+      alert('Run the design calculation first to generate the schematic.');
+      return;
+    }
+    const svgData = new XMLSerializer().serializeToString(svg);
+    const blob    = new Blob([svgData], { type: 'image/svg+xml' });
+    const url     = URL.createObjectURL(blob);
+    const a       = document.createElement('a');
+    a.href        = url;
+    a.download    = 'wwtp_process_schematic.svg';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  /* ── Inline preset-btn style ─────────────────────────── */
+  const st = document.createElement('style');
+  st.textContent = `
+    .preset-btn {
+      padding: 0.3rem 0.8rem;
+      border: 1.5px solid rgba(11,79,108,0.18);
+      border-radius: 100px;
+      background: transparent;
+      font-family: var(--font-body);
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--slate-mid);
+      cursor: pointer;
+      transition: all 0.18s;
+    }
+    .preset-btn:hover { border-color:var(--ocean); color:var(--ocean); }
+    .preset-btn.sel { background:var(--ocean); border-color:var(--ocean); color:var(--white); }
+  `;
+  document.head.appendChild(st);
+  </script>
+</body>
+</html>
