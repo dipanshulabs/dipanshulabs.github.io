@@ -4,298 +4,72 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Sewer Self-Cleansing Velocity | Dipanshu Sharma Tools</title>
-  <meta name="description" content="Check minimum self-cleansing velocity for sewer and drainage pipes. Prevents sediment deposition and blockages in gravity sewer design." />
+  <meta name="description" content="Check minimum self-cleansing velocity for sewer and drainage pipes. Find minimum slope required. Prevents sediment deposition in gravity sewer design." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="tools.css" />
-</head>
-<body>
+  <style>
+    /* Tab switcher between the two modes */
+    .mode-tabs {
+      display: flex;
+      gap: 0;
+      margin-bottom: 1.75rem;
+      background: var(--mist);
+      border-radius: 10px;
+      padding: 5px;
+      width: fit-content;
+      flex-wrap: wrap;
+    }
+    .mode-btn {
+      padding: 0.55rem 1.3rem;
+      border: none;
+      border-radius: 7px;
+      background: transparent;
+      font-family: var(--font-body);
+      font-size: 0.82rem;
+      font-weight: 500;
+      color: var(--slate-mid);
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .mode-btn.active {
+      background: var(--ocean);
+      color: var(--white);
+      box-shadow: 0 2px 8px rgba(11,79,108,0.25);
+    }
+    .mode-btn:hover:not(.active) { color: var(--ocean); }
+    .mode-panel { display: none; }
+    .mode-panel.active { display: block; }
 
-  <nav class="tool-nav" role="navigation">
-    <div class="tool-nav-inner">
-      <a href="../index.html" class="tool-brand">Ir. Dipanshu Sharma</a>
-      <div class="tool-nav-links">
-        <a href="index.html" class="tool-nav-back">← All Tools</a>
-        <span class="tool-nav-breadcrumb">Self-Cleansing Velocity</span>
-      </div>
-    </div>
-  </nav>
+    /* Pass / Fail badge */
+    .check-pass {
+      background: rgba(77,184,160,0.2);
+      border: 1px solid rgba(77,184,160,0.5);
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      margin-top: 0.85rem;
+    }
+    .check-fail {
+      background: rgba(220,80,80,0.15);
+      border: 1px solid rgba(220,80,80,0.4);
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      margin-top: 0.85rem;
+    }
+    .check-label {
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+    .check-sub {
+      font-size: 0.8rem;
+      color: rgba(255,255,255,0.65);
+      margin-top: 0.3rem;
+      line-height: 1.5;
+    }
 
-  <header class="tool-hero tool-hero-sm">
-    <div class="container">
-      <div class="tool-breadcrumb">Tools / Self-Cleansing Velocity</div>
-      <h1 class="tool-hero-title">Sewer Self-Cleansing <em>Check</em></h1>
-      <p class="tool-hero-sub">
-        Verify that design flow velocity meets minimum self-cleansing
-        requirements to prevent sediment deposition in gravity sewer and
-        stormwater drainage pipes.
-      </p>
-    </div>
-  </header>
-
-  <main class="tool-body">
-    <div class="container">
-      <div class="tool-layout">
-
-        <!-- LEFT: Inputs -->
-        <div class="tool-panel">
-          <h2 class="tool-panel-title">Inputs</h2>
-
-          <!-- Pipe type -->
-          <div class="field-group">
-            <label class="field-label">Pipe / Sewer Type</label>
-            <div style="display:flex;flex-wrap:wrap;gap:0.4rem;margin-top:0.25rem;">
-              <button class="preset-btn" onclick="setMinV(0.6,'Foul sewer (min)')">
-                Foul Sewer (0.6 m/s)
-              </button>
-              <button class="preset-btn" onclick="setMinV(0.75,'Storm sewer')">
-                Storm Sewer (0.75 m/s)
-              </button>
-              <button class="preset-btn" onclick="setMinV(1.0,'Combined sewer')">
-                Combined (1.0 m/s)
-              </button>
-              <button class="preset-btn" onclick="setMinV(0.9,'ASCE / ASTM standard')">
-                ASCE Standard (0.9 m/s)
-              </button>
-            </div>
-          </div>
-
-          <!-- Minimum velocity (editable after preset) -->
-          <div class="field-group">
-            <label class="field-label" for="minV">
-              Minimum Self-Cleansing Velocity (V_min)
-            </label>
-            <div class="field-row">
-              <input class="field-input has-unit" type="number" id="minV"
-                     placeholder="e.g. 0.6" min="0" step="0.01"
-                     value="0.6" />
-              <span class="field-unit">m/s</span>
-            </div>
-            <small style="color:var(--slate-lt);font-size:0.75rem;
-                          margin-top:0.25rem;display:block;">
-              Typical minimum: foul sewer 0.6 m/s · stormwater 0.75 m/s ·
-              always verify against local authority standards
-            </small>
-          </div>
-
-          <!-- Manning n -->
-          <div class="field-group">
-            <label class="field-label" for="scN">Manning n</label>
-            <div class="field-row">
-              <input class="field-input" type="number" id="scN"
-                     placeholder="e.g. 0.013" min="0.001"
-                     step="0.001" value="0.013" />
-            </div>
-            <small style="color:var(--slate-lt);font-size:0.75rem;
-                          margin-top:0.25rem;display:block;">
-              PVC / UPVC: 0.010 · Concrete: 0.013 · Clay vitrified: 0.012
-            </small>
-          </div>
-
-          <!-- Pipe diameter -->
-          <div class="field-group">
-            <label class="field-label" for="scD">Pipe Internal Diameter (D)</label>
-            <div class="field-row">
-              <input class="field-input has-unit" type="number" id="scD"
-                     placeholder="e.g. 300" min="0" step="1" />
-              <span class="field-unit">mm</span>
-            </div>
-          </div>
-
-          <!-- Design flow -->
-          <div class="field-group">
-            <label class="field-label" for="scQ">Design Flow Rate (Q)</label>
-            <div class="field-row">
-              <input class="field-input has-unit" type="number" id="scQ"
-                     placeholder="e.g. 25" min="0" step="0.1" />
-              <select class="field-select" id="scQUnit"
-                      style="max-width:90px;border-left:none;
-                             border-radius:0 8px 8px 0;">
-                <option value="Ls">L/s</option>
-                <option value="m3s">m³/s</option>
-                <option value="m3h">m³/h</option>
-                <option value="m3d">m³/day</option>
-              </select>
-            </div>
-          </div>
-
-          <button class="btn btn-primary btn-calc"
-                  onclick="calcSelfCleansing()">Check Velocity</button>
-        </div>
-
-        <!-- RIGHT: Results -->
-        <div>
-          <div class="result-box" id="scResult" style="min-height:280px;">
-            <div class="result-box-title">Self-Cleansing Check</div>
-            <p style="color:rgba(255,255,255,0.5);font-size:0.9rem;margin-top:0.5rem;">
-              Fill in the inputs and press Check Velocity.
-            </p>
-          </div>
-
-          <!-- Reference table -->
-          <div class="tool-panel" style="margin-top:1rem;">
-            <h3 style="font-family:var(--font-display);font-size:1.05rem;
-                       font-weight:400;color:var(--ocean);margin-bottom:0.75rem;">
-              Minimum Velocity Reference
-            </h3>
-            <div class="ref-table-wrap">
-              <table class="ref-table">
-                <thead>
-                  <tr>
-                    <th>Pipe Type</th>
-                    <th style="text-align:right;">V_min (m/s)</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr><td>Foul / sanitary sewer</td><td>0.6</td></tr>
-                  <tr><td>Stormwater sewer</td><td>0.75</td></tr>
-                  <tr><td>Combined sewer</td><td>1.0</td></tr>
-                  <tr><td>ASCE/ASTM recommendation</td><td>0.9</td></tr>
-                  <tr><td>Dubai Municipality (foul)</td><td>0.6</td></tr>
-                  <tr><td>Dubai Municipality (storm)</td><td>0.75</td></tr>
-                  <tr><td>UK Sewers for Adoption</td><td>0.75</td></tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <div class="formula-box" style="margin-top:1rem;">
-            <h4>Method</h4>
-            <div class="formula-text">
-              V = (1/n) × R^(2/3) × S^(1/2)<br />
-              V_full = Q_full / A
-            </div>
-            <div class="formula-vars">
-              <span>Full-bore velocity calculated from Manning's equation</span>
-              <span>Design flow velocity = Q_design / A (full pipe)</span>
-              <span>Check: V_design ≥ V_min for self-cleansing</span>
-              <span>Also check V_design ≤ V_max (typically 3.0 m/s for concrete)</span>
-            </div>
-          </div>
-
-          <div class="tool-note" style="margin-top:1rem;">
-            Self-cleansing must be satisfied at the design dry weather flow
-            (DWF) for foul sewers and at peak flow for stormwater systems.
-            Always confirm against applicable local authority design standards.
-          </div>
-        </div>
-      </div>
-    </div>
-  </main>
-
-  <footer class="tool-footer">
-    <div class="container">
-      <p>© <span id="year"></span> Ir. Dipanshu Sharma ·
-        <a href="index.html">All Tools</a> ·
-        <a href="../index.html">Portfolio</a></p>
-    </div>
-  </footer>
-
-  <script src="tools.js"></script>
-  <script>
-  /* ── Preset minimum velocity ───────────────────────────── */
-  function setMinV(val, label) {
-    document.getElementById('minV').value = val;
-    document.getElementById('minV').title = label;
-  }
-
-  /* ── Convert flow to m³/s ──────────────────────────────── */
-  function toM3s(val, unit) {
-    if (unit === 'Ls')  return val / 1000;
-    if (unit === 'm3h') return val / 3600;
-    if (unit === 'm3d') return val / 86400;
-    return val;
-  }
-
-  function calcSelfCleansing() {
-    const Vmin  = parseFloat(document.getElementById('minV').value);
-    const n     = parseFloat(document.getElementById('scN').value);
-    const D_mm  = parseFloat(document.getElementById('scD').value);
-    const Qraw  = parseFloat(document.getElementById('scQ').value);
-    const Qunit = document.getElementById('scQUnit').value;
-    const rb    = document.getElementById('scResult');
-
-    if (isNaN(Vmin)||Vmin<=0) { showSCErr('V_min must be positive.'); return; }
-    if (isNaN(n)||n<=0)       { showSCErr('Manning n must be positive.'); return; }
-    if (isNaN(D_mm)||D_mm<=0) { showSCErr('Diameter must be positive.'); return; }
-    if (isNaN(Qraw)||Qraw<0)  { showSCErr('Flow rate must be zero or positive.'); return; }
-
-    const D     = D_mm / 1000;
-    const A     = Math.PI * (D/2) ** 2;
-    const R     = D / 4;             // hydraulic radius full pipe
-    const Q_m3s = toM3s(Qraw, Qunit);
-
-    // Design velocity at given flow (assuming full-bore for check)
-    const V_design = Q_m3s / A;
-
-    // Full-bore capacity velocity using Manning
-    // Need slope — derive minimum slope for V_min
-    // S = [ V_min / (1/n × R^(2/3)) ]²
-    const S_min = Math.pow(Vmin / ((1/n) * Math.pow(R, 2/3)), 2);
-
-    // Full capacity at minimum slope
-    const Q_full_min = (1/n) * A * Math.pow(R, 2/3) * Math.pow(S_min, 0.5);
-
-    const pass    = V_design >= Vmin;
-    const Vmax    = 3.0; // typical max for concrete pipes
-    const passMax = V_design <= Vmax;
-
-    const statusColor = pass ? '#a8ddd2' : '#ffb3b3';
-    const statusText  = pass ? '✓ PASS — Self-cleansing satisfied' : '✗ FAIL — Below minimum velocity';
-    const maxText     = passMax ? '✓ Within maximum velocity limit' : '⚠ Exceeds recommended maximum (3.0 m/s)';
-
-    rb.innerHTML = `
-      <div class="result-box-title">Self-Cleansing Check Results</div>
-
-      <div class="result-row">
-        <span class="result-label">Design velocity</span>
-        <span class="result-value">
-          ${formatNum(V_design, 4)}<span class="result-unit">m/s</span>
-        </span>
-      </div>
-      <div class="result-row">
-        <span class="result-label">Minimum required</span>
-        <span class="result-value">
-          ${Vmin}<span class="result-unit">m/s</span>
-        </span>
-      </div>
-      <div class="result-row">
-        <span class="result-label">Pipe area (full)</span>
-        <span class="result-value">
-          ${formatNum(A, 5)}<span class="result-unit">m²</span>
-        </span>
-      </div>
-      <div class="result-row">
-        <span class="result-label">Min slope for V_min</span>
-        <span class="result-value">
-          ${formatNum(S_min*1000, 4)}<span class="result-unit">m/km</span>
-        </span>
-      </div>
-
-      <div style="margin-top:1rem;padding:0.75rem 1rem;
-                  background:rgba(0,0,0,0.15);border-radius:8px;">
-        <div style="font-size:0.9rem;font-weight:500;
-                    color:${statusColor};">${statusText}</div>
-        <div style="font-size:0.8rem;color:rgba(255,255,255,0.6);
-                    margin-top:0.35rem;">${maxText}</div>
-      </div>
-
-      <div style="margin-top:0.85rem;font-size:0.74rem;color:var(--seafoam-lt);">
-        D = ${D_mm} mm · n = ${n} · Q = ${formatNum(Q_m3s*1000,4)} L/s
-      </div>
-    `;
-  }
-
-  function showSCErr(msg) {
-    document.getElementById('scResult').innerHTML =
-      `<div class="result-box-title">Error</div>
-       <p style="color:#ffb3b3;font-size:0.9rem;margin-top:0.5rem;">${msg}</p>`;
-  }
-
-  /* Add preset-btn style inline since it is defined in pipe-flow.html */
-  const style = document.createElement('style');
-  style.textContent = `
+    /* Preset buttons */
     .preset-btn {
       padding: 0.3rem 0.75rem;
       border: 1.5px solid rgba(11,79,108,0.18);
@@ -309,8 +83,660 @@
       transition: all 0.18s;
     }
     .preset-btn:hover { border-color: var(--ocean); color: var(--ocean); }
-  `;
-  document.head.appendChild(style);
+    .preset-btn.active-preset {
+      background: var(--seafoam);
+      border-color: var(--seafoam);
+      color: var(--white);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation -->
+  <nav class="tool-nav" role="navigation">
+    <div class="tool-nav-inner">
+      <a href="../index.html" class="tool-brand">Ir. Dipanshu Sharma</a>
+      <div class="tool-nav-links">
+        <a href="index.html" class="tool-nav-back">← All Tools</a>
+        <span class="tool-nav-breadcrumb">Self-Cleansing Velocity</span>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Page header -->
+  <header class="tool-hero tool-hero-sm">
+    <div class="container">
+      <div class="tool-breadcrumb">Tools / Self-Cleansing Velocity</div>
+      <h1 class="tool-hero-title">Sewer Self-Cleansing <em>Check</em></h1>
+      <p class="tool-hero-sub">
+        Verify design velocity meets minimum self-cleansing requirements,
+        or calculate the minimum pipe slope needed to achieve self-cleansing
+        velocity at a given design flow.
+      </p>
+    </div>
+  </header>
+
+  <main class="tool-body">
+    <div class="container">
+
+      <!-- Mode switcher -->
+      <div class="mode-tabs" role="tablist" aria-label="Tool mode">
+        <button class="mode-btn active" id="btnCheck"
+                onclick="setMode('check')">
+          ✓ Check Velocity
+        </button>
+        <button class="mode-btn" id="btnSlope"
+                onclick="setMode('slope')">
+          ⬆ Find Minimum Slope
+        </button>
+      </div>
+
+      <div class="tool-layout">
+
+        <!-- LEFT: Inputs -->
+        <div>
+
+          <!-- ══════════════════════════════
+               MODE A: CHECK VELOCITY
+          ══════════════════════════════ -->
+          <div class="tool-panel mode-panel active" id="panelCheck">
+            <h2 class="tool-panel-title">Check Velocity — Inputs</h2>
+
+            <!-- Sewer type presets -->
+            <div class="field-group">
+              <label class="field-label">Sewer / Pipe Type</label>
+              <div style="display:flex;flex-wrap:wrap;gap:0.4rem;margin-top:0.35rem;">
+                <button class="preset-btn active-preset" id="presetA1"
+                        onclick="setPresetA(0.75,'Foul sewer','presetA1')">
+                  Foul Sewer (0.75 m/s)
+                </button>
+                <button class="preset-btn" id="presetA2"
+                        onclick="setPresetA(0.75,'Storm sewer','presetA2')">
+                  Storm Sewer (0.75 m/s)
+                </button>
+                <button class="preset-btn" id="presetA3"
+                        onclick="setPresetA(1.0,'Combined sewer','presetA3')">
+                  Combined (1.0 m/s)
+                </button>
+                <button class="preset-btn" id="presetA4"
+                        onclick="setPresetA(0.9,'ASCE standard','presetA4')">
+                  ASCE (0.9 m/s)
+                </button>
+                <button class="preset-btn" id="presetA5"
+                        onclick="setPresetA(0.75,'Dubai Municipality','presetA5')">
+                  Dubai Municipality (0.75 m/s)
+                </button>
+              </div>
+            </div>
+
+            <!-- Min velocity -->
+            <div class="field-group">
+              <label class="field-label" for="chkVmin">
+                Minimum Self-Cleansing Velocity (V_min)
+              </label>
+              <div class="field-row">
+                <input class="field-input has-unit" type="number"
+                       id="chkVmin" placeholder="e.g. 0.75"
+                       min="0" step="0.01" value="0.75" />
+                <span class="field-unit">m/s</span>
+              </div>
+              <small style="color:var(--slate-lt);font-size:0.75rem;
+                            margin-top:0.25rem;display:block;">
+                Edit directly or use a preset above.
+                Always verify against your local authority standard.
+              </small>
+            </div>
+
+            <!-- Manning n -->
+            <div class="field-group">
+              <label class="field-label" for="chkN">Manning n</label>
+              <div class="field-row">
+                <input class="field-input" type="number" id="chkN"
+                       placeholder="e.g. 0.013" min="0.001"
+                       step="0.001" value="0.013" />
+              </div>
+              <div style="display:flex;flex-wrap:wrap;gap:0.4rem;margin-top:0.35rem;">
+                <button class="preset-btn" onclick="setN('chkN',0.010)">PVC (0.010)</button>
+                <button class="preset-btn" onclick="setN('chkN',0.012)">Clay (0.012)</button>
+                <button class="preset-btn" onclick="setN('chkN',0.013)">Concrete (0.013)</button>
+                <button class="preset-btn" onclick="setN('chkN',0.015)">Brick (0.015)</button>
+              </div>
+            </div>
+
+            <!-- Pipe diameter -->
+            <div class="field-group">
+              <label class="field-label" for="chkD">
+                Pipe Internal Diameter (D)
+              </label>
+              <div class="field-row">
+                <input class="field-input has-unit" type="number"
+                       id="chkD" placeholder="e.g. 300"
+                       min="0" step="1" />
+                <span class="field-unit">mm</span>
+              </div>
+            </div>
+
+            <!-- Design flow -->
+            <div class="field-group">
+              <label class="field-label" for="chkQ">Design Flow Rate (Q)</label>
+              <div class="field-row">
+                <input class="field-input has-unit" type="number"
+                       id="chkQ" placeholder="e.g. 25"
+                       min="0" step="0.01" />
+                <select class="field-select" id="chkQUnit"
+                        style="max-width:90px;border-left:none;
+                               border-radius:0 8px 8px 0;">
+                  <option value="Ls">L/s</option>
+                  <option value="m3s">m³/s</option>
+                  <option value="m3h">m³/h</option>
+                  <option value="m3d">m³/day</option>
+                </select>
+              </div>
+            </div>
+
+            <button class="btn btn-primary btn-calc"
+                    onclick="calcCheck()">
+              Check Velocity
+            </button>
+          </div>
+
+
+          <!-- ══════════════════════════════
+               MODE B: FIND MINIMUM SLOPE
+          ══════════════════════════════ -->
+          <div class="tool-panel mode-panel" id="panelSlope">
+            <h2 class="tool-panel-title">Find Minimum Slope — Inputs</h2>
+            <p style="font-size:0.85rem;color:var(--slate-mid);
+                      margin-bottom:1.25rem;line-height:1.6;">
+              Calculate the minimum pipe slope required to achieve the
+              self-cleansing velocity at the given design flow, using
+              Manning's equation.
+            </p>
+
+            <!-- Sewer type presets -->
+            <div class="field-group">
+              <label class="field-label">Sewer / Pipe Type</label>
+              <div style="display:flex;flex-wrap:wrap;gap:0.4rem;margin-top:0.35rem;">
+                <button class="preset-btn active-preset" id="presetB1"
+                        onclick="setPresetB(0.75,'Foul sewer','presetB1')">
+                  Foul Sewer (0.75 m/s)
+                </button>
+                <button class="preset-btn" id="presetB2"
+                        onclick="setPresetB(0.75,'Storm sewer','presetB2')">
+                  Storm Sewer (0.75 m/s)
+                </button>
+                <button class="preset-btn" id="presetB3"
+                        onclick="setPresetB(1.0,'Combined sewer','presetB3')">
+                  Combined (1.0 m/s)
+                </button>
+                <button class="preset-btn" id="presetB4"
+                        onclick="setPresetB(0.9,'ASCE standard','presetB4')">
+                  ASCE (0.9 m/s)
+                </button>
+                <button class="preset-btn" id="presetB5"
+                        onclick="setPresetB(0.75,'Dubai Municipality','presetB5')">
+                  Dubai Municipality (0.75 m/s)
+                </button>
+              </div>
+            </div>
+
+            <!-- Min velocity -->
+            <div class="field-group">
+              <label class="field-label" for="slpVmin">
+                Target Self-Cleansing Velocity (V_min)
+              </label>
+              <div class="field-row">
+                <input class="field-input has-unit" type="number"
+                       id="slpVmin" placeholder="e.g. 0.75"
+                       min="0" step="0.01" value="0.75" />
+                <span class="field-unit">m/s</span>
+              </div>
+            </div>
+
+            <!-- Manning n -->
+            <div class="field-group">
+              <label class="field-label" for="slpN">Manning n</label>
+              <div class="field-row">
+                <input class="field-input" type="number" id="slpN"
+                       placeholder="e.g. 0.013" min="0.001"
+                       step="0.001" value="0.013" />
+              </div>
+              <div style="display:flex;flex-wrap:wrap;gap:0.4rem;margin-top:0.35rem;">
+                <button class="preset-btn" onclick="setN('slpN',0.010)">PVC (0.010)</button>
+                <button class="preset-btn" onclick="setN('slpN',0.012)">Clay (0.012)</button>
+                <button class="preset-btn" onclick="setN('slpN',0.013)">Concrete (0.013)</button>
+                <button class="preset-btn" onclick="setN('slpN',0.015)">Brick (0.015)</button>
+              </div>
+            </div>
+
+            <!-- Pipe diameter -->
+            <div class="field-group">
+              <label class="field-label" for="slpD">
+                Pipe Internal Diameter (D)
+              </label>
+              <div class="field-row">
+                <input class="field-input has-unit" type="number"
+                       id="slpD" placeholder="e.g. 300"
+                       min="0" step="1" />
+                <span class="field-unit">mm</span>
+              </div>
+              <small style="color:var(--slate-lt);font-size:0.75rem;
+                            margin-top:0.25rem;display:block;">
+                The minimum slope is derived for full-bore flow conditions
+                (hydraulic radius R = D/4).
+              </small>
+            </div>
+
+            <button class="btn btn-primary btn-calc"
+                    onclick="calcSlope()">
+              Find Minimum Slope
+            </button>
+          </div>
+
+        </div>
+
+        <!-- RIGHT: Results + reference tables -->
+        <div>
+
+          <!-- Result box -->
+          <div class="result-box" id="scResult" style="min-height:280px;">
+            <div class="result-box-title">Result</div>
+            <p style="color:rgba(255,255,255,0.5);
+                      font-size:0.9rem;margin-top:0.5rem;">
+              Fill in the inputs and press Calculate.
+            </p>
+          </div>
+
+          <!-- Minimum velocity reference table -->
+          <div class="tool-panel" style="margin-top:1rem;">
+            <h3 style="font-family:var(--font-display);font-size:1.05rem;
+                       font-weight:400;color:var(--ocean);margin-bottom:0.75rem;">
+              Minimum Velocity Standards Reference
+            </h3>
+            <div class="ref-table-wrap">
+              <table class="ref-table">
+                <thead>
+                  <tr>
+                    <th>Standard / Authority</th>
+                    <th>Pipe Type</th>
+                    <th style="text-align:right;">V_min (m/s)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>General international practice</td>
+                    <td>Foul sewer</td>
+                    <td>0.75</td>
+                  </tr>
+                  <tr>
+                    <td>General international practice</td>
+                    <td>Stormwater sewer</td>
+                    <td>0.75</td>
+                  </tr>
+                  <tr>
+                    <td>General international practice</td>
+                    <td>Combined sewer</td>
+                    <td>1.00</td>
+                  </tr>
+                  <tr>
+                    <td>Dubai Municipality</td>
+                    <td>Foul &amp; storm sewer</td>
+                    <td>0.75</td>
+                  </tr>
+                  <tr>
+                    <td>Abu Dhabi (DoT)</td>
+                    <td>Gravity sewer</td>
+                    <td>0.75</td>
+                  </tr>
+                  <tr>
+                    <td>ASCE / WEF (USA)</td>
+                    <td>Sanitary sewer</td>
+                    <td>0.90</td>
+                  </tr>
+                  <tr>
+                    <td>UK Sewers for Adoption</td>
+                    <td>Foul sewer</td>
+                    <td>0.75</td>
+                  </tr>
+                  <tr>
+                    <td>UK Sewers for Adoption</td>
+                    <td>Surface water sewer</td>
+                    <td>0.75</td>
+                  </tr>
+                  <tr>
+                    <td>Netherlands (Riool)</td>
+                    <td>Gravity sewer</td>
+                    <td>0.70</td>
+                  </tr>
+                  <tr>
+                    <td>Maximum (concrete pipes)</td>
+                    <td>All gravity sewers</td>
+                    <td>3.00</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Formula reference -->
+          <div class="formula-box" style="margin-top:1rem;">
+            <h4>Manning's Equation — Full Bore</h4>
+            <div class="formula-text">
+              V = (1/n) × R^(2/3) × S^(1/2)<br />
+              S_min = [ V_min × n / R^(2/3) ]²
+            </div>
+            <div class="formula-vars">
+              <span>V     = flow velocity (m/s)</span>
+              <span>n     = Manning roughness coefficient</span>
+              <span>R     = hydraulic radius = D/4 (full pipe) (m)</span>
+              <span>S     = pipe slope (m/m)</span>
+              <span>S_min = minimum slope for self-cleansing (m/m)</span>
+            </div>
+          </div>
+
+          <div class="tool-note" style="margin-top:1rem;">
+            Self-cleansing must be satisfied at the design dry weather flow
+            (DWF) for foul sewers. For stormwater sewers, check at peak
+            design flow. Always confirm the required minimum velocity
+            against your applicable local authority design standard.
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="tool-footer">
+    <div class="container">
+      <p>
+        © <span id="year"></span> Ir. Dipanshu Sharma ·
+        <a href="index.html">All Tools</a> ·
+        <a href="../index.html">Portfolio</a>
+      </p>
+    </div>
+  </footer>
+
+  <script src="tools.js"></script>
+  <script>
+  /* ═══════════════════════════════════════════════════════════
+     Self-Cleansing Velocity Tool
+     Two modes:
+       A) Check Velocity  — given Q and slope, does V ≥ V_min?
+       B) Find Min Slope  — given V_min and D, what slope is needed?
+  ═══════════════════════════════════════════════════════════ */
+
+  /* ── Mode switcher ───────────────────────────────────────── */
+  function setMode(mode) {
+    const isCheck = mode === 'check';
+    document.getElementById('panelCheck').classList.toggle('active', isCheck);
+    document.getElementById('panelSlope').classList.toggle('active', !isCheck);
+    document.getElementById('btnCheck').classList.toggle('active',  isCheck);
+    document.getElementById('btnSlope').classList.toggle('active', !isCheck);
+    resetResult();
+  }
+
+  function resetResult() {
+    document.getElementById('scResult').innerHTML =
+      `<div class="result-box-title">Result</div>
+       <p style="color:rgba(255,255,255,0.5);font-size:0.9rem;margin-top:0.5rem;">
+         Fill in the inputs and press Calculate.
+       </p>`;
+  }
+
+  function showErr(msg) {
+    document.getElementById('scResult').innerHTML =
+      `<div class="result-box-title">Error</div>
+       <p style="color:#ffb3b3;font-size:0.9rem;margin-top:0.5rem;">${msg}</p>`;
+  }
+
+  /* ── Preset helpers ─────────────────────────────────────── */
+  /* Set V_min for Mode A and highlight the active preset */
+  function setPresetA(val, label, btnId) {
+    document.getElementById('chkVmin').value = val;
+    document.querySelectorAll('[id^="presetA"]').forEach(b =>
+      b.classList.remove('active-preset'));
+    document.getElementById(btnId).classList.add('active-preset');
+  }
+
+  /* Set V_min for Mode B and highlight the active preset */
+  function setPresetB(val, label, btnId) {
+    document.getElementById('slpVmin').value = val;
+    document.querySelectorAll('[id^="presetB"]').forEach(b =>
+      b.classList.remove('active-preset'));
+    document.getElementById(btnId).classList.add('active-preset');
+  }
+
+  /* Set Manning n in the specified input field */
+  function setN(fieldId, val) {
+    document.getElementById(fieldId).value = val;
+  }
+
+  /* Convert any flow unit to m³/s */
+  function toM3s(val, unit) {
+    if (unit === 'Ls')  return val / 1000;
+    if (unit === 'm3h') return val / 3600;
+    if (unit === 'm3d') return val / 86400;
+    return val; // already m³/s
+  }
+
+
+  /* ═══════════════════════════════════════════════════════════
+     MODE A — CHECK VELOCITY
+     Given: Q (flow), D (diameter), n (roughness)
+     Calculate: actual flow velocity
+     Check:     V_actual ≥ V_min   (self-cleansing)
+                V_actual ≤ V_max   (erosion limit)
+  ═══════════════════════════════════════════════════════════ */
+  function calcCheck() {
+    const Vmin  = parseFloat(document.getElementById('chkVmin').value);
+    const n     = parseFloat(document.getElementById('chkN').value);
+    const D_mm  = parseFloat(document.getElementById('chkD').value);
+    const Qraw  = parseFloat(document.getElementById('chkQ').value);
+    const Qunit = document.getElementById('chkQUnit').value;
+
+    // Validate
+    if (isNaN(Vmin) || Vmin <= 0) { showErr('V_min must be a positive number.'); return; }
+    if (isNaN(n)    || n <= 0)    { showErr('Manning n must be a positive number.'); return; }
+    if (isNaN(D_mm) || D_mm <= 0) { showErr('Pipe diameter must be positive.'); return; }
+    if (isNaN(Qraw) || Qraw < 0)  { showErr('Flow rate must be zero or positive.'); return; }
+
+    const D     = D_mm / 1000;              // mm → m
+    const A     = Math.PI * (D/2) ** 2;     // full-bore pipe area m²
+    const R     = D / 4;                     // hydraulic radius full pipe
+    const Q_m3s = toM3s(Qraw, Qunit);       // convert to m³/s
+
+    // Actual velocity at design flow (full-bore assumption)
+    const V_actual = Q_m3s / A;
+
+    // Minimum slope required to achieve V_min (full bore, Manning)
+    // Rearranged: S = [ V_min × n / R^(2/3) ]^2
+    const S_min    = Math.pow((Vmin * n) / Math.pow(R, 2/3), 2);
+    const S_min_pm = S_min * 1000;   // m/km (per mille ‰)
+    const S_min_pc = S_min * 100;    // %
+
+    // Full-bore capacity at minimum slope
+    const Q_full_min = (1/n) * A * Math.pow(R, 2/3) * Math.pow(S_min, 0.5);
+
+    // Maximum velocity (erosion limit)
+    const V_max = 3.0; // m/s — typical for concrete/PVC gravity sewers
+
+    const passMin = V_actual >= Vmin;
+    const passMax = V_actual <= V_max;
+
+    document.getElementById('scResult').innerHTML = `
+      <div class="result-box-title">Velocity Check Results</div>
+
+      <div class="result-row">
+        <span class="result-label">Actual velocity (full bore)</span>
+        <span class="result-value">
+          ${formatNum(V_actual, 4)}<span class="result-unit">m/s</span>
+        </span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Minimum required (V_min)</span>
+        <span class="result-value">
+          ${Vmin}<span class="result-unit">m/s</span>
+        </span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Maximum limit (V_max)</span>
+        <span class="result-value">
+          ${V_max}<span class="result-unit">m/s</span>
+        </span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Pipe area (full bore)</span>
+        <span class="result-value">
+          ${formatNum(A, 5)}<span class="result-unit">m²</span>
+        </span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Min slope for V_min</span>
+        <span class="result-value">
+          ${formatNum(S_min_pm, 4)}<span class="result-unit">m/km (‰)</span>
+        </span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Min slope for V_min</span>
+        <span class="result-value">
+          1 : ${formatNum(1/S_min, 1)}<span class="result-unit"></span>
+        </span>
+      </div>
+
+      <!-- Self-cleansing check -->
+      <div class="${passMin ? 'check-pass' : 'check-fail'}">
+        <div class="check-label" style="color:${passMin ? '#a8ddd2' : '#ffb3b3'};">
+          ${passMin ? '✓ PASS — Self-cleansing satisfied' : '✗ FAIL — Below minimum velocity'}
+        </div>
+        <div class="check-sub">
+          ${passMin
+            ? `V_actual (${formatNum(V_actual,3)} m/s) ≥ V_min (${Vmin} m/s)`
+            : `V_actual (${formatNum(V_actual,3)} m/s) < V_min (${Vmin} m/s) — increase slope or reduce diameter`}
+        </div>
+      </div>
+
+      <!-- Erosion check -->
+      <div class="${passMax ? 'check-pass' : 'check-fail'}" style="margin-top:0.5rem;">
+        <div class="check-label" style="color:${passMax ? '#a8ddd2' : '#ffb3b3'};">
+          ${passMax ? '✓ Within maximum velocity (≤ 3.0 m/s)' : '⚠ Exceeds maximum velocity (3.0 m/s)'}
+        </div>
+        <div class="check-sub">
+          ${passMax
+            ? 'No erosion risk at this velocity'
+            : 'Risk of pipe erosion — consider increasing diameter or reducing slope'}
+        </div>
+      </div>
+
+      <div style="margin-top:0.85rem;font-size:0.74rem;color:var(--seafoam-lt);">
+        D = ${D_mm} mm · n = ${n} · Q = ${formatNum(Q_m3s*1000,4)} L/s
+      </div>
+    `;
+  }
+
+
+  /* ═══════════════════════════════════════════════════════════
+     MODE B — FIND MINIMUM SLOPE
+     Given: V_min, D (diameter), n (roughness)
+     Calculate: minimum pipe slope S_min using Manning's equation
+     Output:    S in multiple formats + full-bore capacity at S_min
+  ═══════════════════════════════════════════════════════════ */
+  function calcSlope() {
+    const Vmin = parseFloat(document.getElementById('slpVmin').value);
+    const n    = parseFloat(document.getElementById('slpN').value);
+    const D_mm = parseFloat(document.getElementById('slpD').value);
+
+    // Validate
+    if (isNaN(Vmin) || Vmin <= 0) { showErr('V_min must be a positive number.'); return; }
+    if (isNaN(n)    || n <= 0)    { showErr('Manning n must be a positive number.'); return; }
+    if (isNaN(D_mm) || D_mm <= 0) { showErr('Pipe diameter must be positive.'); return; }
+
+    const D = D_mm / 1000;                // mm → m
+    const R = D / 4;                       // hydraulic radius full pipe
+    const A = Math.PI * (D/2) ** 2;       // full-bore pipe area m²
+
+    // Manning rearranged for slope:
+    // V = (1/n) × R^(2/3) × S^(1/2)
+    // → S = [ V_min × n / R^(2/3) ]²
+    const S_min     = Math.pow((Vmin * n) / Math.pow(R, 2/3), 2);
+    const S_min_pct = S_min * 100;        // percentage %
+    const S_min_pm  = S_min * 1000;       // per mille ‰ (m/km)
+    const S_1inN    = 1 / S_min;          // 1 in N notation
+    const S_mm_m    = S_min * 1000;       // mm/m
+
+    // Full-bore capacity at minimum slope
+    const Q_full = (1/n) * A * Math.pow(R, 2/3) * Math.pow(S_min, 0.5);
+
+    document.getElementById('scResult').innerHTML = `
+      <div class="result-box-title">Minimum Slope Results</div>
+
+      <div class="result-row">
+        <span class="result-label">Minimum slope S_min</span>
+        <span class="result-value">
+          ${formatNum(S_min, 6)}<span class="result-unit">m/m</span>
+        </span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Minimum slope S_min</span>
+        <span class="result-value">
+          ${formatNum(S_min_pm, 4)}<span class="result-unit">m/km (‰)</span>
+        </span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Minimum slope S_min</span>
+        <span class="result-value">
+          ${formatNum(S_min_pct, 5)}<span class="result-unit">%</span>
+        </span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Minimum slope S_min</span>
+        <span class="result-value">
+          1 in ${formatNum(S_1inN, 1)}<span class="result-unit"></span>
+        </span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Minimum slope S_min</span>
+        <span class="result-value">
+          ${formatNum(S_mm_m, 4)}<span class="result-unit">mm/m</span>
+        </span>
+      </div>
+
+      <div style="border-top:1px solid rgba(255,255,255,0.12);
+                  margin-top:0.85rem;padding-top:0.85rem;">
+        <div class="result-row">
+          <span class="result-label">Full-bore capacity at S_min</span>
+          <span class="result-value">
+            ${formatNum(Q_full*1000, 5)}<span class="result-unit">L/s</span>
+          </span>
+        </div>
+        <div class="result-row">
+          <span class="result-label">Full-bore capacity at S_min</span>
+          <span class="result-value">
+            ${formatNum(Q_full, 5)}<span class="result-unit">m³/s</span>
+          </span>
+        </div>
+        <div class="result-row">
+          <span class="result-label">Full-bore capacity at S_min</span>
+          <span class="result-value">
+            ${formatNum(Q_full*86400, 4)}<span class="result-unit">m³/day</span>
+          </span>
+        </div>
+      </div>
+
+      <div class="check-pass" style="margin-top:0.85rem;">
+        <div class="check-label" style="color:#a8ddd2;">
+          ✓ Use slope ≥ ${formatNum(S_1inN, 0)} (i.e. 1 in ${formatNum(S_1inN, 0)} or steeper)
+        </div>
+        <div class="check-sub">
+          Any slope steeper than 1 : ${formatNum(S_1inN, 1)} will achieve
+          self-cleansing at V_min = ${Vmin} m/s for a ${D_mm} mm pipe (n = ${n})
+        </div>
+      </div>
+
+      <div style="margin-top:0.85rem;font-size:0.74rem;color:var(--seafoam-lt);">
+        D = ${D_mm} mm · n = ${n} · V_min = ${Vmin} m/s · R = ${formatNum(D/4,4)} m
+      </div>
+    `;
+  }
   </script>
 </body>
 </html>
