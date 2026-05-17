@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Storm Return Period Converter | Dipanshu Sharma Tools</title>
+  <meta name="description" content="Convert between storm return period (years) and Annual Exceedance Probability (AEP %). Includes risk of exceedance over a design life." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="tools.css" />
+  <style>
+    .dir-toggle {
+      display: flex;
+      gap: 0;
+      margin-bottom: 1.75rem;
+      background: var(--mist);
+      border-radius: 10px;
+      padding: 5px;
+      width: fit-content;
+    }
+    .dir-btn {
+      padding: 0.55rem 1.3rem;
+      border: none;
+      border-radius: 7px;
+      background: transparent;
+      font-family: var(--font-body);
+      font-size: 0.82rem;
+      font-weight: 500;
+      color: var(--slate-mid);
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .dir-btn.active {
+      background: var(--ocean);
+      color: var(--white);
+      box-shadow: 0 2px 8px rgba(11,79,108,0.25);
+    }
+    .dir-btn:hover:not(.active) { color: var(--ocean); }
+  </style>
+</head>
+<body>
+
+  <nav class="tool-nav" role="navigation">
+    <div class="tool-nav-inner">
+      <a href="../index.html" class="tool-brand">Ir. Dipanshu Sharma</a>
+      <div class="tool-nav-links">
+        <a href="index.html" class="tool-nav-back">← All Tools</a>
+        <span class="tool-nav-breadcrumb">Return Period Converter</span>
+      </div>
+    </div>
+  </nav>
+
+  <header class="tool-hero tool-hero-sm">
+    <div class="container">
+      <div class="tool-breadcrumb">Tools / Return Period Converter</div>
+      <h1 class="tool-hero-title">Storm Return Period <em>Converter</em></h1>
+      <p class="tool-hero-sub">
+        Convert between return period (years) and Annual Exceedance
+        Probability (AEP %). Calculate the risk of a design storm being
+        exceeded at least once over a given design life.
+      </p>
+    </div>
+  </header>
+
+  <main class="tool-body">
+    <div class="container">
+
+      <!-- Direction toggle -->
+      <div class="dir-toggle" role="group" aria-label="Conversion direction">
+        <button class="dir-btn active" onclick="setDir('rp2aep')">
+          Return Period → AEP
+        </button>
+        <button class="dir-btn" onclick="setDir('aep2rp')">
+          AEP → Return Period
+        </button>
+      </div>
+
+      <div class="tool-layout">
+
+        <!-- LEFT: Inputs -->
+        <div class="tool-panel">
+
+          <!-- Direction A: RP → AEP -->
+          <div id="panelRP2AEP">
+            <h2 class="tool-panel-title">Return Period → AEP</h2>
+            <div class="field-group">
+              <label class="field-label" for="rpVal">
+                Return Period (T)
+              </label>
+              <div class="field-row">
+                <input class="field-input has-unit" type="number" id="rpVal"
+                       placeholder="e.g. 100" min="1" step="1" />
+                <span class="field-unit">years</span>
+              </div>
+              <div style="display:flex;flex-wrap:wrap;gap:0.4rem;margin-top:0.5rem;">
+                <button class="preset-btn" onclick="setRP(2)">1:2</button>
+                <button class="preset-btn" onclick="setRP(5)">1:5</button>
+                <button class="preset-btn" onclick="setRP(10)">1:10</button>
+                <button class="preset-btn" onclick="setRP(25)">1:25</button>
+                <button class="preset-btn" onclick="setRP(50)">1:50</button>
+                <button class="preset-btn" onclick="setRP(100)">1:100</button>
+                <button class="preset-btn" onclick="setRP(200)">1:200</button>
+                <button class="preset-btn" onclick="setRP(1000)">1:1000</button>
+              </div>
+            </div>
+            <div class="field-group">
+              <label class="field-label" for="rpLife">
+                Design Life (optional — for risk calculation)
+              </label>
+              <div class="field-row">
+                <input class="field-input has-unit" type="number" id="rpLife"
+                       placeholder="e.g. 50" min="1" step="1" value="50" />
+                <span class="field-unit">years</span>
+              </div>
+              <small style="color:var(--slate-lt);font-size:0.75rem;
+                            margin-top:0.25rem;display:block;">
+                Typical: buildings 50 yrs · bridges 100 yrs · major infrastructure 120 yrs
+              </small>
+            </div>
+            <button class="btn btn-primary btn-calc"
+                    onclick="calcRP2AEP()">Convert</button>
+          </div>
+
+          <!-- Direction B: AEP → RP -->
+          <div id="panelAEP2RP" style="display:none;">
+            <h2 class="tool-panel-title">AEP → Return Period</h2>
+            <div class="field-group">
+              <label class="field-label" for="aepVal">
+                Annual Exceedance Probability (AEP)
+              </label>
+              <div class="field-row">
+                <input class="field-input has-unit" type="number" id="aepVal"
+                       placeholder="e.g. 1" min="0.001" max="100"
+                       step="0.001" />
+                <span class="field-unit">%</span>
+              </div>
+              <div style="display:flex;flex-wrap:wrap;gap:0.4rem;margin-top:0.5rem;">
+                <button class="preset-btn" onclick="setAEP(50)">50%</button>
+                <button class="preset-btn" onclick="setAEP(20)">20%</button>
+                <button class="preset-btn" onclick="setAEP(10)">10%</button>
+                <button class="preset-btn" onclick="setAEP(4)">4%</button>
+                <button class="preset-btn" onclick="setAEP(2)">2%</button>
+                <button class="preset-btn" onclick="setAEP(1)">1%</button>
+                <button class="preset-btn" onclick="setAEP(0.5)">0.5%</button>
+                <button class="preset-btn" onclick="setAEP(0.1)">0.1%</button>
+              </div>
+            </div>
+            <div class="field-group">
+              <label class="field-label" for="aepLife">
+                Design Life (optional — for risk calculation)
+              </label>
+              <div class="field-row">
+                <input class="field-input has-unit" type="number" id="aepLife"
+                       placeholder="e.g. 50" min="1" step="1" value="50" />
+                <span class="field-unit">years</span>
+              </div>
+            </div>
+            <button class="btn btn-primary btn-calc"
+                    onclick="calcAEP2RP()">Convert</button>
+          </div>
+        </div>
+
+        <!-- RIGHT: Results + reference table -->
+        <div>
+          <div class="result-box" id="rpResult" style="min-height:240px;">
+            <div class="result-box-title">Result</div>
+            <p style="color:rgba(255,255,255,0.5);font-size:0.9rem;margin-top:0.5rem;">
+              Enter a value and press Convert.
+            </p>
+          </div>
+
+          <!-- Standard reference table -->
+          <div class="tool-panel" style="margin-top:1rem;">
+            <h3 style="font-family:var(--font-display);font-size:1.05rem;
+                       font-weight:400;color:var(--ocean);margin-bottom:0.75rem;">
+              Standard Return Periods
+            </h3>
+            <div class="ref-table-wrap">
+              <table class="ref-table">
+                <thead>
+                  <tr>
+                    <th>Return Period</th>
+                    <th>AEP (%)</th>
+                    <th style="text-align:right;">Common Use</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><td>1:2 year</td><td>50%</td><td>Minor drainage check</td></tr>
+                  <tr><td>1:5 year</td><td>20%</td><td>Foul sewer design</td></tr>
+                  <tr><td>1:10 year</td><td>10%</td><td>Storm sewer (standard)</td></tr>
+                  <tr><td>1:25 year</td><td>4%</td><td>Arterial roads</td></tr>
+                  <tr><td>1:50 year</td><td>2%</td><td>Tunnels, major roads</td></tr>
+                  <tr><td>1:100 year</td><td>1%</td><td>Flood risk mapping</td></tr>
+                  <tr><td>1:200 year</td><td>0.5%</td><td>Climate change planning</td></tr>
+                  <tr><td>1:1000 year</td><td>0.1%</td><td>Dam safety / extreme events</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="formula-box" style="margin-top:1rem;">
+            <h4>Formulas</h4>
+            <div class="formula-text">
+              AEP (%) = (1 / T) × 100<br />
+              T = 100 / AEP (%)<br />
+              Risk = 1 − (1 − 1/T)^n
+            </div>
+            <div class="formula-vars">
+              <span>T    = return period (years)</span>
+              <span>AEP  = annual exceedance probability (%)</span>
+              <span>n    = design life (years)</span>
+              <span>Risk = probability of exceedance at least once in n years</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="tool-footer">
+    <div class="container">
+      <p>© <span id="year"></span> Ir. Dipanshu Sharma ·
+        <a href="index.html">All Tools</a> ·
+        <a href="../index.html">Portfolio</a></p>
+    </div>
+  </footer>
+
+  <script src="tools.js"></script>
+  <script>
+  /* Preset buttons */
+  function setRP(val)  { document.getElementById('rpVal').value  = val; }
+  function setAEP(val) { document.getElementById('aepVal').value = val; }
+
+  /* Direction toggle */
+  function setDir(dir) {
+    const toAEP = dir === 'rp2aep';
+    document.getElementById('panelRP2AEP').style.display = toAEP ? 'block' : 'none';
+    document.getElementById('panelAEP2RP').style.display = toAEP ? 'none'  : 'block';
+    document.querySelectorAll('.dir-btn').forEach((btn, i) => {
+      btn.classList.toggle('active', i === (toAEP ? 0 : 1));
+    });
+    resetRP();
+  }
+
+  function resetRP() {
+    document.getElementById('rpResult').innerHTML =
+      `<div class="result-box-title">Result</div>
+       <p style="color:rgba(255,255,255,0.5);font-size:0.9rem;margin-top:0.5rem;">
+         Enter a value and press Convert.
+       </p>`;
+  }
+
+  function showRPErr(msg) {
+    document.getElementById('rpResult').innerHTML =
+      `<div class="result-box-title">Error</div>
+       <p style="color:#ffb3b3;font-size:0.9rem;margin-top:0.5rem;">${msg}</p>`;
+  }
+
+  /* Return Period → AEP */
+  function calcRP2AEP() {
+    const T    = parseFloat(document.getElementById('rpVal').value);
+    const life = parseFloat(document.getElementById('rpLife').value);
+
+    if (isNaN(T)||T<1) { showRPErr('Return period must be 1 year or more.'); return; }
+
+    const AEP  = (1 / T) * 100;
+    const risk = !isNaN(life) && life > 0
+      ? (1 - Math.pow(1 - 1/T, life)) * 100
+      : null;
+
+    document.getElementById('rpResult').innerHTML = `
+      <div class="result-box-title">Return Period → AEP</div>
+      <div class="result-row">
+        <span class="result-label">Return period</span>
+        <span class="result-value">1 : ${T}<span class="result-unit">year</span></span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">AEP</span>
+        <span class="result-value">
+          ${formatNum(AEP, 5)}<span class="result-unit">%</span>
+        </span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Probability per year</span>
+        <span class="result-value">
+          1 in ${T} chance each year
+        </span>
+      </div>
+      ${risk !== null ? `
+      <div class="result-row">
+        <span class="result-label">Risk over ${life} yr design life</span>
+        <span class="result-value">
+          ${formatNum(risk, 4)}<span class="result-unit">%</span>
+        </span>
+      </div>
+      <div style="margin-top:0.75rem;font-size:0.82rem;
+                  color:rgba(255,255,255,0.65);line-height:1.5;">
+        There is a <strong style="color:var(--seafoam-lt);">
+        ${formatNum(risk,2)}% probability</strong>
+        that a 1:${T}-year storm will occur at least once
+        in a ${life}-year design life.
+      </div>` : ''}
+    `;
+  }
+
+  /* AEP → Return Period */
+  function calcAEP2RP() {
+    const AEP  = parseFloat(document.getElementById('aepVal').value);
+    const life = parseFloat(document.getElementById('aepLife').value);
+
+    if (isNaN(AEP)||AEP<=0||AEP>100) {
+      showRPErr('AEP must be between 0 and 100%.'); return;
+    }
+
+    const T    = 100 / AEP;
+    const risk = !isNaN(life) && life > 0
+      ? (1 - Math.pow(1 - AEP/100, life)) * 100
+      : null;
+
+    document.getElementById('rpResult').innerHTML = `
+      <div class="result-box-title">AEP → Return Period</div>
+      <div class="result-row">
+        <span class="result-label">AEP</span>
+        <span class="result-value">
+          ${AEP}<span class="result-unit">%</span>
+        </span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Return period</span>
+        <span class="result-value">
+          1 : ${formatNum(T, 5)}<span class="result-unit">years</span>
+        </span>
+      </div>
+      ${risk !== null ? `
+      <div class="result-row">
+        <span class="result-label">Risk over ${life} yr design life</span>
+        <span class="result-value">
+          ${formatNum(risk, 4)}<span class="result-unit">%</span>
+        </span>
+      </div>
+      <div style="margin-top:0.75rem;font-size:0.82rem;
+                  color:rgba(255,255,255,0.65);line-height:1.5;">
+        There is a <strong style="color:var(--seafoam-lt);">
+        ${formatNum(risk,2)}% probability</strong>
+        of exceedance at least once in ${life} years.
+      </div>` : ''}
+    `;
+  }
+
+  /* Add preset-btn style */
+  const style = document.createElement('style');
+  style.textContent = `
+    .preset-btn {
+      padding: 0.3rem 0.75rem;
+      border: 1.5px solid rgba(11,79,108,0.18);
+      border-radius: 100px;
+      background: transparent;
+      font-family: var(--font-body);
+      font-size: 0.72rem;
+      font-weight: 500;
+      color: var(--slate-mid);
+      cursor: pointer;
+      transition: all 0.18s;
+    }
+    .preset-btn:hover { border-color: var(--ocean); color: var(--ocean); }
+  `;
+  document.head.appendChild(style);
+  </script>
+</body>
+</html>
