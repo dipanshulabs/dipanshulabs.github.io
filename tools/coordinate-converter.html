@@ -4,14 +4,69 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Coordinate Converter (UTM ↔ Lat/Lon) | Dipanshu Sharma Tools</title>
-  <meta name="description" content="Convert coordinates between UTM (Easting/Northing) and geographic Latitude/Longitude. WGS84, client-side only, no API required." />
+  <meta name="description" content="Convert coordinates between UTM and geographic Latitude/Longitude. WGS84 ellipsoid, client-side only, no API." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="tools.css" />
+  <style>
+    /* Tab switcher for direction (reused from pipe flow style) */
+    .dir-tabs {
+      display: flex;
+      gap: 0;
+      margin-bottom: 1.75rem;
+      background: var(--mist);
+      border-radius: 10px;
+      padding: 5px;
+      width: fit-content;
+      flex-wrap: wrap;
+    }
+    .dir-btn {
+      padding: 0.6rem 1.4rem;
+      border: none;
+      border-radius: 7px;
+      background: transparent;
+      font-family: var(--font-body);
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--slate-mid);
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .dir-btn.active {
+      background: var(--ocean);
+      color: var(--white);
+      box-shadow: 0 2px 8px rgba(11,79,108,0.25);
+    }
+    .dir-btn:hover:not(.active) { color: var(--ocean); }
+
+    /* DMS output panel */
+    .dms-panel {
+      background: var(--white);
+      border: 1px solid rgba(11,79,108,0.1);
+      border-radius: var(--radius);
+      padding: 1rem 1.25rem;
+      margin-top: 1rem;
+    }
+    .dms-panel h4 {
+      font-family: var(--font-display);
+      font-size: 1rem;
+      font-weight: 400;
+      color: var(--ocean);
+      margin-bottom: 0.6rem;
+    }
+    .dms-line {
+      font-size: 0.9rem;
+      color: var(--slate-mid);
+      padding: 0.25rem 0;
+      font-family: 'Courier New', monospace;
+    }
+  </style>
 </head>
 <body>
 
+  <!-- Navigation -->
   <nav class="tool-nav" role="navigation">
     <div class="tool-nav-inner">
       <a href="../index.html" class="tool-brand">Dipanshu Sharma</a>
@@ -22,13 +77,15 @@
     </div>
   </nav>
 
+  <!-- Page header -->
   <header class="tool-hero tool-hero-sm">
     <div class="container">
       <div class="tool-breadcrumb">Tools / Coordinate Converter</div>
       <h1 class="tool-hero-title">Coordinate <em>Converter</em></h1>
       <p class="tool-hero-sub">
-        Convert between UTM (Easting / Northing) and geographic coordinates
-        (Latitude / Longitude). Uses WGS84 ellipsoid. Runs entirely in your browser.
+        Convert between UTM (Easting / Northing / Zone) and geographic
+        coordinates (Latitude / Longitude). WGS84 ellipsoid.
+        Runs entirely in your browser — no API required.
       </p>
     </div>
   </header>
@@ -36,279 +93,485 @@
   <main class="tool-body">
     <div class="container">
 
-      <!-- Direction selector -->
-      <div class="cat-tabs" style="margin-bottom:1.5rem;" role="group" aria-label="Conversion direction">
-        <button class="cat-btn active" id="btnUtmToGeo" onclick="setDirection('utm2geo')">UTM → Lat / Lon</button>
-        <button class="cat-btn" id="btnGeoToUtm" onclick="setDirection('geo2utm')">Lat / Lon → UTM</button>
+      <!-- Direction switcher -->
+      <div class="dir-tabs" role="tablist" aria-label="Conversion direction">
+        <button class="dir-btn active" id="btnU2G" role="tab"
+                aria-selected="true"
+                onclick="setDirection('utm2geo')">
+          UTM → Latitude / Longitude
+        </button>
+        <button class="dir-btn" id="btnG2U" role="tab"
+                aria-selected="false"
+                onclick="setDirection('geo2utm')">
+          Latitude / Longitude → UTM
+        </button>
       </div>
 
       <div class="tool-layout">
 
-        <!-- LEFT: Inputs -->
+        <!-- LEFT: Input panel -->
         <div>
 
-          <!-- UTM → Lat/Lon inputs -->
-          <div class="tool-panel" id="panelUtm2Geo">
+          <!-- ── Panel A: UTM → Lat/Lon ── -->
+          <div class="tool-panel" id="panelUTM">
             <h2 class="tool-panel-title">UTM Inputs</h2>
 
             <div class="field-group">
-              <label class="field-label" for="utmEasting">Easting (m)</label>
+              <label class="field-label" for="utmE">Easting (m)</label>
               <div class="field-row">
-                <input class="field-input has-unit" type="number" id="utmEasting"
-                       placeholder="e.g. 663000" min="100000" max="900000" step="0.001" />
+                <input class="field-input has-unit" type="number"
+                       id="utmE" placeholder="e.g. 663000"
+                       step="0.001" />
                 <span class="field-unit">m</span>
               </div>
+              <small style="color:var(--slate-lt);font-size:0.75rem;
+                            margin-top:0.25rem;display:block;">
+                Typical range: 100,000 – 900,000 m
+              </small>
             </div>
 
             <div class="field-group">
-              <label class="field-label" for="utmNorthing">Northing (m)</label>
+              <label class="field-label" for="utmN">Northing (m)</label>
               <div class="field-row">
-                <input class="field-input has-unit" type="number" id="utmNorthing"
-                       placeholder="e.g. 5762000" min="0" max="10000000" step="0.001" />
+                <input class="field-input has-unit" type="number"
+                       id="utmN" placeholder="e.g. 5762000"
+                       step="0.001" />
                 <span class="field-unit">m</span>
               </div>
+              <small style="color:var(--slate-lt);font-size:0.75rem;
+                            margin-top:0.25rem;display:block;">
+                Northern hemisphere: 0 – 9,328,000 m ·
+                Southern hemisphere: 1,116,916 – 10,000,000 m
+              </small>
             </div>
 
             <div class="field-group">
               <label class="field-label" for="utmZone">UTM Zone Number</label>
               <div class="field-row">
-                <input class="field-input" type="number" id="utmZone"
-                       placeholder="1 – 60" min="1" max="60" step="1" value="31" />
+                <input class="field-input" type="number"
+                       id="utmZone" placeholder="1 – 60"
+                       min="1" max="60" step="1" value="31" />
               </div>
+              <small style="color:var(--slate-lt);font-size:0.75rem;
+                            margin-top:0.25rem;display:block;">
+                Enter the zone number only (1 to 60).
+                Zone 31 covers the Netherlands / western Europe.
+              </small>
             </div>
 
             <div class="field-group">
               <label class="field-label">Hemisphere</label>
               <div class="radio-group">
                 <label class="radio-label">
-                  <input type="radio" name="hemisphere" value="N" id="hemN" checked />
+                  <input type="radio" name="hemisphere"
+                         id="hemN" value="N" checked />
                   Northern hemisphere
                 </label>
                 <label class="radio-label">
-                  <input type="radio" name="hemisphere" value="S" id="hemS" />
+                  <input type="radio" name="hemisphere"
+                         id="hemS" value="S" />
                   Southern hemisphere
                 </label>
               </div>
             </div>
 
-            <button class="btn btn-primary btn-calc" onclick="convertUtmToGeo()">Convert →</button>
+            <button class="btn btn-primary btn-calc"
+                    onclick="doUTMtoGeo()">
+              Convert to Lat / Lon →
+            </button>
           </div>
 
-          <!-- Lat/Lon → UTM inputs -->
-          <div class="tool-panel" id="panelGeo2Utm" style="display:none;">
+          <!-- ── Panel B: Lat/Lon → UTM ── -->
+          <div class="tool-panel" id="panelGEO" style="display:none;">
             <h2 class="tool-panel-title">Geographic Inputs</h2>
 
             <div class="field-group">
-              <label class="field-label" for="inputLat">Latitude (decimal degrees)</label>
+              <label class="field-label" for="geoLat">Latitude</label>
               <div class="field-row">
-                <input class="field-input has-unit" type="number" id="inputLat"
-                       placeholder="e.g. 52.0000" min="-80" max="84" step="0.000001" />
+                <input class="field-input has-unit" type="number"
+                       id="geoLat" placeholder="e.g. 52.370216"
+                       min="-80" max="84" step="0.000001" />
                 <span class="field-unit">°</span>
               </div>
-              <small style="color:var(--slate-lt);font-size:0.75rem;margin-top:0.25rem;display:block;">
-                Positive = North, Negative = South. Valid range: −80° to 84°
+              <small style="color:var(--slate-lt);font-size:0.75rem;
+                            margin-top:0.25rem;display:block;">
+                Positive = North &nbsp;·&nbsp; Negative = South &nbsp;·&nbsp;
+                Valid range: −80° to +84°
               </small>
             </div>
 
             <div class="field-group">
-              <label class="field-label" for="inputLon">Longitude (decimal degrees)</label>
+              <label class="field-label" for="geoLon">Longitude</label>
               <div class="field-row">
-                <input class="field-input has-unit" type="number" id="inputLon"
-                       placeholder="e.g. 5.0000" min="-180" max="180" step="0.000001" />
+                <input class="field-input has-unit" type="number"
+                       id="geoLon" placeholder="e.g. 4.895168"
+                       min="-180" max="180" step="0.000001" />
                 <span class="field-unit">°</span>
               </div>
-              <small style="color:var(--slate-lt);font-size:0.75rem;margin-top:0.25rem;display:block;">
-                Positive = East, Negative = West.
+              <small style="color:var(--slate-lt);font-size:0.75rem;
+                            margin-top:0.25rem;display:block;">
+                Positive = East &nbsp;·&nbsp; Negative = West &nbsp;·&nbsp;
+                Valid range: −180° to +180°
               </small>
             </div>
 
-            <button class="btn btn-primary btn-calc" onclick="convertGeoToUtm()">Convert →</button>
+            <button class="btn btn-primary btn-calc"
+                    onclick="doGEOtoUTM()">
+              Convert to UTM →
+            </button>
           </div>
+
         </div>
 
         <!-- RIGHT: Results -->
         <div>
-          <div class="result-box" id="coordResults" style="min-height:220px;">
+
+          <!-- Main result box -->
+          <div class="result-box" id="coordResult" style="min-height:220px;">
             <div class="result-box-title">Result</div>
-            <p style="color:rgba(255,255,255,0.5);font-size:0.9rem;margin-top:0.5rem;">
+            <p style="color:rgba(255,255,255,0.5);
+                      font-size:0.9rem;margin-top:0.5rem;">
               Fill in the inputs and press Convert.
             </p>
           </div>
 
-          <div class="tool-note" style="margin-top:1rem;">
-            <strong>⚠ Accuracy note:</strong> Results use the standard WGS84 UTM
-            algorithm with approximately ±1 m accuracy within each UTM zone.
-            Results are provided for reference only and <strong>must be verified</strong>
-            using professional survey software or a licensed geodetic tool before
-            use in engineering design, construction, or legal applications.
+          <!-- DMS display (shown after UTM→Geo conversion) -->
+          <div class="dms-panel" id="dmsPanel" style="display:none;">
+            <h4>Degrees / Minutes / Seconds</h4>
+            <div class="dms-line" id="dmsLat">—</div>
+            <div class="dms-line" id="dmsLon">—</div>
           </div>
 
-          <!-- DMS helper panel (appears after conversion) -->
-          <div id="dmsPanel" style="display:none;margin-top:1rem;">
-            <div class="tool-panel">
-              <h3 style="font-family:var(--font-display);font-size:1.05rem;font-weight:400;color:var(--ocean);margin-bottom:0.75rem;">
-                Degrees / Minutes / Seconds
-              </h3>
-              <p id="dmsLat" style="font-size:0.9rem;color:var(--slate-mid);margin-bottom:0.35rem;"></p>
-              <p id="dmsLon" style="font-size:0.9rem;color:var(--slate-mid);"></p>
+          <!-- Formula reference -->
+          <div class="formula-box" style="margin-top:1rem;">
+            <h4>Method</h4>
+            <div class="formula-text">WGS84 · Transverse Mercator · k₀ = 0.9996</div>
+            <div class="formula-vars">
+              <span>Semi-major axis  a  = 6,378,137.0 m</span>
+              <span>Eccentricity²   e²  = 0.00669437999014</span>
+              <span>Central meridian    = (zone − 1) × 6° − 180° + 3°</span>
+              <span>False easting       = 500,000 m</span>
+              <span>False northing (S)  = 10,000,000 m</span>
             </div>
           </div>
-        </div>
-      </div>
 
-      <!-- Formula notes -->
-      <div class="formula-box" style="margin-top:1.5rem;">
-        <h4>Method</h4>
-        <div class="formula-text">WGS84 ellipsoid · Transverse Mercator projection · k₀ = 0.9996</div>
-        <div class="formula-vars">
-          <span>Semi-major axis a = 6,378,137.0 m</span>
-          <span>First eccentricity squared e² = 0.00669437999014</span>
-          <span>Central meridian = (zone − 1) × 6° − 180° + 3°</span>
-          <span>False easting = 500,000 m | False northing (S) = 10,000,000 m</span>
+          <!-- Accuracy disclaimer -->
+          <div class="tool-note" style="margin-top:1rem;">
+            <strong>⚠ Important:</strong> Results are approximate (~±1 m within
+            each UTM zone). Always verify with licensed survey software or a
+            professional geodesist before use in engineering design,
+            construction setout, or any legal application.
+          </div>
+
         </div>
-      </div>
+      </div><!-- /tool-layout -->
 
     </div>
   </main>
 
   <footer class="tool-footer">
     <div class="container">
-      <p>© <span id="year"></span> Dipanshu Sharma · <a href="index.html">All Tools</a> · <a href="../index.html">Portfolio</a></p>
+      <p>
+        © <span id="year"></span> Dipanshu Sharma ·
+        <a href="index.html">All Tools</a> ·
+        <a href="../index.html">Portfolio</a>
+      </p>
     </div>
   </footer>
 
   <script src="tools.js"></script>
   <script>
-  /* ═══════════════════════════════════════════════════════
-     Coordinate Converter
-     Algorithm: standard WGS84 UTM Transverse Mercator.
-     Based on Snyder (1987) "Map Projections — A Working Manual"
-     formulas, which are the standard reference for UTM.
-  ═══════════════════════════════════════════════════════ */
+  /* ═══════════════════════════════════════════════════════════
+     Coordinate Converter — WGS84 UTM ↔ Geographic
+     Algorithm: Snyder (1987) "Map Projections — A Working Manual"
+     Both directions fully implemented in plain JavaScript.
+     No libraries, no API, works fully offline.
+  ═══════════════════════════════════════════════════════════ */
 
-  // ── WGS84 ellipsoid constants ─────────────────────────────
-  const WGS84 = {
-    a:  6378137.0,          // semi-major axis (metres)
-    e2: 0.00669437999014,   // first eccentricity squared
-    k0: 0.9996,             // UTM scale factor at central meridian
-    E0: 500000,             // false easting
-    N0s: 10000000           // false northing (southern hemisphere only)
-  };
+  /* ── WGS84 ellipsoid constants ─────────────────────────── */
+  const a   = 6378137.0;           // semi-major axis (metres)
+  const e2  = 0.00669437999014;    // first eccentricity squared
+  const ep2 = e2 / (1 - e2);      // second eccentricity squared
+  const k0  = 0.9996;              // UTM scale factor
+  const E0  = 500000;              // false easting (m)
+  const N0s = 10000000;            // false northing — southern hemisphere (m)
 
-  // ── Direction switcher ───────────────────────────────────
-  let direction = 'utm2geo';
+  /* ── Direction switcher ────────────────────────────────── */
   function setDirection(dir) {
-    direction = dir;
-    document.getElementById('panelUtm2Geo').style.display = dir === 'utm2geo' ? 'block' : 'none';
-    document.getElementById('panelGeo2Utm').style.display = dir === 'geo2utm' ? 'block' : 'none';
-    document.getElementById('btnUtmToGeo').classList.toggle('active', dir === 'utm2geo');
-    document.getElementById('btnGeoToUtm').classList.toggle('active', dir === 'geo2utm');
-    // Clear results
-    resetResults();
-  }
-
-  function resetResults() {
-    const rb = document.getElementById('coordResults');
-    rb.innerHTML = `<div class="result-box-title">Result</div>
-      <p style="color:rgba(255,255,255,0.5);font-size:0.9rem;margin-top:0.5rem;">
-        Fill in the inputs and press Convert.
-      </p>`;
+    const toUTM = dir === 'geo2utm';
+    document.getElementById('panelUTM').style.display = toUTM ? 'none'  : 'block';
+    document.getElementById('panelGEO').style.display = toUTM ? 'block' : 'none';
+    document.getElementById('btnU2G').classList.toggle('active', !toUTM);
+    document.getElementById('btnG2U').classList.toggle('active',  toUTM);
+    document.getElementById('btnU2G').setAttribute('aria-selected', String(!toUTM));
+    document.getElementById('btnG2U').setAttribute('aria-selected', String(toUTM));
+    // Clear results when switching
+    resetResult();
     document.getElementById('dmsPanel').style.display = 'none';
   }
 
-  // ── Decimal degrees → Degrees/Minutes/Seconds string ─────
-  function toDMS(decDeg, isLat) {
-    const abs = Math.abs(decDeg);
+  function resetResult() {
+    document.getElementById('coordResult').innerHTML = `
+      <div class="result-box-title">Result</div>
+      <p style="color:rgba(255,255,255,0.5);font-size:0.9rem;margin-top:0.5rem;">
+        Fill in the inputs and press Convert.
+      </p>`;
+  }
+
+  function showError(msg) {
+    document.getElementById('coordResult').innerHTML = `
+      <div class="result-box-title">Error</div>
+      <p style="color:#ffb3b3;font-size:0.9rem;margin-top:0.75rem;
+                line-height:1.55;">${msg}</p>`;
+    document.getElementById('dmsPanel').style.display = 'none';
+  }
+
+  /* ── Decimal degrees → Degrees° Minutes' Seconds" ──────── */
+  function toDMS(dd, isLat) {
+    const abs = Math.abs(dd);
     const deg = Math.floor(abs);
     const minFull = (abs - deg) * 60;
     const min = Math.floor(minFull);
-    const sec = ((minFull - min) * 60).toFixed(4);
+    const sec = ((minFull - min) * 60).toFixed(3);
     const dir = isLat
-      ? (decDeg >= 0 ? 'N' : 'S')
-      : (decDeg >= 0 ? 'E' : 'W');
+      ? (dd >= 0 ? 'N' : 'S')
+      : (dd >= 0 ? 'E' : 'W');
     return `${deg}° ${min}' ${sec}" ${dir}`;
   }
 
-  // ── UTM → Latitude / Longitude ───────────────────────────
-  function convertUtmToGeo() {
-    const E    = parseFloat(document.getElementById('utmEasting').value);
-    const N    = parseFloat(document.getElementById('utmNorthing').value);
+  /* ── Meridional arc M ───────────────────────────────────── */
+  function meridionalArc(latRad) {
+    return a * (
+      (1 - e2/4 - 3*e2*e2/64 - 5*e2*e2*e2/256) * latRad
+    - (3*e2/8 + 3*e2*e2/32 + 45*e2*e2*e2/1024) * Math.sin(2*latRad)
+    + (15*e2*e2/256 + 45*e2*e2*e2/1024)         * Math.sin(4*latRad)
+    - (35*e2*e2*e2/3072)                          * Math.sin(6*latRad)
+    );
+  }
+
+  /* ══════════════════════════════════════════════════════════
+     DIRECTION A: UTM → Latitude / Longitude
+  ══════════════════════════════════════════════════════════ */
+  function doUTMtoGeo() {
+    // Read inputs
+    const E    = parseFloat(document.getElementById('utmE').value);
+    const N    = parseFloat(document.getElementById('utmN').value);
     const zone = parseInt(document.getElementById('utmZone').value, 10);
     const isN  = document.getElementById('hemN').checked;
 
-    // Input validation
-    if (isNaN(E) || isNaN(N) || isNaN(zone)) {
-      showError('Please fill in all fields with valid numbers.'); return;
-    }
-    if (zone < 1 || zone > 60) {
-      showError('UTM Zone must be between 1 and 60.'); return;
+    // Validate
+    if (isNaN(E))    { showError('Please enter a valid Easting value.'); return; }
+    if (isNaN(N))    { showError('Please enter a valid Northing value.'); return; }
+    if (isNaN(zone) || zone < 1 || zone > 60) {
+      showError('UTM Zone must be a whole number between 1 and 60.'); return;
     }
     if (E < 100000 || E > 900000) {
-      showError('Easting must be between 100,000 and 900,000 m.'); return;
+      showError('Easting is outside the valid UTM range (100,000 – 900,000 m). '
+              + 'Please check your value.'); return;
     }
 
-    const { a, e2, k0, E0, N0s } = WGS84;
-
-    // Remove false easting/northing
+    // Remove false easting and false northing
     const x = E - E0;
     const y = isN ? N : N - N0s;
 
-    // Central meridian longitude in degrees and radians
-    const lon0deg = (zone - 1) * 6 - 180 + 3;
+    // Central meridian of the zone
+    const lon0 = ((zone - 1) * 6 - 180 + 3) * Math.PI / 180;
 
-    // Derived constants
-    const e1   = (1 - Math.sqrt(1 - e2)) / (1 + Math.sqrt(1 - e2));
-    const ePri2 = e2 / (1 - e2);  // second eccentricity squared
+    // Intermediate terms
+    const e1 = (1 - Math.sqrt(1 - e2)) / (1 + Math.sqrt(1 - e2));
 
-    const M  = y / k0;
-    const mu = M / (a * (1 - e2 / 4 - 3 * e2 * e2 / 64 - 5 * Math.pow(e2, 3) / 256));
+    // Meridional arc → footprint latitude (phi1) series expansion
+    const M   = y / k0;
+    const mu  = M / (a * (1 - e2/4 - 3*e2*e2/64 - 5*e2*e2*e2/256));
 
-    // Footprint latitude phi1 (iterative approximation)
     const phi1 = mu
-      + (3 * e1 / 2 - 27 * Math.pow(e1, 3) / 32) * Math.sin(2 * mu)
-      + (21 * e1 * e1 / 16 - 55 * Math.pow(e1, 4) / 32) * Math.sin(4 * mu)
-      + (151 * Math.pow(e1, 3) / 96) * Math.sin(6 * mu)
-      + (1097 * Math.pow(e1, 4) / 512) * Math.sin(8 * mu);
+      + (3*e1/2   - 27*e1*e1*e1/32)   * Math.sin(2*mu)
+      + (21*e1*e1/16 - 55*e1*e1*e1*e1/32) * Math.sin(4*mu)
+      + (151*e1*e1*e1/96)              * Math.sin(6*mu)
+      + (1097*e1*e1*e1*e1/512)         * Math.sin(8*mu);
 
-    const sinPhi1 = Math.sin(phi1);
-    const cosPhi1 = Math.cos(phi1);
-    const tanPhi1 = Math.tan(phi1);
+    const sinP1 = Math.sin(phi1);
+    const cosP1 = Math.cos(phi1);
+    const tanP1 = Math.tan(phi1);
 
-    const N1 = a / Math.sqrt(1 - e2 * sinPhi1 * sinPhi1);
-    const T1 = tanPhi1 * tanPhi1;
-    const C1 = ePri2 * cosPhi1 * cosPhi1;
-    const R1 = a * (1 - e2) / Math.pow(1 - e2 * sinPhi1 * sinPhi1, 1.5);
+    const N1 = a / Math.sqrt(1 - e2 * sinP1 * sinP1);
+    const T1 = tanP1 * tanP1;
+    const C1 = ep2 * cosP1 * cosP1;
+    const R1 = a * (1 - e2) / Math.pow(1 - e2 * sinP1 * sinP1, 1.5);
     const D  = x / (N1 * k0);
 
     // Latitude in radians
     const latRad = phi1
-      - (N1 * tanPhi1 / R1) * (
-          D * D / 2
-        - (5 + 3 * T1 + 10 * C1 - 4 * C1 * C1 - 9 * ePri2) * Math.pow(D, 4) / 24
-        + (61 + 90 * T1 + 298 * C1 + 45 * T1 * T1 - 252 * ePri2 - 3 * C1 * C1) * Math.pow(D, 6) / 720
+      - (N1 * tanP1 / R1) * (
+          D*D / 2
+        - (5 + 3*T1 + 10*C1 - 4*C1*C1 - 9*ep2) * D*D*D*D / 24
+        + (61 + 90*T1 + 298*C1 + 45*T1*T1 - 252*ep2 - 3*C1*C1)
+          * D*D*D*D*D*D / 720
       );
 
     // Longitude in radians
-    const lonRad = lon0deg * Math.PI / 180
-      + (1 / cosPhi1) * (
+    const lonRad = lon0
+      + (1 / cosP1) * (
           D
-        - (1 + 2 * T1 + C1) * Math.pow(D, 3) / 6
-        + (5 - 2 * C1 + 28 * T1 - 3 * C1 * C1 + 8 * ePri2 + 24 * T1 * T1) * Math.pow(D, 5) / 120
+        - (1 + 2*T1 + C1) * D*D*D / 6
+        + (5 - 2*C1 + 28*T1 - 3*C1*C1 + 8*ep2 + 24*T1*T1)
+          * D*D*D*D*D / 120
       );
 
     const lat = latRad * 180 / Math.PI;
     const lon = lonRad * 180 / Math.PI;
 
     // Display results
-    const rb = document.getElementById('coordResults');
-    rb.innerHTML = `
-      <div class="result-box-title">Converted Result — ${isN ? 'Northern' : 'Southern'} Hemisphere, Zone ${zone}</div>
+    document.getElementById('coordResult').innerHTML = `
+      <div class="result-box-title">
+        UTM Zone ${zone}${isN ? 'N' : 'S'} → Geographic (WGS84)
+      </div>
       <div class="result-row">
         <span class="result-label">Latitude</span>
-        <span class="result-value">${lat.toFixed(7)}<span class="result-unit">°</span></span>
+        <span class="result-value">
+          ${lat.toFixed(7)}<span class="result-unit">°</span>
+        </span>
       </div>
       <div class="result-row">
         <span class="result-label">Longitude</span>
-        <span class="result-value">${lon.toFixed(7)}<span class="result-unit">°</span></span>
+        <span class="result-value">
+          ${lon.toFixed(7)}<span class="result-unit">°</span>
+        </span>
       </div>
-      <div style="margin-top:1rem;font-size:0.75r
+      <div class="result-row">
+        <span class="result-label">Direction</span>
+        <span class="result-value" style="font-size:1rem;">
+          ${lat >= 0 ? 'N' : 'S'} / ${lon >= 0 ? 'E' : 'W'}
+        </span>
+      </div>
+      <div style="margin-top:0.85rem;font-size:0.74rem;color:var(--seafoam-lt);">
+        Input: E ${E.toFixed(1)} m · N ${N.toFixed(1)} m ·
+        Zone ${zone} · ${isN ? 'Northern' : 'Southern'} hemisphere
+      </div>
+    `;
+
+    // Show DMS panel
+    document.getElementById('dmsPanel').style.display = 'block';
+    document.getElementById('dmsLat').textContent = 'Lat: ' + toDMS(lat, true);
+    document.getElementById('dmsLon').textContent = 'Lon: ' + toDMS(lon, false);
+  }
+
+
+  /* ══════════════════════════════════════════════════════════
+     DIRECTION B: Latitude / Longitude → UTM
+  ══════════════════════════════════════════════════════════ */
+  function doGEOtoUTM() {
+    // Read inputs
+    const latDeg = parseFloat(document.getElementById('geoLat').value);
+    const lonDeg = parseFloat(document.getElementById('geoLon').value);
+
+    // Validate
+    if (isNaN(latDeg)) {
+      showError('Please enter a valid Latitude value.'); return;
+    }
+    if (isNaN(lonDeg)) {
+      showError('Please enter a valid Longitude value.'); return;
+    }
+    if (latDeg < -80 || latDeg > 84) {
+      showError('Latitude must be between −80° and +84°. '
+              + 'Polar regions use the UPS system, not UTM.'); return;
+    }
+    if (lonDeg < -180 || lonDeg > 180) {
+      showError('Longitude must be between −180° and +180°.'); return;
+    }
+
+    // Convert to radians
+    const lat = latDeg * Math.PI / 180;
+    const lon = lonDeg * Math.PI / 180;
+
+    // Determine UTM zone from longitude
+    let zone = Math.floor((lonDeg + 180) / 6) + 1;
+    if (zone > 60) zone = 60; // handle exact 180° edge
+
+    // Special zone rules for Norway and Svalbard
+    if (latDeg >= 56 && latDeg < 64 && lonDeg >= 3 && lonDeg < 12) {
+      zone = 32; // Norway special zone
+    }
+    if (latDeg >= 72 && latDeg < 84) {
+      if      (lonDeg >=  0 && lonDeg <  9)  zone = 31;
+      else if (lonDeg >=  9 && lonDeg < 21)  zone = 33;
+      else if (lonDeg >= 21 && lonDeg < 33)  zone = 35;
+      else if (lonDeg >= 33 && lonDeg < 42)  zone = 37;
+    }
+
+    // Central meridian for this zone (radians)
+    const lon0 = ((zone - 1) * 6 - 180 + 3) * Math.PI / 180;
+
+    // Compute intermediate values
+    const sinLat = Math.sin(lat);
+    const cosLat = Math.cos(lat);
+    const tanLat = Math.tan(lat);
+
+    const N_val = a / Math.sqrt(1 - e2 * sinLat * sinLat);
+    const T     = tanLat * tanLat;
+    const C     = ep2 * cosLat * cosLat;
+    const A_val = cosLat * (lon - lon0);   // longitude difference × cos(lat)
+
+    // Meridional arc M
+    const M = meridionalArc(lat);
+
+    // Easting
+    const easting = k0 * N_val * (
+        A_val
+      + (1 - T + C) * A_val*A_val*A_val / 6
+      + (5 - 18*T + T*T + 72*C - 58*ep2) * Math.pow(A_val, 5) / 120
+    ) + E0;
+
+    // Northing (before applying false northing for S hemisphere)
+    let northing = k0 * (
+      M + N_val * tanLat * (
+          A_val*A_val / 2
+        + (5 - T + 9*C + 4*C*C) * Math.pow(A_val, 4) / 24
+        + (61 - 58*T + T*T + 600*C - 330*ep2) * Math.pow(A_val, 6) / 720
+      )
+    );
+
+    // Apply false northing for southern hemisphere
+    const isNorthern = latDeg >= 0;
+    if (!isNorthern) northing += N0s;
+
+    // Display results
+    document.getElementById('coordResult').innerHTML = `
+      <div class="result-box-title">
+        Geographic (WGS84) → UTM Zone ${zone}${isNorthern ? 'N' : 'S'}
+      </div>
+      <div class="result-row">
+        <span class="result-label">Easting</span>
+        <span class="result-value">
+          ${easting.toFixed(3)}<span class="result-unit">m</span>
+        </span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Northing</span>
+        <span class="result-value">
+          ${northing.toFixed(3)}<span class="result-unit">m</span>
+        </span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">UTM Zone</span>
+        <span class="result-value">
+          ${zone}<span class="result-unit">${isNorthern ? 'N' : 'S'}</span>
+        </span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Hemisphere</span>
+        <span class="result-value" style="font-size:1rem;">
+          ${isNorthern ? 'Northern' : 'Southern'}
+        </span>
+      </div>
+      <div style="margin-top:0.85rem;font-size:0.74rem;color:var(--seafoam-lt);">
+        Input: ${latDeg.toFixed(6)}°, ${lonDeg.toFixed(6)}°
+      </div>
+    `;
+
+    // Hide DMS panel (not needed for this direction)
+    document.getElementById('dmsPanel').style.display = 'none';
+  }
+  </script>
+</body>
+</html>
