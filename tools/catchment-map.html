@@ -1,0 +1,1880 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Catchment & Drainage Map Tool | Dipanshu Sharma Tools</title>
+  <meta name="description" content="Interactive GIS tool for catchment delineation, flow path measurement, and drainage design. Export directly to Shapefile, GeoJSON, CSV and KML." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <!-- Leaflet Draw CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css" />
+
+  <link rel="stylesheet" href="tools.css" />
+
+  <style>
+    /* ── Page layout ── */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-body);
+      background: var(--off-white);
+      color: var(--slate);
+      overflow-x: hidden;
+    }
+
+    /* Full-height map layout */
+    .map-page {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    /* Top toolbar */
+    .map-toolbar {
+      background: var(--ocean);
+      padding: 0.6rem 1rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+      flex-shrink: 0;
+      z-index: 1000;
+    }
+    .toolbar-brand {
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--white);
+      white-space: nowrap;
+      text-decoration: none;
+    }
+    .toolbar-title {
+      font-size: 0.82rem;
+      font-weight: 500;
+      color: var(--seafoam-lt);
+      letter-spacing: 0.06em;
+    }
+    .toolbar-sep {
+      width: 1px;
+      height: 24px;
+      background: rgba(255,255,255,0.2);
+      flex-shrink: 0;
+    }
+    .toolbar-back {
+      font-size: 0.78rem;
+      color: var(--seafoam-lt);
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.2s;
+      white-space: nowrap;
+    }
+    .toolbar-back:hover { color: var(--white); }
+
+    /* Search box in toolbar */
+    .map-search {
+      display: flex;
+      gap: 0.4rem;
+      margin-left: auto;
+      flex-shrink: 0;
+    }
+    .map-search input {
+      padding: 0.4rem 0.75rem;
+      border: 1px solid rgba(255,255,255,0.3);
+      border-radius: 6px;
+      background: rgba(255,255,255,0.12);
+      color: var(--white);
+      font-family: var(--font-body);
+      font-size: 0.82rem;
+      width: 220px;
+      outline: none;
+    }
+    .map-search input::placeholder { color: rgba(255,255,255,0.5); }
+    .map-search input:focus {
+      background: rgba(255,255,255,0.2);
+      border-color: var(--seafoam);
+    }
+    .map-search button {
+      padding: 0.4rem 0.9rem;
+      background: var(--seafoam);
+      border: none;
+      border-radius: 6px;
+      color: var(--white);
+      font-family: var(--font-body);
+      font-size: 0.82rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s;
+      white-space: nowrap;
+    }
+    .map-search button:hover { background: var(--ocean-mid); }
+
+    /* Main area: map + sidebar */
+    .map-body {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* Leaflet map */
+    #map {
+      flex: 1;
+      height: 100%;
+      min-height: 0;
+    }
+
+    /* Right sidebar */
+    .map-sidebar {
+      width: 340px;
+      flex-shrink: 0;
+      background: var(--white);
+      border-left: 1px solid rgba(11,79,108,0.1);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* Sidebar tabs */
+    .sidebar-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--mist);
+      flex-shrink: 0;
+    }
+    .sidebar-tab {
+      flex: 1;
+      padding: 0.65rem 0.5rem;
+      border: none;
+      background: transparent;
+      font-family: var(--font-body);
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--slate-lt);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .sidebar-tab.active {
+      color: var(--ocean);
+      border-bottom-color: var(--ocean);
+      background: var(--off-white);
+    }
+    .sidebar-tab:hover:not(.active) { color: var(--ocean-mid); }
+
+    /* Sidebar content panels */
+    .sidebar-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1rem;
+    }
+    .sidebar-panel { display: none; }
+    .sidebar-panel.active { display: block; }
+
+    /* Stats cards */
+    .stat-card {
+      background: var(--mist);
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      margin-bottom: 0.6rem;
+    }
+    .stat-card-label {
+      font-size: 0.68rem;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--slate-lt);
+      margin-bottom: 0.3rem;
+    }
+    .stat-card-value {
+      font-family: var(--font-display);
+      font-size: 1.35rem;
+      font-weight: 400;
+      color: var(--ocean);
+      line-height: 1.1;
+    }
+    .stat-card-sub {
+      font-size: 0.75rem;
+      color: var(--slate-mid);
+      margin-top: 0.2rem;
+    }
+
+    /* Section headers inside sidebar */
+    .sidebar-section {
+      font-size: 0.7rem;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--seafoam);
+      margin: 1.1rem 0 0.6rem;
+      padding-bottom: 0.35rem;
+      border-bottom: 1px solid var(--mist);
+    }
+    .sidebar-section:first-child { margin-top: 0; }
+
+    /* Input fields inside sidebar */
+    .sb-field { margin-bottom: 0.75rem; }
+    .sb-label {
+      display: block;
+      font-size: 0.72rem;
+      font-weight: 500;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: var(--slate-mid);
+      margin-bottom: 0.3rem;
+    }
+    .sb-input {
+      width: 100%;
+      padding: 0.55rem 0.75rem;
+      border: 1.5px solid rgba(11,79,108,0.15);
+      border-radius: 7px;
+      font-family: var(--font-body);
+      font-size: 0.88rem;
+      color: var(--slate);
+      background: var(--off-white);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .sb-input:focus { border-color: var(--ocean-mid); background: var(--white); }
+    .sb-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem;
+    }
+
+    /* Result display inside sidebar */
+    .sb-result {
+      background: linear-gradient(135deg, var(--ocean), var(--ocean-mid));
+      border-radius: 8px;
+      padding: 0.85rem 1rem;
+      margin-top: 0.5rem;
+    }
+    .sb-result-label {
+      font-size: 0.68rem;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--seafoam-lt);
+      margin-bottom: 0.3rem;
+    }
+    .sb-result-value {
+      font-family: var(--font-display);
+      font-size: 1.6rem;
+      font-weight: 300;
+      color: var(--white);
+      line-height: 1.1;
+    }
+    .sb-result-sub {
+      font-size: 0.75rem;
+      color: rgba(255,255,255,0.65);
+      margin-top: 0.25rem;
+    }
+
+    /* Buttons inside sidebar */
+    .sb-btn {
+      width: 100%;
+      padding: 0.65rem;
+      border: none;
+      border-radius: 7px;
+      font-family: var(--font-body);
+      font-size: 0.82rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+    }
+    .sb-btn-primary {
+      background: var(--ocean);
+      color: var(--white);
+    }
+    .sb-btn-primary:hover { background: var(--ocean-mid); }
+    .sb-btn-outline {
+      background: transparent;
+      color: var(--ocean);
+      border: 1.5px solid var(--ocean);
+    }
+    .sb-btn-outline:hover { background: var(--ocean); color: var(--white); }
+    .sb-btn-danger {
+      background: transparent;
+      color: #c0392b;
+      border: 1.5px solid #c0392b;
+    }
+    .sb-btn-danger:hover { background: #c0392b; color: var(--white); }
+    .sb-btn-green {
+      background: var(--seafoam);
+      color: var(--white);
+    }
+    .sb-btn-green:hover { background: #3aa58e; }
+
+    /* Export buttons grid */
+    .export-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+    }
+    .export-btn {
+      padding: 0.6rem 0.5rem;
+      border: 1.5px solid rgba(11,79,108,0.18);
+      border-radius: 8px;
+      background: var(--white);
+      font-family: var(--font-body);
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--slate-mid);
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.3rem;
+    }
+    .export-btn:hover {
+      border-color: var(--ocean);
+      color: var(--ocean);
+      background: var(--mist);
+    }
+    .export-btn .export-icon { font-size: 1.3rem; }
+    .export-btn .export-label { font-size: 0.7rem; letter-spacing: 0.06em; }
+    .export-btn .export-desc {
+      font-size: 0.65rem;
+      color: var(--slate-lt);
+      line-height: 1.3;
+    }
+
+    /* Coordinate display */
+    .coord-box {
+      background: var(--off-white);
+      border: 1px solid rgba(11,79,108,0.1);
+      border-radius: 7px;
+      padding: 0.65rem 0.75rem;
+      font-size: 0.78rem;
+      color: var(--slate-mid);
+      font-family: 'Courier New', monospace;
+      line-height: 1.6;
+      margin-bottom: 0.5rem;
+      max-height: 140px;
+      overflow-y: auto;
+      word-break: break-all;
+    }
+
+    /* Instruction steps */
+    .step-list {
+      list-style: none;
+      padding: 0;
+    }
+    .step-list li {
+      display: flex;
+      gap: 0.75rem;
+      align-items: flex-start;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid var(--mist);
+      font-size: 0.83rem;
+      color: var(--slate-mid);
+      line-height: 1.5;
+    }
+    .step-list li:last-child { border-bottom: none; }
+    .step-num {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--ocean);
+      color: var(--white);
+      font-size: 0.7rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 0.1rem;
+    }
+
+    /* Layer toggle buttons */
+    .layer-row {
+      display: flex;
+      gap: 0.4rem;
+      margin-bottom: 0.75rem;
+      flex-wrap: wrap;
+    }
+    .layer-btn {
+      padding: 0.35rem 0.85rem;
+      border: 1.5px solid rgba(11,79,108,0.2);
+      border-radius: 100px;
+      background: transparent;
+      font-family: var(--font-body);
+      font-size: 0.72rem;
+      font-weight: 500;
+      color: var(--slate-mid);
+      cursor: pointer;
+      transition: all 0.18s;
+    }
+    .layer-btn.active { background: var(--ocean); border-color: var(--ocean); color: var(--white); }
+    .layer-btn:hover:not(.active) { border-color: var(--ocean); color: var(--ocean); }
+
+    /* Notification toast */
+    .toast {
+      position: fixed;
+      bottom: 1.5rem;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: var(--slate);
+      color: var(--white);
+      padding: 0.65rem 1.25rem;
+      border-radius: 100px;
+      font-size: 0.82rem;
+      font-weight: 500;
+      z-index: 9999;
+      transition: transform 0.3s ease;
+      white-space: nowrap;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+
+    /* Mobile responsive */
+    @media (max-width: 768px) {
+      .map-body { flex-direction: column; }
+      .map-sidebar { width: 100%; height: 280px; border-left: none; border-top: 1px solid var(--mist); }
+      #map { flex: none; height: calc(100vh - 280px - 56px); }
+      .map-search input { width: 140px; }
+      .toolbar-title { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="map-page">
+
+  <!-- ── Top toolbar ── -->
+  <div class="map-toolbar">
+    <a href="../index.html" class="toolbar-brand">Ir. Dipanshu Sharma</a>
+    <div class="toolbar-sep"></div>
+    <span class="toolbar-title">Catchment &amp; Drainage Map</span>
+    <div class="toolbar-sep"></div>
+    <a href="index.html" class="toolbar-back">← All Tools</a>
+
+    <!-- Map layer toggles -->
+    <div class="layer-row" style="margin:0;margin-left:0.5rem;">
+      <button class="layer-btn active" id="layerOSM"
+              onclick="switchLayer('osm')">Street Map</button>
+      <button class="layer-btn" id="layerSat"
+              onclick="switchLayer('satellite')">Satellite</button>
+      <button class="layer-btn" id="layerTopo"
+              onclick="switchLayer('topo')">Topo</button>
+    </div>
+
+    <!-- Location search -->
+    <div class="map-search">
+      <input type="text" id="searchInput"
+             placeholder="Search location…"
+             onkeydown="if(event.key==='Enter') searchLocation()" />
+      <button onclick="searchLocation()">Go</button>
+    </div>
+  </div>
+
+  <!-- ── Main: map + sidebar ── -->
+  <div class="map-body">
+
+    <!-- Leaflet map -->
+    <div id="map"></div>
+
+    <!-- Right sidebar -->
+    <div class="map-sidebar">
+
+      <!-- Sidebar tabs -->
+      <div class="sidebar-tabs">
+        <button class="sidebar-tab active" onclick="setTab('stats')">Stats</button>
+        <button class="sidebar-tab" onclick="setTab('rational')">Q=CiA</button>
+        <button class="sidebar-tab" onclick="setTab('export')">Export</button>
+        <button class="sidebar-tab" onclick="setTab('help')">Help</button>
+      </div>
+
+      <!-- Sidebar content -->
+      <div class="sidebar-content">
+
+        <!-- ══ TAB: STATS ══ -->
+        <div class="sidebar-panel active" id="tabStats">
+
+          <div class="sidebar-section">Catchment Polygon</div>
+
+          <div class="stat-card">
+            <div class="stat-card-label">Area</div>
+            <div class="stat-card-value" id="statArea">—</div>
+            <div class="stat-card-sub" id="statAreaSub">Draw a catchment polygon to calculate</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-card-label">Perimeter</div>
+            <div class="stat-card-value" id="statPerim">—</div>
+            <div class="stat-card-sub" id="statPerimSub"></div>
+          </div>
+
+          <div class="sidebar-section">Flow Path / Stream</div>
+
+          <div class="stat-card">
+            <div class="stat-card-label">Flow Path Length</div>
+            <div class="stat-card-value" id="statLength">—</div>
+            <div class="stat-card-sub" id="statLengthSub">Draw a polyline to measure</div>
+          </div>
+
+          <div class="sidebar-section">Slope Calculator</div>
+
+          <div class="sb-row">
+            <div class="sb-field">
+              <label class="sb-label" for="elev1">Elevation Start (m)</label>
+              <input class="sb-input" type="number" id="elev1"
+                     placeholder="e.g. 120" step="0.1"
+                     oninput="calcSlope()" />
+            </div>
+            <div class="sb-field">
+              <label class="sb-label" for="elev2">Elevation End (m)</label>
+              <input class="sb-input" type="number" id="elev2"
+                     placeholder="e.g. 95" step="0.1"
+                     oninput="calcSlope()" />
+            </div>
+          </div>
+          <div id="slopeResult" style="display:none;" class="sb-result">
+            <div class="sb-result-label">Average Stream Slope</div>
+            <div class="sb-result-value" id="slopeVal">—</div>
+            <div class="sb-result-sub" id="slopeSub"></div>
+          </div>
+
+          <div class="sidebar-section">Points Placed</div>
+          <div class="stat-card">
+            <div class="stat-card-label">Engineering Points</div>
+            <div class="stat-card-value" id="statPoints">0</div>
+            <div class="stat-card-sub">Outlets, manholes, structures</div>
+          </div>
+
+          <div class="sidebar-section">UTM Zone (Auto-detected)</div>
+          <div class="stat-card">
+            <div class="stat-card-label">Detected Zone</div>
+            <div class="stat-card-value" id="statUTMZone">—</div>
+            <div class="stat-card-sub" id="statUTMSub">Based on map centre</div>
+          </div>
+
+          <!-- Clear all button -->
+          <div style="margin-top:1rem;">
+            <button class="sb-btn sb-btn-danger" onclick="clearAll()">
+              🗑 Clear All Drawings
+            </button>
+          </div>
+
+        </div><!-- /tabStats -->
+
+
+        <!-- ══ TAB: RATIONAL METHOD ══ -->
+        <div class="sidebar-panel" id="tabRational">
+
+          <div class="sidebar-section">Rational Method — Q = CiA</div>
+          <p style="font-size:0.82rem;color:var(--slate-mid);
+                    margin-bottom:1rem;line-height:1.6;">
+            Draw a catchment polygon first. The area is automatically
+            filled from your drawing. Enter C and i to calculate Q.
+          </p>
+
+          <div class="sb-field">
+            <label class="sb-label">Catchment Area (A)</label>
+            <input class="sb-input" type="number" id="rmArea"
+                   placeholder="Draw polygon to auto-fill" step="0.01"
+                   oninput="calcRM()" />
+            <div style="display:flex;gap:0.4rem;margin-top:0.35rem;">
+              <button style="padding:0.25rem 0.65rem;border:1.5px solid rgba(11,79,108,0.18);
+                             border-radius:100px;background:transparent;
+                             font-size:0.68rem;font-weight:500;color:var(--slate-mid);
+                             cursor:pointer;" id="rmUnitHa"
+                      onclick="setRMUnit('ha')">ha</button>
+              <button style="padding:0.25rem 0.65rem;border:1.5px solid rgba(11,79,108,0.18);
+                             border-radius:100px;background:transparent;
+                             font-size:0.68rem;font-weight:500;color:var(--slate-mid);
+                             cursor:pointer;" id="rmUnitKm2"
+                      onclick="setRMUnit('km2')">km²</button>
+            </div>
+          </div>
+
+          <div class="sb-field">
+            <label class="sb-label">Runoff Coefficient (C)</label>
+            <input class="sb-input" type="number" id="rmC"
+                   placeholder="0.0 – 1.0" min="0" max="1"
+                   step="0.01" oninput="calcRM()" />
+            <div style="display:flex;flex-wrap:wrap;gap:0.35rem;margin-top:0.35rem;">
+              <button onclick="setC(0.95)"
+                      style="padding:0.2rem 0.6rem;border:1.5px solid rgba(11,79,108,0.18);
+                             border-radius:100px;background:transparent;
+                             font-size:0.67rem;font-weight:500;color:var(--slate-mid);
+                             cursor:pointer;">Roof (0.95)</button>
+              <button onclick="setC(0.85)"
+                      style="padding:0.2rem 0.6rem;border:1.5px solid rgba(11,79,108,0.18);
+                             border-radius:100px;background:transparent;
+                             font-size:0.67rem;font-weight:500;color:var(--slate-mid);
+                             cursor:pointer;">Paved (0.85)</button>
+              <button onclick="setC(0.65)"
+                      style="padding:0.2rem 0.6rem;border:1.5px solid rgba(11,79,108,0.18);
+                             border-radius:100px;background:transparent;
+                             font-size:0.67rem;font-weight:500;color:var(--slate-mid);
+                             cursor:pointer;">Urban (0.65)</button>
+              <button onclick="setC(0.35)"
+                      style="padding:0.2rem 0.6rem;border:1.5px solid rgba(11,79,108,0.18);
+                             border-radius:100px;background:transparent;
+                             font-size:0.67rem;font-weight:500;color:var(--slate-mid);
+                             cursor:pointer;">Suburban (0.35)</button>
+              <button onclick="setC(0.15)"
+                      style="padding:0.2rem 0.6rem;border:1.5px solid rgba(11,79,108,0.18);
+                             border-radius:100px;background:transparent;
+                             font-size:0.67rem;font-weight:500;color:var(--slate-mid);
+                             cursor:pointer;">Grass (0.15)</button>
+            </div>
+          </div>
+
+          <div class="sb-field">
+            <label class="sb-label">Rainfall Intensity (i) mm/hr</label>
+            <input class="sb-input" type="number" id="rmI"
+                   placeholder="e.g. 25" min="0" step="0.1"
+                   oninput="calcRM()" />
+          </div>
+
+          <div id="rmResult" style="display:none;" class="sb-result">
+            <div class="sb-result-label">Peak Discharge Q</div>
+            <div class="sb-result-value" id="rmQ">—</div>
+            <div class="sb-result-sub" id="rmQSub"></div>
+          </div>
+
+          <div id="rmNote" style="display:none;margin-top:0.75rem;
+                                  font-size:0.75rem;color:var(--slate-lt);
+                                  line-height:1.6;padding:0.6rem 0.75rem;
+                                  background:var(--mist);border-radius:7px;">
+          </div>
+
+        </div><!-- /tabRational -->
+
+
+        <!-- ══ TAB: EXPORT ══ -->
+        <div class="sidebar-panel" id="tabExport">
+
+          <div class="sidebar-section">Export Drawings</div>
+          <p style="font-size:0.82rem;color:var(--slate-mid);
+                    margin-bottom:0.75rem;line-height:1.6;">
+            Export your drawn features for use in Civil 3D, Bentley,
+            SewerGEMS, WaterGEMS, ArcGIS, or QGIS.
+          </p>
+
+          <div class="export-grid">
+
+            <!-- Shapefile -->
+            <button class="export-btn" onclick="exportShapefile()">
+              <span class="export-icon">📦</span>
+              <span class="export-label">Shapefile</span>
+              <span class="export-desc">ZIP with .shp .dbf .prj — Civil 3D, Bentley, ArcGIS</span>
+            </button>
+
+            <!-- GeoJSON -->
+            <button class="export-btn" onclick="exportGeoJSON()">
+              <span class="export-icon">{ }</span>
+              <span class="export-label">GeoJSON</span>
+              <span class="export-desc">Open standard — QGIS, ArcGIS, Mapbox</span>
+            </button>
+
+            <!-- CSV UTM -->
+            <button class="export-btn" onclick="exportCSV()">
+              <span class="export-icon">📋</span>
+              <span class="export-label">CSV (UTM)</span>
+              <span class="export-desc">Easting / Northing — Civil 3D point import</span>
+            </button>
+
+            <!-- KML -->
+            <button class="export-btn" onclick="exportKML()">
+              <span class="export-icon">🌍</span>
+              <span class="export-label">KML</span>
+              <span class="export-desc">Google Earth Pro — view and re-export</span>
+            </button>
+
+          </div>
+
+          <div class="sidebar-section" style="margin-top:1.25rem;">
+            Coordinate Preview (UTM)
+          </div>
+          <div class="coord-box" id="coordPreview">
+            Draw features on the map to see UTM coordinates here.
+          </div>
+          <button class="sb-btn sb-btn-outline" onclick="copyCoords()">
+            📋 Copy Coordinates to Clipboard
+          </button>
+
+          <div class="sidebar-section">Import Workflow</div>
+          <div style="font-size:0.78rem;color:var(--slate-mid);line-height:1.7;">
+            <strong style="color:var(--ocean);">Civil 3D:</strong>
+            Map 3D → Import → Shapefile (.shp)<br />
+            <strong style="color:var(--ocean);">Bentley OpenRoads:</strong>
+            Import → Shapefile or GeoJSON<br />
+            <strong style="color:var(--ocean);">SewerGEMS / WaterGEMS:</strong>
+            Import → Shapefile → catchment polygon<br />
+            <strong style="color:var(--ocean);">QGIS:</strong>
+            Drag and drop GeoJSON or Shapefile<br />
+            <strong style="color:var(--ocean);">ArcGIS:</strong>
+            Add Data → Shapefile or GeoJSON
+          </div>
+
+        </div><!-- /tabExport -->
+
+
+        <!-- ══ TAB: HELP ══ -->
+        <div class="sidebar-panel" id="tabHelp">
+
+          <div class="sidebar-section">Drawing Tools</div>
+          <ul class="step-list">
+            <li>
+              <div class="step-num">1</div>
+              <div>Search for your project location using the search bar at the top</div>
+            </li>
+            <li>
+              <div class="step-num">2</div>
+              <div>Use the <strong>polygon tool</strong> (left toolbar on map) to draw your catchment boundary — click each vertex, double-click to finish</div>
+            </li>
+            <li>
+              <div class="step-num">3</div>
+              <div>Use the <strong>polyline tool</strong> to draw the main flow path or stream — double-click to finish</div>
+            </li>
+            <li>
+              <div class="step-num">4</div>
+              <div>Use the <strong>marker tool</strong> to place engineering points — outlets, manholes, culvert locations</div>
+            </li>
+            <li>
+              <div class="step-num">5</div>
+              <div>Check the <strong>Stats tab</strong> for area, perimeter and flow path length. Enter elevations for slope calculation</div>
+            </li>
+            <li>
+              <div class="step-num">6</div>
+              <div>Go to <strong>Q=CiA tab</strong> to run the Rational Method using your drawn catchment area</div>
+            </li>
+            <li>
+              <div class="step-num">7</div>
+              <div>Go to <strong>Export tab</strong> and download as Shapefile (ZIP), GeoJSON, CSV or KML</div>
+            </li>
+          </ul>
+
+          <div class="sidebar-section">Shapefile Import Guide</div>
+          <ul class="step-list">
+            <li>
+              <div class="step-num">A</div>
+              <div><strong>Civil 3D:</strong> Map 3D tab → Import → FDO → select Shapefile → assign to drawing layer</div>
+            </li>
+            <li>
+              <div class="step-num">B</div>
+              <div><strong>Bentley OpenRoads:</strong> Home → Primary → Import → select .shp file</div>
+            </li>
+            <li>
+              <div class="step-num">C</div>
+              <div><strong>SewerGEMS:</strong> View → Flextables → Import Catchments → Shapefile</div>
+            </li>
+            <li>
+              <div class="step-num">D</div>
+              <div><strong>QGIS:</strong> Drag the .zip directly — or Layer → Add Layer → Add Vector Layer</div>
+            </li>
+          </ul>
+
+          <div class="sidebar-section">Notes</div>
+          <div style="font-size:0.78rem;color:var(--slate-mid);line-height:1.7;
+                      padding:0.65rem 0.75rem;background:var(--mist);
+                      border-radius:7px;border-left:3px solid var(--seafoam);">
+            All coordinates are in <strong>WGS84 (EPSG:4326)</strong> geographic
+            coordinates. The .prj file included in the Shapefile ZIP defines
+            this projection. When importing into Civil 3D or Bentley, set your
+            drawing coordinate system to WGS84 or reproject to your local
+            grid (e.g. UTM Zone 39N for UAE) using QGIS or the built-in
+            coordinate transformation tools.
+          </div>
+
+        </div><!-- /tabHelp -->
+
+      </div><!-- /sidebar-content -->
+    </div><!-- /map-sidebar -->
+
+  </div><!-- /map-body -->
+</div><!-- /map-page -->
+
+<!-- Toast notification -->
+<div class="toast" id="toast"></div>
+
+<!-- ── External libraries (all free, CDN) ── -->
+<!-- Leaflet — interactive maps -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<!-- Leaflet.draw — drawing tools -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
+<!-- JSZip — create zip files in browser -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+<script>
+/* ═══════════════════════════════════════════════════════════
+   Catchment & Drainage Map Tool
+   ─────────────────────────────────────────────────────────
+   Libraries used:
+     Leaflet.js      — map rendering and interaction
+     Leaflet.draw    — polygon / polyline / marker drawing
+     JSZip           — create shapefile ZIP in browser
+   ─────────────────────────────────────────────────────────
+   Coordinate system:
+     Map works in WGS84 (Lat/Lon).
+     UTM conversion uses the same WGS84 algorithm
+     as the Coordinate Converter tool.
+═══════════════════════════════════════════════════════════ */
+
+/* ── WGS84 constants (same as coordinate-converter.html) ── */
+const WGS84 = {
+  a:  6378137.0,
+  e2: 0.00669437999014,
+  k0: 0.9996,
+  E0: 500000,
+  N0s: 10000000
+};
+
+/* ── UTM zone detection from longitude ─────────────────── */
+function detectUTMZone(lon, lat) {
+  let zone = Math.floor((lon + 180) / 6) + 1;
+  if (zone > 60) zone = 60;
+  // Norway special zone
+  if (lat >= 56 && lat < 64 && lon >= 3 && lon < 12) zone = 32;
+  const isN = lat >= 0;
+  return { zone, isN };
+}
+
+/* ── Convert Lat/Lon to UTM ────────────────────────────── */
+function latLonToUTM(latDeg, lonDeg) {
+  const { a, e2, k0, E0, N0s } = WGS84;
+  const ep2 = e2 / (1 - e2);
+  const lat = latDeg * Math.PI / 180;
+  const lon = lonDeg * Math.PI / 180;
+  const { zone, isN } = detectUTMZone(lonDeg, latDeg);
+  const lon0 = ((zone - 1) * 6 - 180 + 3) * Math.PI / 180;
+  const sinLat = Math.sin(lat), cosLat = Math.cos(lat), tanLat = Math.tan(lat);
+  const N  = a / Math.sqrt(1 - e2 * sinLat * sinLat);
+  const T  = tanLat * tanLat;
+  const C  = ep2 * cosLat * cosLat;
+  const A  = cosLat * (lon - lon0);
+  const M  = a * (
+    (1 - e2/4 - 3*e2*e2/64 - 5*Math.pow(e2,3)/256) * lat
+    - (3*e2/8 + 3*e2*e2/32 + 45*Math.pow(e2,3)/1024) * Math.sin(2*lat)
+    + (15*e2*e2/256 + 45*Math.pow(e2,3)/1024) * Math.sin(4*lat)
+    - (35*Math.pow(e2,3)/3072) * Math.sin(6*lat)
+  );
+  const easting = k0*N*(A+(1-T+C)*Math.pow(A,3)/6
+    +(5-18*T+T*T+72*C-58*ep2)*Math.pow(A,5)/120)+E0;
+  let northing = k0*(M+N*tanLat*(A*A/2
+    +(5-T+9*C+4*C*C)*Math.pow(A,4)/24
+    +(61-58*T+T*T+600*C-330*ep2)*Math.pow(A,6)/720));
+  if (!isN) northing += N0s;
+  return { easting, northing, zone, isN };
+}
+
+/* ── Haversine distance (m) between two lat/lon points ─── */
+function haversine(lat1, lon1, lat2, lon2) {
+  const R = 6371000;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat/2)**2
+    + Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180)
+    * Math.sin(dLon/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+/* ── Polygon area using Shoelace on Mercator projection ── */
+function polygonAreaM2(latlngs) {
+  // Use spherical excess formula for geographic coordinates
+  const pts = latlngs;
+  const n   = pts.length;
+  if (n < 3) return 0;
+  let area = 0;
+  for (let i = 0; i < n; i++) {
+    const j  = (i + 1) % n;
+    const p1 = pts[i], p2 = pts[j];
+    const lat1 = p1.lat * Math.PI / 180;
+    const lat2 = p2.lat * Math.PI / 180;
+    const dlon = (p2.lng - p1.lng) * Math.PI / 180;
+    area += dlon * (2 + Math.sin(lat1) + Math.sin(lat2));
+  }
+  const R = 6371000;
+  return Math.abs(area * R * R / 2);
+}
+
+/* ── Format large numbers ──────────────────────────────── */
+function fmt(n, d=3) {
+  return Number(n.toPrecision(d+3)).toLocaleString('en-US', {
+    maximumFractionDigits: d
+  });
+}
+
+/* ══════════════════════════════════════════════════════════
+   INITIALISE LEAFLET MAP
+══════════════════════════════════════════════════════════ */
+const map = L.map('map', {
+  center: [25.2048, 55.2708], // default: Dubai
+  zoom: 11,
+  zoomControl: true
+});
+
+/* ── Base tile layers ───────────────────────────────────── */
+const tileLayers = {
+  osm: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors',
+    maxZoom: 19
+  }),
+  satellite: L.tileLayer(
+    'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+    attribution: '© Esri World Imagery',
+    maxZoom: 19
+  }),
+  topo: L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenTopoMap',
+    maxZoom: 17
+  })
+};
+tileLayers.osm.addTo(map);
+let currentLayer = 'osm';
+
+function switchLayer(name) {
+  map.removeLayer(tileLayers[currentLayer]);
+  tileLayers[name].addTo(map);
+  currentLayer = name;
+  ['osm','satellite','topo'].forEach(l => {
+    document.getElementById('layer' + l.charAt(0).toUpperCase() + l.slice(1))
+            .classList.toggle('active', l === name);
+  });
+}
+
+/* ── Feature group to hold all drawn items ─────────────── */
+const drawnItems = new L.FeatureGroup();
+map.addLayer(drawnItems);
+
+/* ── Leaflet.draw control ───────────────────────────────── */
+const drawControl = new L.Control.Draw({
+  draw: {
+    polygon: {
+      allowIntersection: false,
+      showArea: true,
+      shapeOptions: { color: '#0b4f6c', fillColor: '#4db8a0', fillOpacity: 0.25, weight: 2 }
+    },
+    polyline: {
+      shapeOptions: { color: '#1a7a9a', weight: 3 }
+    },
+    marker: true,
+    rectangle:     false,
+    circle:        false,
+    circlemarker:  false
+  },
+  edit: { featureGroup: drawnItems }
+});
+map.addControl(drawControl);
+
+/* ── Storage for drawn features ─────────────────────────── */
+let catchmentPolygon = null;
+let flowPaths        = [];
+let engineeringPoints = [];
+let rmUnit = 'ha'; // rational method area unit
+
+/* ── Update UTM zone display based on map centre ─────── */
+function updateUTMZone() {
+  const c = map.getCenter();
+  const { zone, isN } = detectUTMZone(c.lng, c.lat);
+  document.getElementById('statUTMZone').textContent =
+    `Zone ${zone}${isN ? 'N' : 'S'}`;
+  document.getElementById('statUTMSub').textContent =
+    `Centre: ${c.lat.toFixed(4)}°, ${c.lng.toFixed(4)}°`;
+}
+map.on('moveend', updateUTMZone);
+updateUTMZone();
+
+/* ── Drawing event handlers ─────────────────────────────── */
+map.on(L.Draw.Event.CREATED, function(e) {
+  const layer = e.layer;
+  const type  = e.layerType;
+  drawnItems.addLayer(layer);
+
+  if (type === 'polygon') {
+    catchmentPolygon = layer;
+    updateCatchmentStats();
+    showToast('Catchment polygon drawn ✓');
+
+  } else if (type === 'polyline') {
+    flowPaths.push(layer);
+    updateFlowPathStats();
+    showToast('Flow path drawn ✓');
+
+  } else if (type === 'marker') {
+    engineeringPoints.push(layer);
+    // Prompt for label
+    const label = prompt('Label this point (e.g. Outlet, MH-01):') || 'Point';
+    layer.bindPopup(`<strong>${label}</strong><br/>
+      ${layer.getLatLng().lat.toFixed(6)}, ${layer.getLatLng().lng.toFixed(6)}`);
+    layer.options.pointLabel = label;
+    updatePointStats();
+    showToast(`Point "${label}" placed ✓`);
+  }
+
+  updateCoordPreview();
+});
+
+map.on(L.Draw.Event.EDITED, function() {
+  updateCatchmentStats();
+  updateFlowPathStats();
+  updateCoordPreview();
+});
+
+map.on(L.Draw.Event.DELETED, function() {
+  updateCatchmentStats();
+  updateFlowPathStats();
+  updatePointStats();
+  updateCoordPreview();
+});
+
+/* ── Calculate and display catchment polygon stats ──────── */
+function updateCatchmentStats() {
+  if (!catchmentPolygon) return;
+  const latlngs = catchmentPolygon.getLatLngs()[0];
+  const areaM2  = polygonAreaM2(latlngs);
+  const areaHa  = areaM2 / 10000;
+  const areaKm2 = areaM2 / 1e6;
+
+  // Perimeter
+  let perim = 0;
+  for (let i = 0; i < latlngs.length; i++) {
+    const j = (i + 1) % latlngs.length;
+    perim += haversine(latlngs[i].lat, latlngs[i].lng,
+                       latlngs[j].lat, latlngs[j].lng);
+  }
+
+  document.getElementById('statArea').textContent =
+    `${fmt(areaHa, 3)} ha`;
+  document.getElementById('statAreaSub').textContent =
+    `${fmt(areaKm2, 4)} km²  ·  ${fmt(areaM2, 4)} m²`;
+  document.getElementById('statPerim').textContent =
+    `${fmt(perim, 3)} m`;
+  document.getElementById('statPerimSub').textContent =
+    `${fmt(perim/1000, 3)} km`;
+
+  // Auto-fill area into Rational Method tab
+  const rmAreaInput = document.getElementById('rmArea');
+  if (rmUnit === 'ha') {
+    rmAreaInput.value = areaHa.toFixed(4);
+    rmAreaInput.placeholder = `${areaHa.toFixed(4)} ha (from map)`;
+  } else {
+    rmAreaInput.value = areaKm2.toFixed(6);
+    rmAreaInput.placeholder = `${areaKm2.toFixed(6)} km² (from map)`;
+  }
+  calcRM();
+}
+
+/* ── Calculate and display flow path stats ──────────────── */
+function updateFlowPathStats() {
+  if (flowPaths.length === 0) {
+    document.getElementById('statLength').textContent = '—';
+    document.getElementById('statLengthSub').textContent = 'Draw a polyline to measure';
+    return;
+  }
+  // Sum all flow path lengths
+  let totalLen = 0;
+  flowPaths.forEach(fp => {
+    const pts = fp.getLatLngs();
+    for (let i = 0; i < pts.length - 1; i++) {
+      totalLen += haversine(pts[i].lat, pts[i].lng, pts[i+1].lat, pts[i+1].lng);
+    }
+  });
+  document.getElementById('statLength').textContent = `${fmt(totalLen, 3)} m`;
+  document.getElementById('statLengthSub').textContent =
+    `${fmt(totalLen/1000, 4)} km`;
+
+  // Update slope calculator if elevations are filled
+  calcSlope(totalLen);
+}
+
+/* ── Update point count ──────────────────────────────────── */
+function updatePointStats() {
+  document.getElementById('statPoints').textContent = engineeringPoints.length;
+}
+
+/* ── Slope calculator ────────────────────────────────────── */
+function calcSlope(flowLen) {
+  const e1  = parseFloat(document.getElementById('elev1').value);
+  const e2  = parseFloat(document.getElementById('elev2').value);
+  if (isNaN(e1) || isNaN(e2)) {
+    document.getElementById('slopeResult').style.display = 'none';
+    return;
+  }
+  // Use drawn flow path length or straight-line between markers
+  let len = flowLen;
+  if (!len) {
+    // Use total flow path length if available
+    let total = 0;
+    flowPaths.forEach(fp => {
+      const pts = fp.getLatLngs();
+      for (let i = 0; i < pts.length - 1; i++)
+        total += haversine(pts[i].lat,pts[i].lng,pts[i+1].lat,pts[i+1].lng);
+    });
+    len = total;
+  }
+
+  if (!len || len <= 0) {
+    document.getElementById('slopeResult').style.display = 'block';
+    document.getElementById('slopeVal').textContent = 'Draw flow path for length';
+    document.getElementById('slopeSub').textContent = '';
+    return;
+  }
+
+  const dH  = Math.abs(e1 - e2);
+  const S   = dH / len;
+  const Spc = S * 100;
+  const S1N = 1 / S;
+  const Smkm = S * 1000;
+
+  document.getElementById('slopeResult').style.display = 'block';
+  document.getElementById('slopeVal').textContent =
+    `1 : ${fmt(S1N, 1)}`;
+  document.getElementById('slopeSub').textContent =
+    `${fmt(Smkm, 3)} m/km · ${fmt(Spc, 3)}% · ΔH = ${dH.toFixed(2)} m · L = ${fmt(len,3)} m`;
+}
+
+/* ── Rational Method calculator ─────────────────────────── */
+function setRMUnit(unit) {
+  rmUnit = unit;
+  document.getElementById('rmUnitHa').style.background =
+    unit === 'ha' ? 'var(--ocean)' : '';
+  document.getElementById('rmUnitHa').style.color =
+    unit === 'ha' ? 'white' : '';
+  document.getElementById('rmUnitKm2').style.background =
+    unit === 'km2' ? 'var(--ocean)' : '';
+  document.getElementById('rmUnitKm2').style.color =
+    unit === 'km2' ? 'white' : '';
+  // Re-fill area if polygon exists
+  if (catchmentPolygon) updateCatchmentStats();
+  calcRM();
+}
+
+function setC(val) { document.getElementById('rmC').value = val; calcRM(); }
+
+function calcRM() {
+  const Araw = parseFloat(document.getElementById('rmArea').value);
+  const C    = parseFloat(document.getElementById('rmC').value);
+  const i    = parseFloat(document.getElementById('rmI').value);
+
+  if (isNaN(Araw) || isNaN(C) || isNaN(i)) {
+    document.getElementById('rmResult').style.display = 'none';
+    document.getElementById('rmNote').style.display = 'none';
+    return;
+  }
+
+  // Convert area to ha
+  const A_ha = rmUnit === 'km2' ? Araw * 100 : Araw;
+
+  // Q = CiA / 360 → m³/s (i in mm/hr, A in ha)
+  const Q_m3s = (C * i * A_ha) / 360;
+  const Q_Ls  = Q_m3s * 1000;
+  const Q_m3h = Q_m3s * 3600;
+
+  document.getElementById('rmResult').style.display = 'block';
+  document.getElementById('rmQ').textContent =
+    `${Q_Ls.toFixed(3)} L/s`;
+  document.getElementById('rmQSub').textContent =
+    `${Q_m3s.toFixed(5)} m³/s  ·  ${Q_m3h.toFixed(3)} m³/h`;
+
+  document.getElementById('rmNote').style.display = 'block';
+  document.getElementById('rmNote').textContent =
+    `C = ${C}  ·  i = ${i} mm/hr  ·  A = ${A_ha.toFixed(4)} ha  ·  Q = CiA/360`;
+}
+
+/* ── Clear all drawings ──────────────────────────────────── */
+function clearAll() {
+  if (!confirm('Clear all drawn features? This cannot be undone.')) return;
+  drawnItems.clearLayers();
+  catchmentPolygon = null;
+  flowPaths = [];
+  engineeringPoints = [];
+  // Reset stats
+  ['statArea','statPerim','statLength','statPoints'].forEach(id => {
+    document.getElementById(id).textContent =
+      id === 'statPoints' ? '0' : '—';
+  });
+  document.getElementById('statAreaSub').textContent = 'Draw a catchment polygon to calculate';
+  document.getElementById('statPerimSub').textContent = '';
+  document.getElementById('statLengthSub').textContent = 'Draw a polyline to measure';
+  document.getElementById('slopeResult').style.display = 'none';
+  document.getElementById('rmResult').style.display = 'none';
+  document.getElementById('rmNote').style.display = 'none';
+  document.getElementById('coordPreview').textContent =
+    'Draw features on the map to see UTM coordinates here.';
+  showToast('All drawings cleared');
+}
+
+/* ── Update coordinate preview panel ────────────────────── */
+function updateCoordPreview() {
+  let lines = [];
+  // Catchment polygon
+  if (catchmentPolygon) {
+    lines.push('=== CATCHMENT POLYGON ===');
+    const latlngs = catchmentPolygon.getLatLngs()[0];
+    latlngs.forEach((pt, i) => {
+      const utm = latLonToUTM(pt.lat, pt.lng);
+      lines.push(`P${i+1}: E ${utm.easting.toFixed(2)} N ${utm.northing.toFixed(2)} Zone ${utm.zone}${utm.isN?'N':'S'}`);
+    });
+  }
+  // Flow paths
+  flowPaths.forEach((fp, fi) => {
+    lines.push(`\n=== FLOW PATH ${fi+1} ===`);
+    fp.getLatLngs().forEach((pt, i) => {
+      const utm = latLonToUTM(pt.lat, pt.lng);
+      lines.push(`FP${i+1}: E ${utm.easting.toFixed(2)} N ${utm.northing.toFixed(2)}`);
+    });
+  });
+  // Points
+  if (engineeringPoints.length > 0) {
+    lines.push('\n=== ENGINEERING POINTS ===');
+    engineeringPoints.forEach((pt, i) => {
+      const ll  = pt.getLatLng();
+      const utm = latLonToUTM(ll.lat, ll.lng);
+      const lbl = pt.options.pointLabel || `Point ${i+1}`;
+      lines.push(`${lbl}: E ${utm.easting.toFixed(2)} N ${utm.northing.toFixed(2)}`);
+    });
+  }
+
+  document.getElementById('coordPreview').textContent =
+    lines.length > 0 ? lines.join('\n') : 'Draw features on the map to see UTM coordinates here.';
+}
+
+/* ── Copy coordinates to clipboard ──────────────────────── */
+function copyCoords() {
+  const text = document.getElementById('coordPreview').textContent;
+  navigator.clipboard.writeText(text).then(() => showToast('Coordinates copied ✓'))
+    .catch(() => showToast('Copy failed — please select and copy manually'));
+}
+
+/* ── Location search using Nominatim (free, no key) ────── */
+async function searchLocation() {
+  const query = document.getElementById('searchInput').value.trim();
+  if (!query) return;
+  try {
+    const res  = await fetch(
+      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`,
+      { headers: { 'Accept-Language': 'en' } }
+    );
+    const data = await res.json();
+    if (data && data.length > 0) {
+      const { lat, lon, display_name } = data[0];
+      map.setView([parseFloat(lat), parseFloat(lon)], 13);
+      updateUTMZone();
+      showToast(`📍 ${display_name.split(',')[0]}`);
+    } else {
+      showToast('Location not found — try a different search term');
+    }
+  } catch (e) {
+    showToast('Search failed — check your internet connection');
+  }
+}
+
+/* ── Sidebar tab switcher ────────────────────────────────── */
+function setTab(name) {
+  document.querySelectorAll('.sidebar-panel').forEach(p =>
+    p.classList.remove('active'));
+  document.querySelectorAll('.sidebar-tab').forEach(t =>
+    t.classList.remove('active'));
+  document.getElementById('tab' + name.charAt(0).toUpperCase() + name.slice(1))
+          .classList.add('active');
+  event.target.classList.add('active');
+}
+
+/* ── Toast notification ──────────────────────────────────── */
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+
+/* ══════════════════════════════════════════════════════════
+   EXPORT FUNCTIONS
+══════════════════════════════════════════════════════════ */
+
+/* ── Build GeoJSON from all drawn features ──────────────── */
+function buildGeoJSON() {
+  const features = [];
+
+  if (catchmentPolygon) {
+    const coords = catchmentPolygon.getLatLngs()[0].map(p => [p.lng, p.lat]);
+    coords.push(coords[0]); // close the ring
+    const areaHa = polygonAreaM2(catchmentPolygon.getLatLngs()[0]) / 10000;
+    features.push({
+      type: 'Feature',
+      geometry: { type: 'Polygon', coordinates: [coords] },
+      properties: {
+        name: 'Catchment Boundary',
+        area_ha: parseFloat(areaHa.toFixed(4)),
+        area_km2: parseFloat((areaHa/100).toFixed(6)),
+        source: 'Dipanshu Sharma Engineering Tools'
+      }
+    });
+  }
+
+  flowPaths.forEach((fp, i) => {
+    const coords = fp.getLatLngs().map(p => [p.lng, p.lat]);
+    let len = 0;
+    for (let j = 0; j < coords.length - 1; j++) {
+      const a = fp.getLatLngs()[j], b = fp.getLatLngs()[j+1];
+      len += haversine(a.lat, a.lng, b.lat, b.lng);
+    }
+    features.push({
+      type: 'Feature',
+      geometry: { type: 'LineString', coordinates: coords },
+      properties: {
+        name: `Flow Path ${i+1}`,
+        length_m: parseFloat(len.toFixed(2)),
+        length_km: parseFloat((len/1000).toFixed(4))
+      }
+    });
+  });
+
+  engineeringPoints.forEach((pt, i) => {
+    const ll  = pt.getLatLng();
+    const utm = latLonToUTM(ll.lat, ll.lng);
+    features.push({
+      type: 'Feature',
+      geometry: { type: 'Point', coordinates: [ll.lng, ll.lat] },
+      properties: {
+        name: pt.options.pointLabel || `Point ${i+1}`,
+        lat: parseFloat(ll.lat.toFixed(7)),
+        lon: parseFloat(ll.lng.toFixed(7)),
+        utm_easting:  parseFloat(utm.easting.toFixed(2)),
+        utm_northing: parseFloat(utm.northing.toFixed(2)),
+        utm_zone:     `${utm.zone}${utm.isN ? 'N' : 'S'}`
+      }
+    });
+  });
+
+  return { type: 'FeatureCollection', features };
+}
+
+/* ── Export GeoJSON ─────────────────────────────────────── */
+function exportGeoJSON() {
+  const geojson = buildGeoJSON();
+  if (geojson.features.length === 0) {
+    showToast('Nothing drawn yet — draw features first'); return;
+  }
+  const blob = new Blob([JSON.stringify(geojson, null, 2)],
+    { type: 'application/json' });
+  downloadBlob(blob, 'catchment_export.geojson');
+  showToast('GeoJSON exported ✓');
+}
+
+/* ── Export KML ─────────────────────────────────────────── */
+function exportKML() {
+  const geojson = buildGeoJSON();
+  if (geojson.features.length === 0) {
+    showToast('Nothing drawn yet — draw features first'); return;
+  }
+
+  let placemarks = '';
+
+  geojson.features.forEach(f => {
+    const name  = f.properties.name || 'Feature';
+    const props = Object.entries(f.properties)
+      .filter(([k]) => k !== 'name')
+      .map(([k,v]) => `${k}: ${v}`).join(', ');
+
+    if (f.geometry.type === 'Polygon') {
+      const coords = f.geometry.coordinates[0]
+        .map(c => `${c[0]},${c[1]},0`).join(' ');
+      placemarks += `<Placemark><name>${name}</name>
+        <description>${props}</description>
+        <Polygon><outerBoundaryIs><LinearRing>
+        <coordinates>${coords}</coordinates>
+        </LinearRing></outerBoundaryIs></Polygon></Placemark>\n`;
+
+    } else if (f.geometry.type === 'LineString') {
+      const coords = f.geometry.coordinates
+        .map(c => `${c[0]},${c[1]},0`).join(' ');
+      placemarks += `<Placemark><name>${name}</name>
+        <description>${props}</description>
+        <LineString><coordinates>${coords}</coordinates>
+        </LineString></Placemark>\n`;
+
+    } else if (f.geometry.type === 'Point') {
+      const [lon, lat] = f.geometry.coordinates;
+      placemarks += `<Placemark><name>${name}</name>
+        <description>${props}</description>
+        <Point><coordinates>${lon},${lat},0</coordinates>
+        </Point></Placemark>\n`;
+    }
+  });
+
+  const kml = `<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+<Document>
+  <name>Catchment Export — Dipanshu Sharma Engineering Tools</name>
+  ${placemarks}
+</Document>
+</kml>`;
+
+  downloadBlob(new Blob([kml], { type: 'application/vnd.google-earth.kml+xml' }),
+    'catchment_export.kml');
+  showToast('KML exported ✓ — open in Google Earth');
+}
+
+/* ── Export CSV with UTM coordinates ────────────────────── */
+function exportCSV() {
+  const geojson = buildGeoJSON();
+  if (geojson.features.length === 0) {
+    showToast('Nothing drawn yet — draw features first'); return;
+  }
+
+  const rows = ['Feature,Point,Name,Latitude,Longitude,UTM_Easting,UTM_Northing,UTM_Zone'];
+
+  geojson.features.forEach(f => {
+    const name = f.properties.name || 'Feature';
+    const coords = f.geometry.type === 'Polygon'
+      ? f.geometry.coordinates[0]
+      : f.geometry.type === 'LineString'
+        ? f.geometry.coordinates
+        : [f.geometry.coordinates];
+
+    coords.forEach((c, i) => {
+      const utm = latLonToUTM(c[1], c[0]);
+      rows.push(
+        `"${f.geometry.type}",${i+1},"${name}",` +
+        `${c[1].toFixed(7)},${c[0].toFixed(7)},` +
+        `${utm.easting.toFixed(2)},${utm.northing.toFixed(2)},` +
+        `${utm.zone}${utm.isN ? 'N' : 'S'}`
+      );
+    });
+  });
+
+  downloadBlob(new Blob([rows.join('\n')], { type: 'text/csv' }),
+    'catchment_utm_export.csv');
+  showToast('CSV exported ✓ — UTM coordinates ready for Civil 3D');
+}
+
+/* ── Export Shapefile (ZIP) ─────────────────────────────── */
+/* Writes a minimal but valid Shapefile binary.
+   Each geometry type is exported as a separate layer:
+     catchment_polygon.shp  — polygon
+     flowpath_line.shp      — polyline
+     points.shp             — engineering points
+   All layers include .dbf (attributes) and .prj (WGS84) */
+async function exportShapefile() {
+  const geojson = buildGeoJSON();
+  if (geojson.features.length === 0) {
+    showToast('Nothing drawn yet — draw features first'); return;
+  }
+
+  const zip  = new JSZip();
+  const prj  = wgs84PRJ(); // WGS84 projection string
+
+  // Separate features by type
+  const polygons = geojson.features.filter(f => f.geometry.type === 'Polygon');
+  const lines    = geojson.features.filter(f => f.geometry.type === 'LineString');
+  const points   = geojson.features.filter(f => f.geometry.type === 'Point');
+
+  if (polygons.length > 0) {
+    const { shp, shx, dbf } = buildPolygonSHP(polygons);
+    zip.file('catchment_polygon.shp', shp);
+    zip.file('catchment_polygon.shx', shx);
+    zip.file('catchment_polygon.dbf', dbf);
+    zip.file('catchment_polygon.prj', prj);
+  }
+
+  if (lines.length > 0) {
+    const { shp, shx, dbf } = buildLineSHP(lines);
+    zip.file('flowpath_line.shp', shp);
+    zip.file('flowpath_line.shx', shx);
+    zip.file('flowpath_line.dbf', dbf);
+    zip.file('flowpath_line.prj', prj);
+  }
+
+  if (points.length > 0) {
+    const { shp, shx, dbf } = buildPointSHP(points);
+    zip.file('engineering_points.shp', shp);
+    zip.file('engineering_points.shx', shx);
+    zip.file('engineering_points.dbf', dbf);
+    zip.file('engineering_points.prj', prj);
+  }
+
+  // Add a README
+  zip.file('README.txt', shapefileReadme());
+
+  const blob = await zip.generateAsync({ type: 'blob' });
+  downloadBlob(blob, 'catchment_shapefile_export.zip');
+  showToast('Shapefile ZIP exported ✓ — ready for Civil 3D / Bentley');
+}
+
+/* ── WGS84 projection definition ──────────────────────────
+   This is the standard .prj content for WGS84 (EPSG:4326) */
+function wgs84PRJ() {
+  return `GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]]`;
+}
+
+/* ── README for the ZIP ─────────────────────────────────── */
+function shapefileReadme() {
+  return `CATCHMENT & DRAINAGE MAP EXPORT
+Generated by: Dipanshu Sharma Engineering Tools
+Website: dipanshulabs.github.io
+
+FILES IN THIS ZIP:
+  catchment_polygon.shp/dbf/shx/prj  — Catchment boundary polygon
+  flowpath_line.shp/dbf/shx/prj      — Flow path / stream polyline
+  engineering_points.shp/dbf/shx/prj — Engineering point locations
+
+COORDINATE SYSTEM: WGS84 Geographic (EPSG:4326)
+
+IMPORT INSTRUCTIONS:
+  Civil 3D:        Map 3D tab > Import > FDO > select .shp
+  Bentley:         Home > Primary > Import > Shapefile
+  SewerGEMS:       View > Flextables > Import > Shapefile
+  QGIS:            Drag .zip directly or Layer > Add Vector Layer
+  ArcGIS:          Add Data > Shapefile or drag into map
+
+NOTE: To use in a local coordinate system (e.g. UTM Zone 39N for UAE),
+reproject using QGIS (Layer > Save As > choose CRS) before importing.
+`;
+}
+
+/* ── Binary Shapefile builders ───────────────────────────── */
+
+/* Write a 4-byte big-endian integer */
+function writeInt32BE(view, offset, val) {
+  view.setInt32(offset, val, false); return offset + 4;
+}
+/* Write a 4-byte little-endian integer */
+function writeInt32LE(view, offset, val) {
+  view.setInt32(offset, val, true); return offset + 4;
+}
+/* Write an 8-byte little-endian double */
+function writeDouble(view, offset, val) {
+  view.setFloat64(offset, val, true); return offset + 8;
+}
+
+/* Bounding box of an array of [lon, lat] pairs */
+function bbox(coords) {
+  let minX=Infinity, minY=Infinity, maxX=-Infinity, maxY=-Infinity;
+  coords.forEach(([x,y]) => {
+    if(x<minX)minX=x; if(y<minY)minY=y;
+    if(x>maxX)maxX=x; if(y>maxY)maxY=y;
+  });
+  return [minX, minY, maxX, maxY];
+}
+
+/* Build .shp file header (100 bytes) */
+function buildHeader(fileLen16, shapeType, bounds) {
+  const buf  = new ArrayBuffer(100);
+  const view = new DataView(buf);
+  // File code
+  view.setInt32(0, 9994, false);
+  // File length in 16-bit words
+  view.setInt32(24, fileLen16, false);
+  // Version
+  view.setInt32(28, 1000, true);
+  // Shape type
+  view.setInt32(32, shapeType, true);
+  // Bounding box
+  writeDouble(view, 36, bounds[0]);
+  writeDouble(view, 44, bounds[1]);
+  writeDouble(view, 52, bounds[2]);
+  writeDouble(view, 60, bounds[3]);
+  writeDouble(view, 68, 0); writeDouble(view, 76, 0); // Z
+  writeDouble(view, 84, 0); writeDouble(view, 92, 0); // M
+  return buf;
+}
+
+/* ── Build POLYGON shapefile ─────────────────────────────── */
+function buildPolygonSHP(features) {
+  // Shape type 5 = Polygon
+  const records = [];
+  let totalContentBytes = 0;
+
+  features.forEach((f, i) => {
+    const ring   = f.geometry.coordinates[0]; // outer ring [[lon,lat],...]
+    const nPts   = ring.length;
+    // Record content: shapeType(4) + bbox(32) + numParts(4) + numPoints(4)
+    //   + parts[](4) + points[](16 each)
+    const contentBytes = 4 + 32 + 4 + 4 + 4 + nPts * 16;
+    totalContentBytes += 8 + contentBytes; // 8 = record header
+    records.push({ ring, nPts, contentBytes, idx: i+1 });
+  });
+
+  const fileLen   = 100 + totalContentBytes;
+  const fileLen16 = fileLen / 2;
+
+  // Overall bounding box
+  const allCoords = features.flatMap(f => f.geometry.coordinates[0]);
+  const bounds    = bbox(allCoords);
+
+  const shpBuf  = new ArrayBuffer(fileLen);
+  const shpView = new DataView(shpBuf);
+  const shxBuf  = new ArrayBuffer(100 + records.length * 8);
+  const shxView = new DataView(shxBuf);
+
+  // Copy header
+  const hdr = buildHeader(fileLen16, 5, bounds);
+  new Uint8Array(shpBuf).set(new Uint8Array(hdr), 0);
+  new Uint8Array(shxBuf).set(new Uint8Array(buildHeader(
+    (100 + records.length * 8) / 2, 5, bounds)), 0);
+
+  let offset = 100;
+  let shxOff = 100;
+
+  records.forEach(({ ring, nPts, contentBytes, idx }) => {
+    const contentLen16 = contentBytes / 2;
+    const bb = bbox(ring);
+
+    // SHX record
+    shxView.setInt32(shxOff, offset / 2, false);
+    shxView.setInt32(shxOff + 4, contentLen16, false);
+    shxOff += 8;
+
+    // SHP record header
+    shpView.setInt32(offset, idx, false);
+    shpView.setInt32(offset + 4, contentLen16, false);
+    offset += 8;
+
+    // Shape type
+    shpView.setInt32(offset, 5, true); offset += 4;
+    // Bbox
+    shpView.setFloat64(offset, bb[0], true); offset += 8;
+    shpView.setFloat64(offset, bb[1], true); offset += 8;
+    shpView.setFloat64(offset, bb[2], true); offset += 8;
+    shpView.setFloat64(offset, bb[3], true); offset += 8;
+    // Num parts + num points
+    shpView.setInt32(offset, 1, true); offset += 4;
+    shpView.setInt32(offset, nPts, true); offset += 4;
+    // Parts array (single ring starts at 0)
+    shpView.setInt32(offset, 0, true); offset += 4;
+    // Points
+    ring.forEach(([x, y]) => {
+      shpView.setFloat64(offset, x, true); offset += 8;
+      shpView.setFloat64(offset, y, true); offset += 8;
+    });
+  });
+
+  const dbf = buildDBF(features.map((f,i) => ({
+    ID: i+1,
+    NAME: (f.properties.name||'').substring(0,50),
+    AREA_HA: parseFloat((f.properties.area_ha||0).toFixed(4))
+  })));
+
+  return {
+    shp: new Uint8Array(shpBuf),
+    shx: new Uint8Array(shxBuf),
+    dbf
+  };
+}
+
+/* ── Build POLYLINE shapefile ────────────────────────────── */
+function buildLineSHP(features) {
+  // Shape type 3 = PolyLine
+  const records = [];
+  let totalContentBytes = 0;
+
+  features.forEach((f, i) => {
+    const pts  = f.geometry.coordinates;
+    const nPts = pts.length;
+    const contentBytes = 4 + 32 + 4 + 4 + 4 + nPts * 16;
+    totalContentBytes += 8 + contentBytes;
+    records.push({ pts, nPts, contentBytes, idx: i+1, props: f.properties });
+  });
+
+  const fileLen   = 100 + totalContentBytes;
+  const fileLen16 = fileLen / 2;
+  const allCoords = features.flatMap(f => f.geometry.coordinates);
+  const bounds    = bbox(allCoords);
+
+  const shpBuf  = new ArrayBuffer(fileLen);
+  const shpView = new DataView(shpBuf);
+  const shxBuf  = new ArrayBuffer(100 + records.length * 8);
+  const shxView = new DataView(shxBuf);
+
+  new Uint8Array(shpBuf).set(new Uint8Array(buildHeader(fileLen16, 3, bounds)), 0);
+  new Uint8Array(shxBuf).set(new Uint8Array(buildHeader(
+    (100 + records.length * 8) / 2, 3, bounds)), 0);
+
+  let offset = 100;
+  let shxOff = 100;
+
+  records.forEach(({ pts, nPts, contentBytes, idx }) => {
+    const contentLen16 = contentBytes / 2;
+    const bb = bbox(pts);
+
+    shxView.setInt32(shxOff, offset / 2, false);
+    shxView.setInt32(shxOff + 4, contentLen16, false);
+    shxOff += 8;
+
+    shpView.setInt32(offset, idx, false);
+    shpView.setInt32(offset + 4, contentLen16, false);
+    offset += 8;
+
+    shpView.setInt32(offset, 3, true); offset += 4;
+    shpView.setFloat64(offset, bb[0], true); offset += 8;
+    shpView.setFloat64(offset, bb[1], true); offset += 8;
+    shpView.setFloat64(offset, bb[2], true); offset += 8;
+    shpView.setFloat64(offset, bb[3], true); offset += 8;
+    shpView.setInt32(offset, 1, true); offset += 4;
+    shpView.setInt32(offset, nPts, true); offset += 4;
+    shpView.setInt32(offset, 0, true); offset += 4;
+    pts.forEach(([x, y]) => {
+      shpView.setFloat64(offset, x, true); offset += 8;
+      shpView.setFloat64(offset, y, true); offset += 8;
+    });
+  });
+
+  const dbf = buildDBF(features.map((f,i) => ({
+    ID: i+1,
+    NAME: (f.properties.name||'').substring(0,50),
+    LENGTH_M: parseFloat((f.properties.length_m||0).toFixed(2))
+  })));
+
+  return {
+    shp: new Uint8Array(shpBuf),
+    shx: new Uint8Array(shxBuf),
+    dbf
+  };
+}
+
+/* ── Build POINT shapefile ───────────────────────────────── */
+function buildPointSHP(features) {
+  // Shape type 1 = Point
+  // Each record: 8 (header) + 4 (type) + 16 (xy) = 28 bytes content
+  const nRec          = features.length;
+  const contentBytes  = 20; // shapeType(4) + x(8) + y(8)
+  const fileLen       = 100 + nRec * (8 + contentBytes);
+  const fileLen16     = fileLen / 2;
+
+  const allCoords = features.map(f => f.geometry.coordinates);
+  const bounds    = bbox(allCoords);
+
+  const shpBuf  = new ArrayBuffer(fileLen);
+  const shpView = new DataView(shpBuf);
+  const shxBuf  = new ArrayBuffer(100 + nRec * 8);
+  const shxView = new DataView(shxBuf);
+
+  new Uint8Array(shpBuf).set(new Uint8Array(buildHeader(fileLen16, 1, bounds)), 0);
+  new Uint8Array(shxBuf).set(new Uint8Array(buildHeader(
+    (100 + nRec * 8) / 2, 1, bounds)), 0);
+
+  let offset = 100;
+  let shxOff = 100;
+
+  features.forEach((f, i) => {
+    const [x, y] = f.geometry.coordinates;
+    const cLen16 = contentBytes / 2;
+
+    shxView.setInt32(shxOff, offset / 2, false);
+    shxView.setInt32(shxOff + 4, cLen16, false);
+    shxOff += 8;
+
+    shpView.setInt32(offset, i+1, false);
+    shpView.setInt32(offset + 4, cLen16, false);
+    offset += 8;
+
+    shpView.setInt32(offset, 1, true); offset += 4;
+    shpView.setFloat64(offset, x, true); offset += 8;
+    shpView.setFloat64(offset, y, true); offset += 8;
+  });
+
+  const dbf = buildDBF(features.map((f,i) => ({
+    ID: i+1,
+    NAME: (f.properties.name||'').substring(0,50),
+    EASTING:  parseFloat((f.properties.utm_easting||0).toFixed(2)),
+    NORTHING: parseFloat((f.properties.utm_northing||0).toFixed(2)),
+    UTM_ZONE: (f.properties.utm_zone||'')
+  })));
+
+  return {
+    shp: new Uint8Array(shpBuf),
+    shx: new Uint8Array(shxBuf),
+    dbf
+  };
+}
+
+/* ── Build .dbf (dBASE III) attribute table ──────────────── */
+function buildDBF(records) {
+  if (records.length === 0) return new Uint8Array(0);
+
+  // Define fields from first record
+  const fields = Object.keys(records[0]).map(name => ({
+    name: name.toUpperCase().substring(0, 10).padEnd(10, '\0'),
+    type: typeof records[0][name] === 'number' ? 'N' : 'C',
+    length: typeof records[0][name] === 'number' ? 18 : 50,
+    dec: typeof records[0][name] === 'number' &&
+         !Number.isInteger(records[0][name]) ? 4 : 0
+  }));
+
+  const headerSize  = 32 + fields.length * 32 + 1;
+  const recordSize  = 1 + fields.reduce((s, f) => s + f.length, 0);
+  const totalSize   = headerSize + records.length * recordSize + 1;
+
+  const buf  = new Uint8Array(totalSize);
+  const view = new DataView(buf.buffer);
+
+  // Version
+  buf[0] = 3;
+  // Date
+  buf[1] = 25; buf[2] = 1; buf[3] = 1;
+  // Number of records
+  view.setUint32(4, records.length, true);
+  // Header size
+  view.setUint16(8, headerSize, true);
+  // Record size
+  view.setUint16(10, recordSize, true);
+
+  // Field descriptors
+  let fOff = 32;
+  fields.forEach(f => {
+    for (let i = 0; i < 11; i++)
+      buf[fOff + i] = f.name.charCodeAt(i) || 0;
+    buf[fOff + 11] = f.type.charCodeAt(0);
+    buf[fOff + 16] = f.length;
+    buf[fOff + 17] = f.dec;
+    fOff += 32;
+  });
+  buf[fOff] = 0x0D; // header terminator
+
+  // Records
+  let rOff = headerSize;
+  records.forEach(rec => {
+    buf[rOff] = 0x20; // deletion flag (space = not deleted)
+    rOff++;
+    fields.forEach(f => {
+      const key = Object.keys(rec).find(k =>
+        k.toUpperCase().substring(0,10) === f.name.trim());
+      let val   = rec[key] !== undefined ? String(rec[key]) : '';
+      if (f.type === 'N') {
+        val = val.padStart(f.length, ' ');
+      } else {
+        val = val.padEnd(f.length, ' ').substring(0, f.length);
+      }
+      for (let i = 0; i < f.length; i++) {
+        buf[rOff + i] = val.charCodeAt(i) || 0x20;
+      }
+      rOff += f.length;
+    });
+  });
+  buf[rOff] = 0x1A; // EOF marker
+
+  return buf;
+}
+
+/* ── Helper: trigger browser file download ──────────────── */
+function downloadBlob(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const a   = document.createElement('a');
+  a.href    = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+</script>
+</body>
+</html>
