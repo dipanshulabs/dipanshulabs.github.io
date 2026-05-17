@@ -1,1 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Engineering Tools | Dipanshu Sharma</title>
+  <meta name="description" content="Free online engineering tools for hydrology, hydraulics, and water resources — unit converter, coordinate converter, Manning equation, and more." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="tools.css" />
+</head>
+<body>
 
+  <!-- Navigation bar -->
+  <nav class="tool-nav" role="navigation" aria-label="Tools navigation">
+    <div class="tool-nav-inner">
+      <a href="../index.html" class="tool-brand">Dipanshu Sharma</a>
+      <a href="../index.html" class="tool-nav-back">← Portfolio</a>
+    </div>
+  </nav>
+
+  <!-- Page header -->
+  <header class="tool-hero">
+    <div class="container">
+      <div class="tool-breadcrumb">Engineering Tools</div>
+      <h1 class="tool-hero-title">Water Engineering <em>Tools</em></h1>
+      <p class="tool-hero-sub">
+        Free, browser-based calculators and converters for water resources,
+        hydrology, and hydraulics. No installation, no backend, no account required.
+      </p>
+    </div>
+  </header>
+
+  <!-- Tools dashboard grid -->
+  <main class="tool-body">
+    <div class="container">
+
+      <div class="tools-dashboard-grid">
+
+        <!-- Card 1: Unit Converter -->
+        <a href="unit-converter.html" class="tool-dashboard-card">
+          <div class="tool-card-icon">⚙</div>
+          <div class="tool-card-content">
+            <h2 class="tool-card-title">Unit Converter</h2>
+            <p class="tool-card-desc">
+              Comprehensive unit conversion for flow rate, velocity, pressure,
+              force, length, area, volume, rainfall intensity, slope, and more.
+              Includes Manning n and Hazen-Williams C reference tables.
+            </p>
+            <div class="tool-card-cats">
+              <span class="tool-cat-tag">Flow Rate</span>
+              <span class="tool-cat-tag">Pressure</span>
+              <span class="tool-cat-tag">Rainfall</span>
+              <span class="tool-cat-tag">Slope</span>
+              <span class="tool-cat-tag">+7 more</span>
+            </div>
+          </div>
+          <div class="tool-card-arrow" aria-hidden="true">→</div>
+        </a>
+
+        <!-- Card 2: Coordinate Converter -->
+        <a href="coordinate-converter.html" class="tool-dashboard-card">
+          <div class="tool-card-icon">🌐</div>
+          <div class="tool-card-content">
+            <h2 class="tool-card-title">Coordinate Converter</h2>
+            <p class="tool-card-desc">
+              Convert between UTM (Easting / Northing / Zone) and geographic
+              coordinates (Latitude / Longitude). Both directions supported.
+              Uses WGS84 ellipsoid. Runs entirely in your browser.
+            </p>
+            <div class="tool-card-cats">
+              <span class="tool-cat-tag">UTM → Lat/Lon</span>
+              <span class="tool-cat-tag">Lat/Lon → UTM</span>
+              <span class="tool-cat-tag">WGS84</span>
+            </div>
+          </div>
+          <div class="tool-card-arrow" aria-hidden="true">→</div>
+        </a>
+
+        <!-- Card 3: Manning Equation -->
+        <a href="manning-equation.html" class="tool-dashboard-card">
+          <div class="tool-card-icon">〜</div>
+          <div class="tool-card-content">
+            <h2 class="tool-card-title">Manning Equation</h2>
+            <p class="tool-card-desc">
+              Open channel flow calculator using Manning's equation.
+              Calculate discharge Q and flow velocity V from channel
+              geometry, bed slope, and roughness coefficient n.
+            </p>
+            <div class="tool-card-cats">
+              <span class="tool-cat-tag">Open Channel</span>
+              <span class="tool-cat-tag">Discharge</span>
+              <span class="tool-cat-tag">Velocity</span>
+            </div>
+          </div>
+          <div class="tool-card-arrow" aria-hidden="true">→</div>
+        </a>
+
+        <!-- Card 4: Reynolds Number -->
+        <a href="reynolds-number.html" class="tool-dashboard-card">
+          <div class="tool-card-icon" style="font-family:var(--font-body);font-size:1rem;font-weight:700;">Re</div>
+          <div class="tool-card-content">
+            <h2 class="tool-card-title">Reynolds Number</h2>
+            <p class="tool-card-desc">
+              Calculate the Reynolds number for pipe or channel flow.
+              Determines whether flow is laminar, transitional, or turbulent.
+              Includes kinematic viscosity presets for water at common temperatures.
+            </p>
+            <div class="tool-card-cats">
+              <span class="tool-cat-tag">Pipe Flow</span>
+              <span class="tool-cat-tag">Flow Regime</span>
+              <span class="tool-cat-tag">Viscosity</span>
+            </div>
+          </div>
+          <div class="tool-card-arrow" aria-hidden="true">→</div>
+        </a>
+
+        <!-- Card 5: Pipe Flow (placeholder / coming soon) -->
+        <a href="pipe-flow.html" class="tool-dashboard-card tool-card-coming">
+          <div class="tool-card-icon">⧖</div>
+          <div class="tool-card-content">
+            <h2 class="tool-card-title">
+              Pipe Flow Calculator
+              <span class="coming-badge">Coming Soon</span>
+            </h2>
+            <p class="tool-card-desc">
+              Hazen-Williams and Darcy-Weisbach pipe flow calculations.
+              Headloss, velocity, and flow rate for pressurised pipe systems.
+            </p>
+            <div class="tool-card-cats">
+              <span class="tool-cat-tag">Hazen-Williams</span>
+              <span class="tool-cat-tag">Darcy-Weisbach</span>
+              <span class="tool-cat-tag">Headloss</span>
+            </div>
+          </div>
+          <div class="tool-card-arrow" aria-hidden="true">→</div>
+        </a>
+
+        <!-- Card 6: Runoff Calculator -->
+        <a href="runoff-calculator.html" class="tool-dashboard-card">
+          <div class="tool-card-icon">🌧</div>
+          <div class="tool-card-content">
+            <h2 class="tool-card-title">Runoff Calculator</h2>
+            <p class="tool-card-desc">
+              Peak discharge estimation using the Rational Method (Q = CiA).
+              Suitable for small urban and rural catchments. Includes a
+              runoff coefficient reference table and area unit conversion.
+            </p>
+            <div class="tool-card-cats">
+              <span class="tool-cat-tag">Rational Method</span>
+              <span class="tool-cat-tag">Peak Discharge</span>
+              <span class="tool-cat-tag">Catchment</span>
+            </div>
+          </div>
+          <div class="tool-card-arrow" aria-hidden="true">→</div>
+        </a>
+
+      </div><!-- /tools-dashboard-grid -->
+
+      <!-- Disclaimer -->
+      <p class="tools-disclaimer">
+        All tools run entirely in your browser — no data is sent to any server.
+        Results are for preliminary engineering reference only and must be
+        verified against applicable standards and professional judgement
+        before use in design, construction, or legal applications.
+      </p>
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="tool-footer">
+    <div class="container">
+      <p>
+        © <span id="year"></span> Dipanshu Sharma ·
+        Environmental Engineer | Water Resources | Hydrology | Hydraulics | Climate Resilience ·
+        <a href="../index.html">Portfolio</a>
+      </p>
+    </div>
+  </footer>
+
+  <script src="tools.js"></script>
+</body>
+</html>
