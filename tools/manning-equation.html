@@ -1,1 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Manning Equation Calculator | Dipanshu Sharma Tools</title>
+  <meta name="description" content="Open channel flow calculator using Manning's equation. Calculate discharge Q and velocity V from channel geometry, slope, and roughness." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="tools.css" />
+</head>
+<body>
 
+  <!-- Navigation -->
+  <nav class="tool-nav" role="navigation">
+    <div class="tool-nav-inner">
+      <a href="../index.html" class="tool-brand">Dipanshu Sharma</a>
+      <div class="tool-nav-links">
+        <a href="index.html" class="tool-nav-back">← All Tools</a>
+        <span class="tool-nav-breadcrumb">Manning Equation</span>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Page header -->
+  <header class="tool-hero tool-hero-sm">
+    <div class="container">
+      <div class="tool-breadcrumb">Tools / Manning Equation</div>
+      <h1 class="tool-hero-title">Manning <em>Equation</em></h1>
+      <p class="tool-hero-sub">
+        Open channel flow: calculate discharge and velocity from channel
+        geometry, bed slope, and Manning roughness coefficient.
+      </p>
+    </div>
+  </header>
+
+  <main class="tool-body">
+    <div class="container">
+      <div class="tool-layout">
+
+        <!-- LEFT: Inputs -->
+        <div class="tool-panel">
+          <h2 class="tool-panel-title">Inputs</h2>
+
+          <!-- Manning n -->
+          <div class="field-group">
+            <label class="field-label" for="manN">Manning Roughness Coefficient (n)</label>
+            <div class="field-row">
+              <input class="field-input" type="number" id="manN"
+                     placeholder="e.g. 0.013" min="0.001" max="0.5"
+                     step="0.001" value="0.013" />
+            </div>
+            <small style="color:var(--slate-lt);font-size:0.75rem;margin-top:0.3rem;display:block;">
+              Concrete: 0.011–0.013 · Natural channel: 0.025–0.035 ·
+              See <a href="unit-converter.html" style="color:var(--ocean-mid);text-decoration:underline;">Roughness Reference</a>
+            </small>
+          </div>
+
+          <!-- Cross-section area A -->
+          <div class="field-group">
+            <label class="field-label" for="manArea">Cross-Section Flow Area (A)</label>
+            <div class="field-row">
+              <input class="field-input has-unit" type="number" id="manArea"
+                     placeholder="e.g. 2.5" min="0" step="0.001" />
+              <span class="field-unit">m²</span>
+            </div>
+          </div>
+
+          <!-- Wetted perimeter P -->
+          <div class="field-group">
+            <label class="field-label" for="manPerim">Wetted Perimeter (P)</label>
+            <div class="field-row">
+              <input class="field-input has-unit" type="number" id="manPerim"
+                     placeholder="e.g. 3.2" min="0" step="0.001" />
+              <span class="field-unit">m</span>
+            </div>
+            <small style="color:var(--slate-lt);font-size:0.75rem;margin-top:0.3rem;display:block;">
+              Hydraulic radius R = A / P is calculated automatically.
+              Or enter R directly below instead.
+            </small>
+          </div>
+
+          <!-- Divider -->
+          <div style="text-align:center;color:var(--slate-lt);font-size:0.8rem;margin:0.75rem 0;">
+            — or enter hydraulic radius directly —
+          </div>
+
+          <!-- Direct hydraulic radius R -->
+          <div class="field-group">
+            <label class="field-label" for="manR">Hydraulic Radius (R) — optional</label>
+            <div class="field-row">
+              <input class="field-input has-unit" type="number" id="manR"
+                     placeholder="Leave blank to calculate from A and P"
+                     min="0" step="0.001" />
+              <span class="field-unit">m</span>
+            </div>
+          </div>
+
+          <!-- Slope S -->
+          <div class="field-group">
+            <label class="field-label" for="manSlope">Channel Bed Slope (S)</label>
+            <div class="field-row">
+              <input class="field-input has-unit" type="number" id="manSlope"
+                     placeholder="e.g. 0.001" min="0" step="0.00001"
+                     value="0.001" />
+              <span class="field-unit">m/m</span>
+            </div>
+            <small style="color:var(--slate-lt);font-size:0.75rem;margin-top:0.3rem;display:block;">
+              Enter as decimal: 1% = 0.01 · 1 in 1000 = 0.001
+            </small>
+          </div>
+
+          <button class="btn btn-primary btn-calc" onclick="calcManning()">
+            Calculate
+          </button>
+        </div>
+
+        <!-- RIGHT: Results -->
+        <div>
+
+          <!-- Result display box -->
+          <div class="result-box" id="manResults" style="min-height:240px;">
+            <div class="result-box-title">Results</div>
+            <p style="color:rgba(255,255,255,0.5);font-size:0.9rem;margin-top:0.5rem;">
+              Fill in the inputs and press Calculate.
+            </p>
+          </div>
+
+          <!-- Formula reference -->
+          <div class="formula-box" style="margin-top:1rem;">
+            <h4>Manning's Equation</h4>
+            <div class="formula-text">
+              V = (1/n) × R^(2/3) × S^(1/2)<br />
+              Q = V × A
+            </div>
+            <div class="formula-vars">
+              <span>V = mean flow velocity (m/s)</span>
+              <span>Q = discharge (m³/s)</span>
+              <span>n = Manning roughness coefficient (dimensionless)</span>
+              <span>R = hydraulic radius = A / P (m)</span>
+              <span>A = cross-section flow area (m²)</span>
+              <span>P = wetted perimeter (m)</span>
+              <span>S = channel bed slope (m/m)</span>
+            </div>
+          </div>
+
+          <!-- Assumptions note -->
+          <div class="tool-note" style="margin-top:1rem;">
+            Manning's equation assumes <strong>steady, uniform, fully turbulent
+            open channel flow</strong>. It is not suitable for partially full
+            pipe flow without correction factors. Always verify n values against
+            the channel material and local design standards.
+          </div>
+
+        </div>
+      </div><!-- /tool-layout -->
+    </div>
+  </main>
+
+  <footer class="tool-footer">
+    <div class="container">
+      <p>
+        © <span id="year"></span> Dipanshu Sharma ·
+        <a href="index.html">All Tools</a> ·
+        <a href="../index.html">Portfolio</a>
+      </p>
+    </div>
+  </footer>
+
+  <script src="tools.js"></script>
+  <script>
+  /* ── Manning Equation Calculator ──────────────────────────
+     Formula: V = (1/n) × R^(2/3) × S^(1/2)
+              Q = V × A
+     The user can supply either (A + P) or R directly.
+  ─────────────────────────────────────────────────────── */
+
+  function calcManning() {
+    const n    = parseFloat(document.getElementById('manN').value);
+    const A    = parseFloat(document.getElementById('manArea').value);
+    const P    = parseFloat(document.getElementById('manPerim').value);
+    const Rdir = parseFloat(document.getElementById('manR').value);
+    const S    = parseFloat(document.getElementById('manSlope').value);
+    const rb   = document.getElementById('manResults');
+
+    // Determine hydraulic radius R
+    // Priority: directly entered R → calculated from A and P
+    let R;
+    if (!isNaN(Rdir) && Rdir > 0) {
+      R = Rdir;
+    } else if (!isNaN(A) && !isNaN(P) && A > 0 && P > 0) {
+      R = A / P;
+    } else {
+      rb.innerHTML = errorHTML('Please enter either hydraulic radius R directly, '
+        + 'or both cross-section area A and wetted perimeter P.');
+      return;
+    }
+
+    // Validate remaining inputs
+    if (isNaN(n) || n <= 0) {
+      rb.innerHTML = errorHTML('Manning n must be a positive number (e.g. 0.013).');
+      return;
+    }
+    if (isNaN(S) || S < 0) {
+      rb.innerHTML = errorHTML('Slope S must be zero or a positive number.');
+      return;
+    }
+
+    // ── Manning's equation ──────────────────────────────
+    const V     = (1 / n) * Math.pow(R, 2 / 3) * Math.pow(S, 0.5);  // m/s
+    const hasA  = !isNaN(A) && A > 0;
+    const Q_m3s = hasA ? V * A       : null;   // m³/s
+    const Q_Ls  = hasA ? Q_m3s * 1000 : null;  // L/s
+    const Q_m3h = hasA ? Q_m3s * 3600 : null;  // m³/h
+
+    // Build results HTML
+    rb.innerHTML = `
+      <div class="result-box-title">Results — Manning's Equation</div>
+
+      <div class="result-row">
+        <span class="result-label">Hydraulic radius R</span>
+        <span class="result-value">
+          ${formatNum(R, 5)}<span class="result-unit">m</span>
+        </span>
+      </div>
+
+      <div class="result-row">
+        <span class="result-label">Flow velocity V</span>
+        <span class="result-value">
+          ${formatNum(V, 5)}<span class="result-unit">m/s</span>
+        </span>
+      </div>
+
+      ${hasA ? `
+      <div class="result-row">
+        <span class="result-label">Discharge Q</span>
+        <span class="result-value">
+          ${formatNum(Q_m3s, 5)}<span class="result-unit">m³/s</span>
+        </span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Discharge Q</span>
+        <span class="result-value">
+          ${formatNum(Q_Ls, 5)}<span class="result-unit">L/s</span>
+        </span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Discharge Q</span>
+        <span class="result-value">
+          ${formatNum(Q_m3h, 5)}<span class="result-unit">m³/h</span>
+        </span>
+      </div>` : `
+      <div style="margin-top:0.75rem;font-size:0.82rem;color:var(--seafoam-lt);">
+        Enter cross-section area A to calculate discharge Q.
+      </div>`}
+
+      <div style="margin-top:1rem;font-size:0.74rem;color:var(--seafoam-lt);">
+        n = ${n} · R = ${formatNum(R,4)} m · S = ${S}
+      </div>
+    `;
+  }
+
+  /* Helper: build a red error message inside the result box */
+  function errorHTML(msg) {
+    return `<div class="result-box-title">Error</div>
+      <p style="color:#ffb3b3;font-size:0.9rem;margin-top:0.5rem;">${msg}</p>`;
+  }
+  </script>
+</body>
+</html>
