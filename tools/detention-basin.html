@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Detention Basin Sizing | Dipanshu Sharma Tools</title>
+  <meta name="description" content="Calculate required detention basin storage volume for stormwater attenuation. Uses simple level pool routing approach." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="tools.css" />
+</head>
+<body>
+
+  <nav class="tool-nav" role="navigation">
+    <div class="tool-nav-inner">
+      <a href="../index.html" class="tool-brand">Ir. Dipanshu Sharma</a>
+      <div class="tool-nav-links">
+        <a href="index.html" class="tool-nav-back">← All Tools</a>
+        <span class="tool-nav-breadcrumb">Detention Basin Sizing</span>
+      </div>
+    </div>
+  </nav>
+
+  <header class="tool-hero tool-hero-sm">
+    <div class="container">
+      <div class="tool-breadcrumb">Tools / Detention Basin Sizing</div>
+      <h1 class="tool-hero-title">Detention Basin <em>Sizing</em></h1>
+      <p class="tool-hero-sub">
+        Estimate required storage volume for stormwater detention and
+        attenuation basins. Limits post-development peak discharge
+        to pre-development or permitted levels.
+      </p>
+    </div>
+  </header>
+
+  <main class="tool-body">
+    <div class="container">
+      <div class="tool-layout">
+
+        <!-- LEFT: Inputs -->
+        <div class="tool-panel">
+          <h2 class="tool-panel-title">Inputs</h2>
+
+          <p style="font-size:0.85rem;color:var(--slate-mid);
+                    margin-bottom:1.25rem;line-height:1.6;">
+            This tool uses the simplified <strong>Modified Rational Method</strong>
+            (triangular hydrograph approach) to estimate required detention volume.
+            Suitable for preliminary sizing of small to medium catchments.
+          </p>
+
+          <!-- Inflow (post-development peak) -->
+          <div class="field-group">
+            <label class="field-label" for="dbQin">
+              Peak Inflow — Post-Development (Q_in)
+            </label>
+            <div class="field-row">
+              <input class="field-input has-unit" type="number" id="dbQin"
+                     placeholder="e.g. 1.5" min="0" step="0.001" />
+              <span class="field-unit">m³/s</span>
+            </div>
+            <small style="color:var(--slate-lt);font-size:0.75rem;
+                          margin-top:0.25rem;display:block;">
+              Calculate using Q = CiA / 360 (Rational Method)
+              with post-development C and area
+            </small>
+          </div>
+
+          <!-- Permitted outflow -->
+          <div class="field-group">
+            <label class="field-label" for="dbQout">
+              Permitted Outflow — Pre-Development / Allowed (Q_out)
+            </label>
+            <div class="field-row">
+              <input class="field-input has-unit" type="number" id="dbQout"
+                     placeholder="e.g. 0.5" min="0" step="0.001" />
+              <span class="field-unit">m³/s</span>
+            </div>
+            <small style="color:var(--slate-lt);font-size:0.75rem;
+                          margin-top:0.25rem;display:block;">
+              Pre-development peak flow or authority-specified discharge limit
+            </small>
+          </div>
+
+          <!-- Storm duration -->
+          <div class="field-group">
+            <label class="field-label" for="dbTc">
+              Storm Duration / Time of Concentration (T_c)
+            </label>
+            <div class="field-row">
+              <input class="field-input has-unit" type="number" id="dbTc"
+                     placeholder="e.g. 30" min="0" step="1" />
+              <span class="field-unit">minutes</span>
+            </div>
+            <small style="color:var(--slate-lt);font-size:0.75rem;
+                          margin-top:0.25rem;display:block;">
+              Use T_c from catchment — calculate using the
+              <a href="time-of-concentration.html"
+                 style="color:var(--ocean-mid);text-decoration:underline;">
+                T_c Calculator
+              </a>
+            </small>
+          </div>
+
+          <!-- Safety factor -->
+          <div class="field-group">
+            <label class="field-label" for="dbSF">Safety Factor</label>
+            <div class="field-row">
+              <input class="field-input" type="number" id="dbSF"
+                     placeholder="e.g. 1.2" min="1" step="0.05"
+                     value="1.2" />
+            </div>
+            <small style="color:var(--slate-lt);font-size:0.75rem;
+                          margin-top:0.25rem;display:block;">
+              Typical: 1.1–1.3. Accounts for uncertainty in rainfall and
+              hydrograph shape. Set to 1.0 for no safety factor.
+            </small>
+          </div>
+
+          <button class="btn btn-primary btn-calc"
+                  onclick="calcDetention()">Calculate Volume</button>
+        </div>
+
+        <!-- RIGHT: Results -->
+        <div>
+          <div class="result-box" id="dbResult" style="min-height:280px;">
+            <div class="result-box-title">Required Storage Volume</div>
+            <p style="color:rgba(255,255,255,0.5);font-size:0.9rem;margin-top:0.5rem;">
+              Fill in the inputs and press Calculate.
+            </p>
+          </div>
+
+          <div class="formula-box" style="margin-top:1rem;">
+            <h4>Modified Rational Method — Triangular Hydrograph</h4>
+            <div class="formula-text">
+              V = 0.5 × (Q_in − Q_out) × T_s<br />
+              T_s = T_c × Q_in / (Q_in − Q_out)
+            </div>
+            <div class="formula-vars">
+              <span>V    = required storage volume (m³)</span>
+              <span>Q_in = peak inflow (post-development) (m³/s)</span>
+              <span>Q_out = permitted outflow (m³/s)</span>
+              <span>T_c  = time of concentration / storm duration (s)</span>
+              <span>T_s  = time to peak storage (s)</span>
+            </div>
+          </div>
+
+          <div class="tool-note" style="margin-top:1rem;">
+            This is a <strong>preliminary sizing tool</strong> only. Final
+            detention basin design must be verified using full hydrograph
+            routing (e.g. level pool routing in InfoWorks ICM, SewerGEMS
+            or HEC-HMS) with site-specific IDF data and topographic survey.
+          </div>
+
+          <!-- Quick geometry helper -->
+          <div class="tool-panel" style="margin-top:1rem;" id="geoHelper"
+               style="display:none;">
+            <h3 style="font-family:var(--font-display);font-size:1.05rem;
+                       font-weight:400;color:var(--ocean);margin-bottom:0.75rem;">
+              Quick Geometry Estimate
+            </h3>
+            <p style="font-size:0.85rem;color:var(--slate-mid);
+                      margin-bottom:0.75rem;line-height:1.6;">
+              Enter assumed depth to estimate basin footprint area:
+            </p>
+            <div class="field-group">
+              <label class="field-label" for="dbDepth">Assumed Basin Depth</label>
+              <div class="field-row">
+                <input class="field-input has-unit" type="number"
+                       id="dbDepth" placeholder="e.g. 1.5"
+                       min="0" step="0.1" value="1.5"
+                       oninput="updateGeo()" />
+                <span class="field-unit">m</span>
+              </div>
+            </div>
+            <p id="geoOutput" style="font-size:0.9rem;color:var(--slate-mid);"></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="tool-footer">
+    <div class="container">
+      <p>© <span id="year"></span> Ir. Dipanshu Sharma ·
+        <a href="index.html">All Tools</a> ·
+        <a href="../index.html">Portfolio</a></p>
+    </div>
+  </footer>
+
+  <script src="tools.js"></script>
+  <script>
+  let storedVol = 0; // store last calculated volume for geometry helper
+
+  function calcDetention() {
+    const Qin  = parseFloat(document.getElementById('dbQin').value);
+    const Qout = parseFloat(document.getElementById('dbQout').value);
+    const Tc_m = parseFloat(document.getElementById('dbTc').value);
+    const SF   = parseFloat(document.getElementById('dbSF').value);
+    const rb   = document.getElementById('dbResult');
+
+    if (isNaN(Qin)||Qin<=0)   { showDBErr('Q_in must be positive.'); return; }
+    if (isNaN(Qout)||Qout<0)  { showDBErr('Q_out must be zero or positive.'); return; }
+    if (isNaN(Tc_m)||Tc_m<=0) { showDBErr('T_c must be positive.'); return; }
+    if (isNaN(SF)||SF<1)      { showDBErr('Safety factor must be 1.0 or greater.'); return; }
+
+    if (Qout >= Qin) {
+      rb.innerHTML = `<div class="result-box-title">No Storage Required</div>
+        <p style="color:rgba(255,255,255,0.7);font-size:0.9rem;margin-top:0.5rem;">
+          Q_out ≥ Q_in — permitted outflow already exceeds or equals
+          the post-development peak. No detention storage is needed.
+        </p>`;
+      document.getElementById('geoHelper').style.display = 'none';
+      return;
+    }
+
+    const Tc_s = Tc_m * 60;   // convert minutes to seconds
+    const dQ   = Qin - Qout;  // flow to be attenuated
+
+    // Triangular hydrograph storage estimate
+    // Time to peak storage: Ts = Tc × Qin / (Qin - Qout)
+    const Ts = Tc_s * Qin / dQ;
+
+    // Required volume: V = 0.5 × dQ × Ts
+    const V_raw = 0.5 * dQ * Ts;
+    const V     = V_raw * SF; // apply safety factor
+
+    storedVol = V;
+    updateGeo();
+
+    rb.innerHTML = `
+      <div class="result-box-title">Required Storage Volume</div>
+      <div class="result-row">
+        <span class="result-label">Required volume (net)</span>
+        <span class="result-value">
+          ${formatNum(V_raw, 5)}<span class="result-unit">m³</span>
+        </span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">With safety factor (×${SF})</span>
+        <span class="result-value">
+          ${formatNum(V, 5)}<span class="result-unit">m³</span>
+        </span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Volume</span>
+        <span class="result-value">
+          ${formatNum(V/1000, 5)}<span class="result-unit">ML</span>
+        </span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Peak attenuation</span>
+        <span class="result-value">
+          ${formatNum(dQ*1000, 4)}<span class="result-unit">L/s</span>
+        </span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Time to peak storage</span>
+        <span class="result-value">
+          ${formatNum(Ts/60, 3)}<span class="result-unit">min</span>
+        </span>
+      </div>
+      <div style="margin-top:0.85rem;font-size:0.74rem;color:var(--seafoam-lt);">
+        Q_in = ${Qin} m³/s · Q_out = ${Qout} m³/s · T_c = ${Tc_m} min · SF = ${SF}
+      </div>
+    `;
+
+    document.getElementById('geoHelper').style.display = 'block';
+  }
+
+  function updateGeo() {
+    if (storedVol <= 0) return;
+    const depth = parseFloat(document.getElementById('dbDepth').value);
+    if (isNaN(depth)||depth<=0) return;
+    const area_m2 = storedVol / depth;
+    const area_ha = area_m2 / 10000;
+    document.getElementById('geoOutput').textContent =
+      `At ${depth} m depth → footprint area ≈ ${formatNum(area_m2,5)} m²  (${formatNum(area_ha,4)} ha)`;
+  }
+
+  function showDBErr(msg) {
+    document.getElementById('dbResult').innerHTML =
+      `<div class="result-box-title">Error</div>
+       <p style="color:#ffb3b3;font-size:0.9rem;margin-top:0.5rem;">${msg}</p>`;
+  }
+  </script>
+</body>
+</html>
