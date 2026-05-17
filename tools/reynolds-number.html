@@ -1,1 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reynolds Number Calculator | Dipanshu Sharma Tools</title>
+  <meta name="description" content="Calculate the Reynolds number for pipe or channel flow and determine the flow regime: laminar, transitional, or turbulent." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="tools.css" />
+</head>
+<body>
 
+  <!-- Navigation -->
+  <nav class="tool-nav" role="navigation">
+    <div class="tool-nav-inner">
+      <a href="../index.html" class="tool-brand">Dipanshu Sharma</a>
+      <div class="tool-nav-links">
+        <a href="index.html" class="tool-nav-back">← All Tools</a>
+        <span class="tool-nav-breadcrumb">Reynolds Number</span>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Page header -->
+  <header class="tool-hero tool-hero-sm">
+    <div class="container">
+      <div class="tool-breadcrumb">Tools / Reynolds Number</div>
+      <h1 class="tool-hero-title">Reynolds Number <em>Calculator</em></h1>
+      <p class="tool-hero-sub">
+        Calculate Re for pipe or open channel flow. Identifies whether
+        flow is laminar, transitional, or turbulent.
+      </p>
+    </div>
+  </header>
+
+  <main class="tool-body">
+    <div class="container">
+      <div class="tool-layout">
+
+        <!-- LEFT: Inputs -->
+        <div class="tool-panel">
+          <h2 class="tool-panel-title">Inputs</h2>
+
+          <!-- Flow velocity -->
+          <div class="field-group">
+            <label class="field-label" for="reVel">Flow Velocity (V)</label>
+            <div class="field-row">
+              <input class="field-input has-unit" type="number" id="reVel"
+                     placeholder="e.g. 1.5" min="0" step="0.001" />
+              <span class="field-unit">m/s</span>
+            </div>
+          </div>
+
+          <!-- Hydraulic / pipe diameter -->
+          <div class="field-group">
+            <label class="field-label" for="reDiam">Hydraulic / Pipe Diameter (D)</label>
+            <div class="field-row">
+              <input class="field-input has-unit" type="number" id="reDiam"
+                     placeholder="e.g. 0.3" min="0" step="0.001" />
+              <span class="field-unit">m</span>
+            </div>
+            <small style="color:var(--slate-lt);font-size:0.75rem;margin-top:0.3rem;display:block;">
+              For open channels use hydraulic diameter:
+              D<sub>h</sub> = 4 × (A / P)
+            </small>
+          </div>
+
+          <!-- Kinematic viscosity with temperature presets -->
+          <div class="field-group">
+            <label class="field-label" for="reNu">
+              Kinematic Viscosity of Water (ν)
+            </label>
+            <div class="field-row">
+              <input class="field-input has-unit" type="number" id="reNu"
+                     placeholder="e.g. 1.004e-6" step="any"
+                     value="0.000001004" />
+              <span class="field-unit">m²/s</span>
+            </div>
+
+            <!-- Temperature presets for water -->
+            <small style="color:var(--slate-lt);font-size:0.72rem;
+                          margin-top:0.5rem;display:block;margin-bottom:0.35rem;">
+              Quick presets — kinematic viscosity of water:
+            </small>
+            <div style="display:flex;flex-wrap:wrap;gap:0.4rem;">
+              <button class="btn btn-outline btn-sm" onclick="setNu(0.000001787)">0 °C</button>
+              <button class="btn btn-outline btn-sm" onclick="setNu(0.000001307)">10 °C</button>
+              <button class="btn btn-outline btn-sm" onclick="setNu(0.000001004)">20 °C</button>
+              <button class="btn btn-outline btn-sm" onclick="setNu(0.000000801)">30 °C</button>
+              <button class="btn btn-outline btn-sm" onclick="setNu(0.000000658)">40 °C</button>
+            </div>
+          </div>
+
+          <button class="btn btn-primary btn-calc" onclick="calcReynolds()">
+            Calculate
+          </button>
+        </div>
+
+        <!-- RIGHT: Results + reference -->
+        <div>
+
+          <!-- Result display box -->
+          <div class="result-box" id="reResults" style="min-height:220px;">
+            <div class="result-box-title">Results</div>
+            <p style="color:rgba(255,255,255,0.5);font-size:0.9rem;margin-top:0.5rem;">
+              Fill in the inputs and press Calculate.
+            </p>
+          </div>
+
+          <!-- Flow regime reference table -->
+          <div class="tool-panel" style="margin-top:1rem;">
+            <h3 style="font-family:var(--font-display);font-size:1.05rem;
+                       font-weight:400;color:var(--ocean);margin-bottom:0.75rem;">
+              Flow Regime Reference
+            </h3>
+            <div class="ref-table-wrap">
+              <table class="ref-table">
+                <thead>
+                  <tr>
+                    <th>Regime</th>
+                    <th style="text-align:right;">Reynolds Number</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><td>Laminar</td><td>Re &lt; 2,000</td></tr>
+                  <tr><td>Transitional</td><td>2,000 ≤ Re ≤ 4,000</td></tr>
+                  <tr><td>Turbulent</td><td>Re &gt; 4,000</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p style="font-size:0.78rem;color:var(--slate-lt);
+                      margin-top:0.75rem;line-height:1.5;">
+              Thresholds above are for pipe flow. For open channels the
+              transitional range may vary. Re &gt; 12,500 is generally
+              considered fully turbulent in most channels.
+            </p>
+          </div>
+
+          <!-- Formula reference -->
+          <div class="formula-box" style="margin-top:1rem;">
+            <h4>Formula</h4>
+            <div class="formula-text">Re = V × D / ν</div>
+            <div class="formula-vars">
+              <span>Re = Reynolds number (dimensionless)</span>
+              <span>V  = flow velocity (m/s)</span>
+              <span>D  = hydraulic or pipe diameter (m)</span>
+              <span>ν  = kinematic viscosity (m²/s)</span>
+            </div>
+          </div>
+
+        </div>
+      </div><!-- /tool-layout -->
+    </div>
+  </main>
+
+  <footer class="tool-footer">
+    <div class="container">
+      <p>
+        © <span id="year"></span> Dipanshu Sharma ·
+        <a href="index.html">All Tools</a> ·
+        <a href="../index.html">Portfolio</a>
+      </p>
+    </div>
+  </footer>
+
+  <script src="tools.js"></script>
+  <script>
+  /* ── Reynolds Number Calculator ───────────────────────────
+     Formula: Re = V × D / ν
+     Flow regimes (pipe flow):
+       Laminar      Re < 2,000
+       Transitional 2,000 ≤ Re ≤ 4,000
+       Turbulent    Re > 4,000
+  ─────────────────────────────────────────────────────── */
+
+  /* Set the viscosity field to a preset value */
+  function setNu(val) {
+    document.getElementById('reNu').value = val;
+  }
+
+  function calcReynolds() {
+    const V  = parseFloat(document.getElementById('reVel').value);
+    const D  = parseFloat(document.getElementById('reDiam').value);
+    const nu = parseFloat(document.getElementById('reNu').value);
+    const rb = document.getElementById('reResults');
+
+    // Validate inputs
+    if (isNaN(V) || isNaN(D) || isNaN(nu)) {
+      rb.innerHTML = errorHTML('Please fill in all three fields.');
+      return;
+    }
+    if (V < 0) {
+      rb.innerHTML = errorHTML('Velocity must be zero or positive.');
+      return;
+    }
+    if (D <= 0) {
+      rb.innerHTML = errorHTML('Diameter must be a positive number.');
+      return;
+    }
+    if (nu <= 0) {
+      rb.innerHTML = errorHTML('Kinematic viscosity must be a positive number.');
+      return;
+    }
+
+    // Calculate Reynolds number
+    const Re = (V * D) / nu;
+
+    // Classify the flow regime
+    let regime, regimeClass, regimeDesc;
+    if (Re < 2000) {
+      regime      = 'Laminar';
+      regimeClass = 'regime-laminar';
+      regimeDesc  = 'Flow moves in smooth parallel layers with no lateral '
+                  + 'mixing. Common in low-velocity or high-viscosity conditions.';
+    } else if (Re <= 4000) {
+      regime      = 'Transitional';
+      regimeClass = 'regime-transitional';
+      regimeDesc  = 'Unstable flow between laminar and turbulent. Behaviour '
+                  + 'is unpredictable — avoid in engineering design where possible.';
+    } else {
+      regime      = 'Turbulent';
+      regimeClass = 'regime-turbulent';
+      regimeDesc  = 'Chaotic cross-sectional mixing. Most natural watercourses '
+                  + 'and engineering pipe systems operate in this regime.';
+    }
+
+    // Format the Reynolds number with thousands separators
+    const ReFormatted = Re.toLocaleString('en-US', { maximumFractionDigits: 1 });
+
+    rb.innerHTML = `
+      <div class="result-box-title">Results</div>
+
+      <div class="result-row">
+        <span class="result-label">Reynolds Number</span>
+        <span class="result-value">${ReFormatted}</span>
+      </div>
+
+      <div style="margin-top:1rem;">
+        <span class="regime-badge ${regimeClass}">${regime} Flow</span>
+      </div>
+
+      <p style="color:rgba(255,255,255,0.65);font-size:0.82rem;
+                margin-top:0.75rem;line-height:1.55;">
+        ${regimeDesc}
+      </p>
+
+      <div style="margin-top:1rem;font-size:0.74rem;color:var(--seafoam-lt);">
+        V = ${V} m/s · D = ${D} m · ν = ${nu.toExponential(3)} m²/s
+      </div>
+    `;
+  }
+
+  /* Helper: build a red error message inside the result box */
+  function errorHTML(msg) {
+    return `<div class="result-box-title">Error</div>
+      <p style="color:#ffb3b3;font-size:0.9rem;margin-top:0.5rem;">${msg}</p>`;
+  }
+  </script>
+</body>
+</html>
