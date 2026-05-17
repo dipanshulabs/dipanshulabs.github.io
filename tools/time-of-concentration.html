@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Time of Concentration Calculator | Dipanshu Sharma Tools</title>
+  <meta name="description" content="Calculate time of concentration using Kirpich, FAA, and Bransby-Williams methods for catchment hydrology and drainage design." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="tools.css" />
+  <style>
+    .method-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-bottom: 1.75rem;
+    }
+    .method-btn {
+      padding: 0.5rem 1.1rem;
+      border: 1.5px solid rgba(11,79,108,0.2);
+      border-radius: 100px;
+      background: transparent;
+      font-family: var(--font-body);
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--slate-mid);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .method-btn.active {
+      background: var(--ocean);
+      border-color: var(--ocean);
+      color: var(--white);
+    }
+    .method-btn:hover:not(.active) { border-color: var(--ocean); color: var(--ocean); }
+    .method-panel { display: none; }
+    .method-panel.active { display: block; }
+  </style>
+</head>
+<body>
+
+  <nav class="tool-nav" role="navigation">
+    <div class="tool-nav-inner">
+      <a href="../index.html" class="tool-brand">Ir. Dipanshu Sharma</a>
+      <div class="tool-nav-links">
+        <a href="index.html" class="tool-nav-back">← All Tools</a>
+        <span class="tool-nav-breadcrumb">Time of Concentration</span>
+      </div>
+    </div>
+  </nav>
+
+  <header class="tool-hero tool-hero-sm">
+    <div class="container">
+      <div class="tool-breadcrumb">Tools / Time of Concentration</div>
+      <h1 class="tool-hero-title">Time of Concentration <em>Calculator</em></h1>
+      <p class="tool-hero-sub">
+        Calculate catchment time of concentration (T_c) using three standard
+        empirical methods. T_c is the critical input for Rational Method and
+        IDF-based design storm selection.
+      </p>
+    </div>
+  </header>
+
+  <main class="tool-body">
+    <div class="container">
+
+      <!-- Method selector -->
+      <div class="method-tabs" role="group" aria-label="Calculation method">
+        <button class="method-btn active" onclick="setMethod('kirpich')">
+          Kirpich
+        </button>
+        <button class="method-btn" onclick="setMethod('faa')">
+          FAA Method
+        </button>
+        <button class="method-btn" onclick="setMethod('bransby')">
+          Bransby-Williams
+        </button>
+      </div>
+
+      <div class="tool-layout">
+
+        <!-- LEFT: Inputs -->
+        <div>
+
+          <!-- Kirpich Method -->
+          <div class="tool-panel method-panel active" id="panelKirpich">
+            <h2 class="tool-panel-title">Kirpich Method — Inputs</h2>
+            <p style="font-size:0.85rem;color:var(--slate-mid);margin-bottom:1.25rem;line-height:1.6;">
+              Developed for small agricultural watersheds. Best suited for
+              natural catchments with defined channel flow paths.
+            </p>
+            <div class="field-group">
+              <label class="field-label" for="kL">
+                Hydraulic Length of Catchment (L)
+              </label>
+              <div class="field-row">
+                <input class="field-input has-unit" type="number"
+                       id="kL" placeholder="e.g. 2500" min="0" step="1" />
+                <span class="field-unit">m</span>
+              </div>
+              <small style="color:var(--slate-lt);font-size:0.75rem;
+                            margin-top:0.25rem;display:block;">
+                Longest flow path from catchment boundary to outlet
+              </small>
+            </div>
+            <div class="field-group">
+              <label class="field-label" for="kH">
+                Elevation Difference (H)
+              </label>
+              <div class="field-row">
+                <input class="field-input has-unit" type="number"
+                       id="kH" placeholder="e.g. 25" min="0" step="0.1" />
+                <span class="field-unit">m</span>
+              </div>
+              <small style="color:var(--slate-lt);font-size:0.75rem;
+                            margin-top:0.25rem;display:block;">
+                Height difference between highest point and outlet
+              </small>
+            </div>
+            <button class="btn btn-primary btn-calc"
+                    onclick="calcKirpich()">Calculate T_c</button>
+          </div>
+
+          <!-- FAA Method -->
+          <div class="tool-panel method-panel" id="panelFAA">
+            <h2 class="tool-panel-title">FAA Method — Inputs</h2>
+            <p style="font-size:0.85rem;color:var(--slate-mid);margin-bottom:1.25rem;line-height:1.6;">
+              Federal Aviation Administration method. Developed for airport
+              drainage but widely used for urban and paved catchments.
+            </p>
+            <div class="field-group">
+              <label class="field-label" for="fL">
+                Overland Flow Length (L)
+              </label>
+              <div class="field-row">
+                <input class="field-input has-unit" type="number"
+                       id="fL" placeholder="e.g. 300" min="0" step="1" />
+                <span class="field-unit">m</span>
+              </div>
+            </div>
+            <div class="field-group">
+              <label class="field-label" for="fC">
+                Runoff Coefficient (C)
+              </label>
+              <div class="field-row">
+                <input class="field-input" type="number"
+                       id="fC" placeholder="0.0 – 1.0"
+                       min="0" max="1" step="0.01" />
+              </div>
+              <small style="color:var(--slate-lt);font-size:0.75rem;
+                            margin-top:0.25rem;display:block;">
+                Same C as used in Rational Method Q = CiA
+              </small>
+            </div>
+            <div class="field-group">
+              <label class="field-label" for="fS">
+                Average Surface Slope (S)
+              </label>
+              <div class="field-row">
+                <input class="field-input has-unit" type="number"
+                       id="fS" placeholder="e.g. 1.5" min="0" step="0.01" />
+                <span class="field-unit">%</span>
+              </div>
+            </div>
+            <button class="btn btn-primary btn-calc"
+                    onclick="calcFAA()">Calculate T_c</button>
+          </div>
+
+          <!-- Bransby-Williams Method -->
+          <div class="tool-panel method-panel" id="panelBransby">
+            <h2 class="tool-panel-title">Bransby-Williams — Inputs</h2>
+            <p style="font-size:0.85rem;color:var(--slate-mid);margin-bottom:1.25rem;line-height:1.6;">
+              Suitable for natural and rural catchments. Commonly used in
+              Middle East and African drainage practice.
+            </p>
+            <div class="field-group">
+              <label class="field-label" for="bL">
+                Main Stream Length (L)
+              </label>
+              <div class="field-row">
+                <input class="field-input has-unit" type="number"
+                       id="bL" placeholder="e.g. 5000" min="0" step="1" />
+                <span class="field-unit">m</span>
+              </div>
+            </div>
+            <div class="field-group">
+              <label class="field-label" for="bA">
+                Catchment Area (A)
+              </label>
+              <div class="field-row">
+                <input class="field-input has-unit" type="number"
+                       id="bA" placeholder="e.g. 12.5" min="0" step="0.01" />
+                <span class="field-unit">km²</span>
+              </div>
+            </div>
+            <div class="field-group">
+              <label class="field-label" for="bS">
+                Average Stream Slope (S)
+              </label>
+              <div class="field-row">
+                <input class="field-input has-unit" type="number"
+                       id="bS" placeholder="e.g. 0.5" min="0" step="0.001" />
+                <span class="field-unit">m/km</span>
+              </div>
+            </div>
+            <button class="btn btn-primary btn-calc"
+                    onclick="calcBransby()">Calculate T_c</button>
+          </div>
+
+        </div>
+
+        <!-- RIGHT: Results -->
+        <div>
+          <div class="result-box" id="tcResult" style="min-height:220px;">
+            <div class="result-box-title">Result — Time of Concentration</div>
+            <p style="color:rgba(255,255,255,0.5);font-size:0.9rem;margin-top:0.5rem;">
+              Fill in the inputs and press Calculate.
+            </p>
+          </div>
+
+          <!-- Formula reference boxes -->
+          <div class="formula-box" style="margin-top:1rem;" id="fmKirpich">
+            <h4>Kirpich Formula</h4>
+            <div class="formula-text">T_c = 0.0195 × L^0.77 × S^−0.385</div>
+            <div class="formula-vars">
+              <span>T_c = time of concentration (minutes)</span>
+              <span>L   = hydraulic length (m)</span>
+              <span>S   = slope = H / L (m/m)</span>
+            </div>
+          </div>
+
+          <div class="formula-box" style="margin-top:1rem;display:none;" id="fmFAA">
+            <h4>FAA Formula</h4>
+            <div class="formula-text">T_c = (1.8 × (1.1 − C) × L^0.5) / S^(1/3)</div>
+            <div class="formula-vars">
+              <span>T_c = time of concentration (minutes)</span>
+              <span>C   = runoff coefficient (dimensionless)</span>
+              <span>L   = overland flow length (m)</span>
+              <span>S   = slope (%)</span>
+            </div>
+          </div>
+
+          <div class="formula-box" style="margin-top:1rem;display:none;" id="fmBransby">
+            <h4>Bransby-Williams Formula</h4>
+            <div class="formula-text">T_c = 0.057 × L / (A^0.1 × S^0.2)</div>
+            <div class="formula-vars">
+              <span>T_c = time of concentration (minutes)</span>
+              <span>L   = main stream length (m)</span>
+              <span>A   = catchment area (km²)</span>
+              <span>S   = average stream slope (m/km)</span>
+            </div>
+          </div>
+
+          <div class="tool-note" style="margin-top:1rem;">
+            T_c is used to determine the design storm duration for the
+            Rational Method. When T_c is less than the minimum storm
+            duration in your IDF data, use the minimum storm duration
+            as the design duration instead.
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="tool-footer">
+    <div class="container">
+      <p>© <span id="year"></span> Ir. Dipanshu Sharma ·
+        <a href="index.html">All Tools</a> ·
+        <a href="../index.html">Portfolio</a></p>
+    </div>
+  </footer>
+
+  <script src="tools.js"></script>
+  <script>
+  /* ── Method panel switcher ─────────────────────────────── */
+  const methods = ['kirpich', 'faa', 'bransby'];
+
+  function setMethod(name) {
+    methods.forEach(m => {
+      document.getElementById('panel' + cap(m)).classList.toggle('active', m === name);
+      document.getElementById('fm' + cap(m)).style.display = m === name ? 'block' : 'none';
+    });
+    document.querySelectorAll('.method-btn').forEach((btn, i) => {
+      btn.classList.toggle('active', methods[i] === name);
+    });
+    resetResult();
+  }
+
+  function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+  function resetResult() {
+    document.getElementById('tcResult').innerHTML =
+      `<div class="result-box-title">Result — Time of Concentration</div>
+       <p style="color:rgba(255,255,255,0.5);font-size:0.9rem;margin-top:0.5rem;">
+         Fill in the inputs and press Calculate.
+       </p>`;
+  }
+
+  function showErr(msg) {
+    document.getElementById('tcResult').innerHTML =
+      `<div class="result-box-title">Error</div>
+       <p style="color:#ffb3b3;font-size:0.9rem;margin-top:0.5rem;">${msg}</p>`;
+  }
+
+  function showTc(Tc_min, method, inputs) {
+    const Tc_hr  = Tc_min / 60;
+    const Tc_sec = Tc_min * 60;
+    document.getElementById('tcResult').innerHTML = `
+      <div class="result-box-title">Result — ${method}</div>
+      <div class="result-row">
+        <span class="result-label">T_c</span>
+        <span class="result-value">
+          ${formatNum(Tc_min, 4)}<span class="result-unit">minutes</span>
+        </span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">T_c</span>
+        <span class="result-value">
+          ${formatNum(Tc_hr, 4)}<span class="result-unit">hours</span>
+        </span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">T_c</span>
+        <span class="result-value">
+          ${formatNum(Tc_sec, 4)}<span class="result-unit">seconds</span>
+        </span>
+      </div>
+      <div style="margin-top:1rem;font-size:0.74rem;color:var(--seafoam-lt);">
+        ${inputs}
+      </div>
+    `;
+  }
+
+  /* ── Kirpich ────────────────────────────────────────────── */
+  function calcKirpich() {
+    const L = parseFloat(document.getElementById('kL').value);
+    const H = parseFloat(document.getElementById('kH').value);
+    if (isNaN(L) || L <= 0) { showErr('Hydraulic length L must be positive.'); return; }
+    if (isNaN(H) || H <= 0) { showErr('Elevation difference H must be positive.'); return; }
+    const S    = H / L;           // slope m/m
+    const Tc   = 0.0195 * Math.pow(L, 0.77) * Math.pow(S, -0.385);
+    showTc(Tc, 'Kirpich Method', `L = ${L} m · H = ${H} m · S = ${formatNum(S,4)} m/m`);
+  }
+
+  /* ── FAA ────────────────────────────────────────────────── */
+  function calcFAA() {
+    const L = parseFloat(document.getElementById('fL').value);
+    const C = parseFloat(document.getElementById('fC').value);
+    const S = parseFloat(document.getElementById('fS').value);
+    if (isNaN(L) || L <= 0) { showErr('Flow length L must be positive.'); return; }
+    if (isNaN(C) || C < 0 || C > 1) { showErr('C must be between 0 and 1.'); return; }
+    if (isNaN(S) || S <= 0) { showErr('Slope S must be positive.'); return; }
+    const Tc = (1.8 * (1.1 - C) * Math.pow(L, 0.5)) / Math.pow(S, 1/3);
+    showTc(Tc, 'FAA Method', `L = ${L} m · C = ${C} · S = ${S}%`);
+  }
+
+  /* ── Bransby-Williams ───────────────────────────────────── */
+  function calcBransby() {
+    const L = parseFloat(document.getElementById('bL').value);
+    const A = parseFloat(document.getElementById('bA').value);
+    const S = parseFloat(document.getElementById('bS').value);
+    if (isNaN(L) || L <= 0) { showErr('Stream length L must be positive.'); return; }
+    if (isNaN(A) || A <= 0) { showErr('Catchment area A must be positive.'); return; }
+    if (isNaN(S) || S <= 0) { showErr('Slope S must be positive.'); return; }
+    const Tc = 0.057 * L / (Math.pow(A, 0.1) * Math.pow(S, 0.2));
+    showTc(Tc, 'Bransby-Williams', `L = ${L} m · A = ${A} km² · S = ${S} m/km`);
+  }
+
+  /* Initialise formula panels */
+  document.getElementById('fmFAA').style.display    = 'none';
+  document.getElementById('fmBransby').style.display = 'none';
+  </script>
+</body>
+</html>
