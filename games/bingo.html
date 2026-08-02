@@ -1,1 +1,1106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Classic Bingo | Dipanshu Sharma</title>
+  <meta name="description" content="Classic 75-ball Bingo — 5×5 card with auto-caller. Mark your numbers and shout BINGO!" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../tools/tools.css" />
+  <style>
+    /* ── Page layout ─────────────────────────────────── */
+    .bingo-page {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 1.5rem clamp(1rem, 4vw, 2rem);
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 1.5rem;
+      align-items: start;
+    }
 
+    /* ── Left column: card + controls ───────────────── */
+    .bingo-left {}
+
+    /* ── Caller display ──────────────────────────────── */
+    .caller-box {
+      background: linear-gradient(135deg, var(--ocean), var(--ocean-mid));
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      text-align: center;
+      margin-bottom: 1.25rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .caller-box::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
+      background-size: 30px 30px;
+    }
+    .caller-label {
+      font-size: 0.72rem;
+      font-weight: 500;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--seafoam-lt);
+      margin-bottom: 0.5rem;
+      position: relative;
+      z-index: 1;
+    }
+    .caller-letter {
+      font-family: var(--font-display);
+      font-size: 2.5rem;
+      font-weight: 600;
+      color: var(--seafoam-lt);
+      line-height: 1;
+      position: relative;
+      z-index: 1;
+    }
+    .caller-number {
+      font-family: var(--font-display);
+      font-size: 5rem;
+      font-weight: 300;
+      color: var(--white);
+      line-height: 1;
+      position: relative;
+      z-index: 1;
+      animation: popIn 0.35s var(--ease-out);
+    }
+    @keyframes popIn {
+      0%   { transform: scale(0.5); opacity: 0; }
+      70%  { transform: scale(1.1); }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .caller-idle {
+      font-family: var(--font-display);
+      font-size: 1.5rem;
+      font-weight: 300;
+      color: rgba(255,255,255,0.5);
+      font-style: italic;
+      padding: 1rem 0;
+      position: relative;
+      z-index: 1;
+    }
+    .caller-count {
+      font-size: 0.8rem;
+      color: rgba(255,255,255,0.55);
+      margin-top: 0.5rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ── Control buttons ─────────────────────────────── */
+    .controls {
+      display: flex;
+      gap: 0.75rem;
+      margin-bottom: 1.25rem;
+      flex-wrap: wrap;
+    }
+    .ctrl-btn {
+      flex: 1;
+      padding: 0.75rem 1rem;
+      border: none;
+      border-radius: 8px;
+      font-family: var(--font-body);
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      min-width: 120px;
+    }
+    .ctrl-call {
+      background: var(--seafoam);
+      color: var(--white);
+      font-size: 1rem;
+      padding: 0.85rem 1.25rem;
+    }
+    .ctrl-call:hover:not(:disabled) { background: #3aa58e; transform: translateY(-1px); }
+    .ctrl-call:disabled { opacity: 0.5; cursor: not-allowed; }
+    .ctrl-auto {
+      background: var(--ocean);
+      color: var(--white);
+    }
+    .ctrl-auto:hover { background: var(--ocean-mid); }
+    .ctrl-auto.running { background: #c0392b; }
+    .ctrl-auto.running:hover { background: #a93226; }
+    .ctrl-reset {
+      background: transparent;
+      color: var(--slate-mid);
+      border: 1.5px solid rgba(11,79,108,0.2);
+    }
+    .ctrl-reset:hover { border-color: var(--ocean); color: var(--ocean); }
+    .ctrl-card {
+      background: transparent;
+      color: var(--ocean);
+      border: 1.5px solid var(--ocean);
+    }
+    .ctrl-card:hover { background: var(--ocean); color: var(--white); }
+
+    /* Auto-call speed selector */
+    .speed-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1.25rem;
+      flex-wrap: wrap;
+    }
+    .speed-label {
+      font-size: 0.78rem;
+      font-weight: 500;
+      color: var(--slate-mid);
+      white-space: nowrap;
+    }
+    .speed-btn {
+      padding: 0.3rem 0.75rem;
+      border: 1.5px solid rgba(11,79,108,0.18);
+      border-radius: 100px;
+      background: transparent;
+      font-family: var(--font-body);
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--slate-mid);
+      cursor: pointer;
+      transition: all 0.18s;
+    }
+    .speed-btn.active { background: var(--ocean); border-color: var(--ocean); color: var(--white); }
+    .speed-btn:hover:not(.active) { border-color: var(--ocean); color: var(--ocean); }
+
+    /* ── Bingo card ──────────────────────────────────── */
+    .card-wrap {
+      background: var(--white);
+      border-radius: var(--radius);
+      border: 1px solid rgba(11,79,108,0.08);
+      overflow: hidden;
+      box-shadow: 0 4px 24px rgba(11,79,108,0.08);
+    }
+
+    /* B-I-N-G-O header row */
+    .card-header {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      background: var(--ocean);
+    }
+    .card-header-cell {
+      padding: 0.85rem 0;
+      text-align: center;
+      font-family: var(--font-display);
+      font-size: 1.8rem;
+      font-weight: 600;
+      color: var(--white);
+      letter-spacing: 0.05em;
+    }
+    /* Each column letter has a colour accent */
+    .card-header-cell:nth-child(1) { color: #a8ddd2; }
+    .card-header-cell:nth-child(2) { color: #f0d9a5; }
+    .card-header-cell:nth-child(3) { color: #ffb3b3; }
+    .card-header-cell:nth-child(4) { color: #c3b1e1; }
+    .card-header-cell:nth-child(5) { color: #a8ddd2; }
+
+    /* 5×5 number grid */
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+    }
+    .card-cell {
+      aspect-ratio: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-display);
+      font-size: clamp(1.1rem, 3vw, 1.6rem);
+      font-weight: 400;
+      color: var(--slate);
+      border: 1px solid rgba(11,79,108,0.07);
+      cursor: pointer;
+      transition: all 0.2s;
+      user-select: none;
+      position: relative;
+      background: var(--white);
+    }
+    .card-cell:hover:not(.free):not(.marked) {
+      background: var(--mist);
+    }
+    /* FREE space */
+    .card-cell.free {
+      background: var(--ocean);
+      color: var(--white);
+      font-size: 0.75rem;
+      font-family: var(--font-body);
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      cursor: default;
+    }
+    /* Marked (daubed) cell */
+    .card-cell.marked {
+      background: var(--seafoam);
+      color: var(--white);
+    }
+    .card-cell.marked::after {
+      content: '';
+      position: absolute;
+      width: 70%;
+      height: 70%;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.2);
+    }
+    /* Winning cells */
+    .card-cell.winner {
+      background: var(--seafoam);
+      color: var(--white);
+      animation: winPulse 0.6s ease infinite alternate;
+    }
+    @keyframes winPulse {
+      from { background: var(--seafoam); }
+      to   { background: #2e9e80; }
+    }
+    /* Called but not on card */
+    .card-cell.called-miss {
+      color: rgba(11,79,108,0.3);
+    }
+
+    /* ── Win banner ──────────────────────────────────── */
+    .win-banner {
+      display: none;
+      background: linear-gradient(135deg, #0f6e56, var(--seafoam));
+      border-radius: var(--radius);
+      padding: 1.25rem 1.5rem;
+      text-align: center;
+      margin-bottom: 1.25rem;
+      animation: slideIn 0.4s var(--ease-out);
+    }
+    @keyframes slideIn {
+      from { transform: translateY(-20px); opacity: 0; }
+      to   { transform: translateY(0); opacity: 1; }
+    }
+    .win-banner.visible { display: block; }
+    .win-banner-title {
+      font-family: var(--font-display);
+      font-size: 2rem;
+      font-weight: 600;
+      color: var(--white);
+      letter-spacing: 0.1em;
+    }
+    .win-banner-sub {
+      font-size: 0.9rem;
+      color: rgba(255,255,255,0.8);
+      margin-top: 0.25rem;
+    }
+    .win-type-badge {
+      display: inline-block;
+      background: rgba(255,255,255,0.2);
+      border: 1px solid rgba(255,255,255,0.4);
+      border-radius: 100px;
+      padding: 0.2rem 0.75rem;
+      font-size: 0.78rem;
+      font-weight: 500;
+      color: var(--white);
+      margin-top: 0.5rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    /* ── Right column: called numbers board ──────────── */
+    .bingo-right {}
+
+    .board-panel {
+      background: var(--white);
+      border-radius: var(--radius);
+      border: 1px solid rgba(11,79,108,0.08);
+      padding: 1.25rem;
+      position: sticky;
+      top: 1rem;
+    }
+    .board-title {
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+      font-weight: 400;
+      color: var(--ocean);
+      margin-bottom: 1rem;
+      padding-bottom: 0.6rem;
+      border-bottom: 1px solid var(--mist);
+    }
+
+    /* Called numbers board — 5 columns B I N G O */
+    .board-cols {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 0.25rem;
+    }
+    .board-col-header {
+      text-align: center;
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+      font-weight: 600;
+      padding: 0.4rem 0;
+      border-radius: 6px;
+      margin-bottom: 0.25rem;
+    }
+    .board-col-header.B { background: rgba(168,221,210,0.3); color: #0b4f6c; }
+    .board-col-header.I { background: rgba(240,217,165,0.3); color: #854f0b; }
+    .board-col-header.N { background: rgba(255,179,179,0.3); color: #7a1a1a; }
+    .board-col-header.G { background: rgba(195,177,225,0.3); color: #3c3489; }
+    .board-col-header.O { background: rgba(168,221,210,0.3); color: #0b4f6c; }
+
+    .board-num {
+      text-align: center;
+      padding: 0.35rem 0.2rem;
+      font-size: 0.82rem;
+      font-weight: 500;
+      color: rgba(11,79,108,0.25);
+      border-radius: 4px;
+      transition: all 0.25s;
+      font-family: var(--font-body);
+    }
+    .board-num.called {
+      color: var(--white);
+      background: var(--seafoam);
+      font-weight: 700;
+    }
+    .board-num.last-called {
+      background: var(--ocean);
+      color: var(--white);
+      transform: scale(1.1);
+    }
+
+    /* Stats row */
+    .stats-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.6rem;
+      margin-top: 1rem;
+    }
+    .stat-mini {
+      background: var(--off-white);
+      border-radius: 7px;
+      padding: 0.6rem 0.75rem;
+      text-align: center;
+    }
+    .stat-mini-label {
+      font-size: 0.65rem;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--slate-lt);
+      margin-bottom: 0.2rem;
+    }
+    .stat-mini-value {
+      font-family: var(--font-display);
+      font-size: 1.3rem;
+      font-weight: 400;
+      color: var(--ocean);
+    }
+
+    /* Called numbers list (recent) */
+    .recent-label {
+      font-size: 0.7rem;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--slate-lt);
+      margin-top: 1rem;
+      margin-bottom: 0.4rem;
+    }
+    .recent-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.3rem;
+    }
+    .recent-chip {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 36px;
+      padding: 0.2rem 0.5rem;
+      border-radius: 100px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      background: var(--mist);
+      color: var(--ocean);
+      font-family: var(--font-body);
+    }
+    .recent-chip.latest {
+      background: var(--ocean);
+      color: var(--white);
+    }
+
+    /* Rules box */
+    .rules-box {
+      margin-top: 1rem;
+      padding: 0.85rem;
+      background: var(--off-white);
+      border-radius: 8px;
+      border-left: 3px solid var(--seafoam);
+    }
+    .rules-title {
+      font-size: 0.7rem;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--seafoam);
+      margin-bottom: 0.5rem;
+    }
+    .rules-list {
+      list-style: none;
+      padding: 0;
+    }
+    .rules-list li {
+      font-size: 0.78rem;
+      color: var(--slate-mid);
+      padding: 0.2rem 0;
+      display: flex;
+      gap: 0.4rem;
+    }
+    .rules-list li::before {
+      content: '•';
+      color: var(--seafoam);
+      flex-shrink: 0;
+    }
+
+    /* ── Confetti overlay ───────────────────────────── */
+    .confetti-wrap {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 9999;
+      overflow: hidden;
+    }
+    .confetti-piece {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      top: -20px;
+      animation: confettiFall linear forwards;
+    }
+    @keyframes confettiFall {
+      0%   { transform: translateY(0) rotate(0deg); opacity: 1; }
+      100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+    }
+
+    /* ── Responsive ──────────────────────────────────── */
+    @media (max-width: 768px) {
+      .bingo-page { grid-template-columns: 1fr; }
+      .board-panel { position: static; }
+      .card-header-cell { font-size: 1.4rem; padding: 0.65rem 0; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation -->
+  <nav class="tool-nav" role="navigation">
+    <div class="tool-nav-inner">
+      <a href="../index.html" class="tool-brand">Dipanshu Sharma</a>
+      <div class="tool-nav-links">
+        <a href="index.html" class="tool-nav-back">← Games</a>
+        <span class="tool-nav-breadcrumb">Classic Bingo</span>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Confetti container -->
+  <div class="confetti-wrap" id="confettiWrap"></div>
+
+  <main style="padding-top:1.5rem;padding-bottom:3rem;">
+    <div class="bingo-page">
+
+      <!-- ════════════════════════════════════
+           LEFT: CARD + CALLER
+      ════════════════════════════════════ -->
+      <div class="bingo-left">
+
+        <!-- Win banner -->
+        <div class="win-banner" id="winBanner">
+          <div class="win-banner-title">🎉 BINGO! 🎉</div>
+          <div class="win-banner-sub" id="winBannerSub">
+            You got a Bingo!
+          </div>
+          <div class="win-type-badge" id="winTypeBadge">Line</div>
+        </div>
+
+        <!-- Caller display -->
+        <div class="caller-box">
+          <div class="caller-label">Current Call</div>
+          <div id="callerDisplay">
+            <div class="caller-idle">Press "Call Number" to start</div>
+          </div>
+          <div class="caller-count" id="callerCount">0 of 75 numbers called</div>
+        </div>
+
+        <!-- Speed selector -->
+        <div class="speed-row">
+          <span class="speed-label">Auto-call speed:</span>
+          <button class="speed-btn" id="spd3" onclick="setSpeed(3000)">Slow</button>
+          <button class="speed-btn active" id="spd2" onclick="setSpeed(2000)">Normal</button>
+          <button class="speed-btn" id="spd1" onclick="setSpeed(1000)">Fast</button>
+          <button class="speed-btn" id="spd05" onclick="setSpeed(500)">Rapid</button>
+        </div>
+
+        <!-- Control buttons -->
+        <div class="controls">
+          <button class="ctrl-btn ctrl-call" id="btnCall"
+                  onclick="callNumber()">
+            🎱 Call Number
+          </button>
+          <button class="ctrl-btn ctrl-auto" id="btnAuto"
+                  onclick="toggleAuto()">
+            ▶ Auto Call
+          </button>
+          <button class="ctrl-btn ctrl-card" onclick="newCard()">
+            🔄 New Card
+          </button>
+          <button class="ctrl-btn ctrl-reset" onclick="resetGame()">
+            ↺ Reset
+          </button>
+        </div>
+
+        <!-- Bingo Card -->
+        <div class="card-wrap">
+          <div class="card-header">
+            <div class="card-header-cell">B</div>
+            <div class="card-header-cell">I</div>
+            <div class="card-header-cell">N</div>
+            <div class="card-header-cell">G</div>
+            <div class="card-header-cell">O</div>
+          </div>
+          <div class="card-grid" id="bingoCard">
+            <!-- Populated by JavaScript -->
+          </div>
+        </div>
+
+        <p style="font-size:0.78rem;color:var(--slate-lt);
+                  text-align:center;margin-top:0.75rem;">
+          Click any number on your card to mark it manually,
+          or use the auto-daub option in settings below.
+        </p>
+
+        <!-- Auto-daub toggle -->
+        <div style="display:flex;align-items:center;gap:0.75rem;
+                    margin-top:0.75rem;padding:0.75rem 1rem;
+                    background:var(--white);border-radius:8px;
+                    border:1px solid rgba(11,79,108,0.08);">
+          <label style="font-size:0.82rem;color:var(--slate-mid);
+                        font-weight:500;cursor:pointer;display:flex;
+                        align-items:center;gap:0.5rem;">
+            <input type="checkbox" id="autoDaub" checked
+                   style="accent-color:var(--ocean);width:16px;height:16px;" />
+            Auto-daub called numbers on my card
+          </label>
+          <span style="font-size:0.75rem;color:var(--slate-lt);margin-left:auto;">
+            Uncheck to mark manually
+          </span>
+        </div>
+
+      </div><!-- /bingo-left -->
+
+
+      <!-- ════════════════════════════════════
+           RIGHT: NUMBER BOARD + STATS
+      ════════════════════════════════════ -->
+      <div class="bingo-right">
+        <div class="board-panel">
+          <div class="board-title">Called Numbers Board</div>
+
+          <!-- B-I-N-G-O columns display -->
+          <div class="board-cols" id="numberBoard">
+            <!-- Populated by JavaScript -->
+          </div>
+
+          <!-- Stats -->
+          <div class="stats-row">
+            <div class="stat-mini">
+              <div class="stat-mini-label">Called</div>
+              <div class="stat-mini-value" id="statCalled">0</div>
+            </div>
+            <div class="stat-mini">
+              <div class="stat-mini-label">Remaining</div>
+              <div class="stat-mini-value" id="statRemaining">75</div>
+            </div>
+            <div class="stat-mini">
+              <div class="stat-mini-label">Marked</div>
+              <div class="stat-mini-value" id="statMarked">1</div>
+            </div>
+            <div class="stat-mini">
+              <div class="stat-mini-label">Wins</div>
+              <div class="stat-mini-value" id="statWins">0</div>
+            </div>
+          </div>
+
+          <!-- Recent calls -->
+          <div class="recent-label">Recent Calls</div>
+          <div class="recent-list" id="recentList">
+            <span style="font-size:0.78rem;color:var(--slate-lt);
+                         font-style:italic;">None yet</span>
+          </div>
+
+          <!-- Rules -->
+          <div class="rules-box">
+            <div class="rules-title">How to Play</div>
+            <ul class="rules-list">
+              <li>Your card has 25 squares (5×5) with random numbers</li>
+              <li>B column: 1–15 · I: 16–30 · N: 31–45 · G: 46–60 · O: 61–75</li>
+              <li>The centre FREE square is already marked</li>
+              <li>Press "Call Number" or use Auto Call to draw numbers</li>
+              <li>Mark called numbers on your card</li>
+              <li>Win by completing any row, column or diagonal</li>
+              <li>Full House = all 25 squares marked</li>
+              <li>"New Card" gives you a fresh card. "Reset" restarts everything</li>
+            </ul>
+          </div>
+
+        </div>
+      </div><!-- /bingo-right -->
+
+    </div>
+  </main>
+
+  <footer class="tool-footer">
+    <div class="container">
+      <p>
+        © <span id="year"></span> Dipanshu Sharma ·
+        <a href="index.html">Games</a> ·
+        <a href="../index.html">Portfolio</a>
+      </p>
+    </div>
+  </footer>
+
+  <script>
+  /* ═══════════════════════════════════════════════════════════
+     Classic 75-Ball Bingo
+     ─────────────────────────────────────────────────────────
+     Rules:
+       75 numbers total (1–75)
+       5×5 card with FREE centre square
+       B: 1–15  I: 16–30  N: 31–45  G: 46–60  O: 61–75
+       Win conditions:
+         - Any row (5 in a row horizontal)
+         - Any column (5 in a row vertical)
+         - Either diagonal
+         - Full house (all 25 squares)
+  ═══════════════════════════════════════════════════════════ */
+
+  /* ── Game state ──────────────────────────────────────────── */
+  let cardNumbers  = [];      // 5×5 array [row][col]
+  let markedCells  = [];      // 5×5 boolean array
+  let calledNums   = new Set();
+  let callPool     = [];      // shuffled 1–75
+  let callIndex    = 0;
+  let autoTimer    = null;
+  let autoSpeed    = 2000;    // ms between auto-calls
+  let totalWins    = 0;
+  let winLines     = new Set(); // track which wins already announced
+  let gameOver     = false;
+
+  /* ── Column ranges ───────────────────────────────────────── */
+  const COL_RANGES = [
+    { letter: 'B', min: 1,  max: 15 },
+    { letter: 'I', min: 16, max: 30 },
+    { letter: 'N', min: 31, max: 45 },
+    { letter: 'G', min: 46, max: 60 },
+    { letter: 'O', min: 61, max: 75 }
+  ];
+
+  /* ── Shuffle array (Fisher-Yates) ────────────────────────── */
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  /* ── Generate a new Bingo card ───────────────────────────── */
+  function generateCard() {
+    cardNumbers = [];
+    for (let col = 0; col < 5; col++) {
+      const { min, max } = COL_RANGES[col];
+      const pool = [];
+      for (let n = min; n <= max; n++) pool.push(n);
+      shuffle(pool);
+      const colNums = pool.slice(0, 5);
+      cardNumbers.push(colNums);
+    }
+    // cardNumbers[col][row] — transpose for rendering
+    // markedCells[row][col]
+    markedCells = Array.from({ length: 5 }, () => Array(5).fill(false));
+    markedCells[2][2] = true; // FREE centre
+  }
+
+  /* ── Render the Bingo card ───────────────────────────────── */
+  function renderCard() {
+    const grid = document.getElementById('bingoCard');
+    grid.innerHTML = '';
+
+    for (let row = 0; row < 5; row++) {
+      for (let col = 0; col < 5; col++) {
+        const cell = document.createElement('div');
+        cell.className  = 'card-cell';
+        cell.dataset.row = row;
+        cell.dataset.col = col;
+
+        if (row === 2 && col === 2) {
+          // FREE square
+          cell.classList.add('free', 'marked');
+          cell.textContent = 'FREE';
+        } else {
+          const num = cardNumbers[col][row];
+          cell.textContent = num;
+          if (markedCells[row][col]) cell.classList.add('marked');
+          // Dim if called but not on card (already passed)
+          cell.addEventListener('click', () => toggleMark(row, col));
+        }
+        grid.appendChild(cell);
+      }
+    }
+
+    updateMarkedCount();
+  }
+
+  /* ── Toggle a cell mark (manual daubing) ─────────────────── */
+  function toggleMark(row, col) {
+    if (row === 2 && col === 2) return; // FREE
+    if (gameOver) return;
+    markedCells[row][col] = !markedCells[row][col];
+    renderCard();
+    checkWin();
+  }
+
+  /* ── Build the number board (B-I-N-G-O columns) ─────────── */
+  function buildBoard() {
+    const board = document.getElementById('numberBoard');
+    board.innerHTML = '';
+
+    // Headers
+    COL_RANGES.forEach(({ letter }) => {
+      const h = document.createElement('div');
+      h.className = `board-col-header ${letter}`;
+      h.textContent = letter;
+      board.appendChild(h);
+    });
+
+    // Numbers 1–75 in column order
+    for (let n = 0; n < 15; n++) {
+      COL_RANGES.forEach(({ min }) => {
+        const num  = min + n;
+        const cell = document.createElement('div');
+        cell.className   = 'board-num';
+        cell.id          = `bn-${num}`;
+        cell.textContent = num;
+        board.appendChild(cell);
+      });
+    }
+  }
+
+  /* ── Update board when a number is called ────────────────── */
+  function updateBoard(num) {
+    // Clear previous "last-called" highlight
+    document.querySelectorAll('.board-num.last-called')
+            .forEach(el => {
+              el.classList.remove('last-called');
+              el.classList.add('called');
+            });
+
+    const el = document.getElementById(`bn-${num}`);
+    if (el) el.classList.add('called', 'last-called');
+  }
+
+  /* ── Call the next number ────────────────────────────────── */
+  function callNumber() {
+    if (callIndex >= 75) {
+      stopAuto();
+      document.getElementById('btnCall').disabled = true;
+      document.getElementById('callerDisplay').innerHTML =
+        `<div class="caller-idle">All 75 numbers called!</div>`;
+      return;
+    }
+    if (gameOver && !document.getElementById('autoDaub').checked) return;
+
+    const num = callPool[callIndex];
+    callIndex++;
+    calledNums.add(num);
+
+    // Determine B-I-N-G-O letter
+    const colIdx  = COL_RANGES.findIndex(c => num >= c.min && num <= c.max);
+    const letter  = COL_RANGES[colIdx].letter;
+
+    // Animate caller
+    document.getElementById('callerDisplay').innerHTML = `
+      <div class="caller-letter">${letter}</div>
+      <div class="caller-number" id="callerNum">${num}</div>`;
+    document.getElementById('callerCount').textContent =
+      `${callIndex} of 75 numbers called`;
+
+    // Update board
+    updateBoard(num);
+
+    // Auto-daub
+    if (document.getElementById('autoDaub').checked) {
+      autoDaubCard(num);
+    }
+
+    // Update stats
+    document.getElementById('statCalled').textContent    = callIndex;
+    document.getElementById('statRemaining').textContent = 75 - callIndex;
+
+    // Recent calls list (last 10)
+    updateRecentList(num, letter);
+
+    // Check win
+    checkWin();
+  }
+
+  /* ── Auto-daub: mark the number on the card if present ───── */
+  function autoDaubCard(num) {
+    for (let col = 0; col < 5; col++) {
+      for (let row = 0; row < 5; row++) {
+        if (cardNumbers[col][row] === num) {
+          markedCells[row][col] = true;
+        }
+      }
+    }
+    renderCard();
+  }
+
+  /* ── Update recent calls list ────────────────────────────── */
+  function updateRecentList(num, letter) {
+    const list = document.getElementById('recentList');
+    // Build last 10 calls
+    const recent = callPool.slice(
+      Math.max(0, callIndex - 10), callIndex
+    ).reverse();
+
+    list.innerHTML = recent.map((n, i) => {
+      const l  = COL_RANGES.findIndex(c => n >= c.min && n <= c.max);
+      const lt = COL_RANGES[l].letter;
+      return `<span class="recent-chip ${i === 0 ? 'latest' : ''}">
+        ${lt}${n}</span>`;
+    }).join('');
+  }
+
+  /* ── Check all win conditions ────────────────────────────── */
+  function checkWin() {
+    const wins = [];
+
+    // Rows
+    for (let row = 0; row < 5; row++) {
+      if (markedCells[row].every(Boolean)) {
+        wins.push({ type: `Row ${row+1}`, key: `R${row}` });
+      }
+    }
+    // Columns
+    for (let col = 0; col < 5; col++) {
+      if (markedCells.every(r => r[col])) {
+        wins.push({ type: `Column ${COL_RANGES[col].letter}`, key: `C${col}` });
+      }
+    }
+    // Diagonals
+    if ([0,1,2,3,4].every(i => markedCells[i][i])) {
+      wins.push({ type: 'Diagonal ↘', key: 'D1' });
+    }
+    if ([0,1,2,3,4].every(i => markedCells[i][4-i])) {
+      wins.push({ type: 'Diagonal ↙', key: 'D2' });
+    }
+    // Full house
+    if (markedCells.every(row => row.every(Boolean))) {
+      wins.push({ type: 'FULL HOUSE! 🏆', key: 'FH' });
+    }
+
+    // Announce only new wins
+    const newWins = wins.filter(w => !winLines.has(w.key));
+    if (newWins.length > 0) {
+      newWins.forEach(w => winLines.add(w.key));
+      totalWins += newWins.length;
+      document.getElementById('statWins').textContent = totalWins;
+
+      const latest = newWins[newWins.length - 1];
+      showWin(latest.type, wins);
+
+      // Highlight winning cells
+      highlightWins(wins);
+
+      // Full house = game over
+      if (wins.some(w => w.key === 'FH')) {
+        gameOver = true;
+        stopAuto();
+      }
+    }
+  }
+
+  /* ── Highlight winning cells ─────────────────────────────── */
+  function highlightWins(wins) {
+    // Collect all winning cell positions
+    const winSet = new Set();
+
+    wins.forEach(({ key }) => {
+      if (key.startsWith('R')) {
+        const row = parseInt(key[1]);
+        for (let col = 0; col < 5; col++) winSet.add(`${row},${col}`);
+      }
+      if (key.startsWith('C')) {
+        const col = parseInt(key[1]);
+        for (let row = 0; row < 5; row++) winSet.add(`${row},${col}`);
+      }
+      if (key === 'D1') [0,1,2,3,4].forEach(i => winSet.add(`${i},${i}`));
+      if (key === 'D2') [0,1,2,3,4].forEach(i => winSet.add(`${i},${4-i}`));
+      if (key === 'FH') {
+        for (let r=0;r<5;r++) for (let c=0;c<5;c++) winSet.add(`${r},${c}`);
+      }
+    });
+
+    // Apply winner class
+    document.querySelectorAll('.card-cell').forEach(cell => {
+      const key = `${cell.dataset.row},${cell.dataset.col}`;
+      if (winSet.has(key)) cell.classList.add('winner');
+    });
+  }
+
+  /* ── Show win banner + confetti ──────────────────────────── */
+  function showWin(type, allWins) {
+    const banner = document.getElementById('winBanner');
+    banner.classList.add('visible');
+    document.getElementById('winBannerSub').textContent =
+      `Called after ${callIndex} numbers!`;
+    document.getElementById('winTypeBadge').textContent = type;
+    spawnConfetti();
+  }
+
+  /* ── Confetti animation ──────────────────────────────────── */
+  function spawnConfetti() {
+    const wrap   = document.getElementById('confettiWrap');
+    const colors = ['#4db8a0','#0b4f6c','#c4a87c','#a8ddd2','#1a7a9a','#ffffff'];
+    for (let i = 0; i < 80; i++) {
+      const piece = document.createElement('div');
+      piece.className = 'confetti-piece';
+      const size  = Math.random() * 10 + 5;
+      piece.style.cssText = [
+        `width:${size}px`,
+        `height:${size}px`,
+        `left:${Math.random() * 100}%`,
+        `background:${colors[Math.floor(Math.random()*colors.length)]}`,
+        `border-radius:${Math.random() > 0.5 ? '50%' : '0'}`,
+        `animation-duration:${2 + Math.random() * 2}s`,
+        `animation-delay:${Math.random() * 0.5}s`
+      ].join(';');
+      wrap.appendChild(piece);
+      setTimeout(() => piece.remove(), 4000);
+    }
+  }
+
+  /* ── Auto-call toggle ────────────────────────────────────── */
+  function toggleAuto() {
+    if (autoTimer) {
+      stopAuto();
+    } else {
+      startAuto();
+    }
+  }
+
+  function startAuto() {
+    if (callIndex >= 75 || gameOver) return;
+    const btn = document.getElementById('btnAuto');
+    btn.classList.add('running');
+    btn.textContent = '⏹ Stop Auto';
+    document.getElementById('btnCall').disabled = true;
+    autoTimer = setInterval(() => {
+      if (callIndex >= 75 || gameOver) {
+        stopAuto();
+        return;
+      }
+      callNumber();
+    }, autoSpeed);
+  }
+
+  function stopAuto() {
+    if (autoTimer) { clearInterval(autoTimer); autoTimer = null; }
+    const btn = document.getElementById('btnAuto');
+    btn.classList.remove('running');
+    btn.textContent = '▶ Auto Call';
+    document.getElementById('btnCall').disabled = false;
+  }
+
+  /* ── Set auto-call speed ─────────────────────────────────── */
+  function setSpeed(ms) {
+    autoSpeed = ms;
+    ['spd3','spd2','spd1','spd05'].forEach(id =>
+      document.getElementById(id).classList.remove('active'));
+    const map = { 3000:'spd3', 2000:'spd2', 1000:'spd1', 500:'spd05' };
+    document.getElementById(map[ms]).classList.add('active');
+    // Restart auto if running
+    if (autoTimer) { stopAuto(); startAuto(); }
+  }
+
+  /* ── New card (keep game state, just replace card) ────────── */
+  function newCard() {
+    if (autoTimer) stopAuto();
+    generateCard();
+
+    // Re-daub any already-called numbers
+    if (document.getElementById('autoDaub').checked) {
+      calledNums.forEach(n => autoDaubCard(n));
+    }
+
+    winLines.clear();
+    document.getElementById('winBanner').classList.remove('visible');
+    gameOver = false;
+    renderCard();
+    checkWin();
+  }
+
+  /* ── Full game reset ─────────────────────────────────────── */
+  function resetGame() {
+    if (autoTimer) stopAuto();
+
+    // Shuffle new call pool
+    callPool  = shuffle([...Array(75).keys()].map(i => i+1));
+    callIndex = 0;
+    calledNums.clear();
+    winLines.clear();
+    totalWins = 0;
+    gameOver  = false;
+
+    // Reset displays
+    document.getElementById('callerDisplay').innerHTML =
+      `<div class="caller-idle">Press "Call Number" to start</div>`;
+    document.getElementById('callerCount').textContent =
+      '0 of 75 numbers called';
+    document.getElementById('winBanner').classList.remove('visible');
+    document.getElementById('statCalled').textContent    = '0';
+    document.getElementById('statRemaining').textContent = '75';
+    document.getElementById('statWins').textContent      = '0';
+    document.getElementById('recentList').innerHTML =
+      `<span style="font-size:0.78rem;color:var(--slate-lt);font-style:italic;">None yet</span>`;
+    document.getElementById('btnCall').disabled = false;
+
+    // Clear board highlights
+    document.querySelectorAll('.board-num').forEach(el => {
+      el.classList.remove('called','last-called');
+    });
+
+    // New card
+    generateCard();
+    renderCard();
+    updateMarkedCount();
+  }
+
+  /* ── Update marked count stat ────────────────────────────── */
+  function updateMarkedCount() {
+    const count = markedCells.flat().filter(Boolean).length;
+    document.getElementById('statMarked').textContent = count;
+  }
+
+  /* ── Initialise on page load ─────────────────────────────── */
+  document.getElementById('year').textContent = new Date().getFullYear();
+  buildBoard();
+  resetGame();
+  </script>
+</body>
+</html>
