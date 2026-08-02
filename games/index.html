@@ -1,1 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Games | Dipanshu Sharma</title>
+  <meta name="description" content="Fun games — take a break from engineering!" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../tools/tools.css" />
+</head>
+<body>
 
+  <nav class="tool-nav" role="navigation">
+    <div class="tool-nav-inner">
+      <a href="../index.html" class="tool-brand">Dipanshu Sharma</a>
+      <a href="../index.html" class="tool-nav-back">← Portfolio</a>
+    </div>
+  </nav>
+
+  <header class="tool-hero">
+    <div class="container">
+      <div class="tool-breadcrumb">Games</div>
+      <h1 class="tool-hero-title">Take a <em>Break</em></h1>
+      <p class="tool-hero-sub">
+        Everyone needs a break from engineering. Play a quick game
+        — no installation, no account, runs in your browser.
+      </p>
+    </div>
+  </header>
+
+  <main class="tool-body">
+    <div class="container">
+
+      <div class="tools-dashboard-grid">
+
+        <!-- Bingo card -->
+        <a href="bingo.html" class="tool-dashboard-card">
+          <div class="tool-card-icon">🎱</div>
+          <div class="tool-card-content">
+            <h2 class="tool-card-title">Classic Bingo</h2>
+            <p class="tool-card-desc">
+              Standard 75-ball Bingo with a 5×5 card. Auto-caller draws
+              numbers one by one. Mark your card and shout BINGO when
+              you complete a line, diagonal or full house.
+            </p>
+            <div class="tool-card-cats">
+              <span class="tool-cat-tag">75-Ball</span>
+              <span class="tool-cat-tag">5×5 Card</span>
+              <span class="tool-cat-tag">Auto Caller</span>
+              <span class="tool-cat-tag">Single Player</span>
+            </div>
+          </div>
+          <div class="tool-card-arrow">→</div>
+        </a>
+
+      </div>
+
+      <p class="tools-disclaimer" style="margin-top:2rem;">
+        More games coming soon. All games run entirely in your browser —
+        no data is collected or stored.
+      </p>
+
+    </div>
+  </main>
+
+  <footer class="tool-footer">
+    <div class="container">
+      <p>
+        © <span id="year"></span> Dipanshu Sharma ·
+        <a href="../index.html">Portfolio</a> ·
+        <a href="../tools/index.html">Engineering Tools</a>
+      </p>
+    </div>
+  </footer>
+
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>
