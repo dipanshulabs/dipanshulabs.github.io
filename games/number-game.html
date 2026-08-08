@@ -53,13 +53,13 @@
     /* Mountains / hills */
     .vbg-hills{position:absolute;bottom:0;left:0;right:0;}
     .hill{position:absolute;border-radius:50%;bottom:0;}
-    .h1{width:110%;height:220px;background:#5d9e4a;left:-5%;bottom:55px;}
-    .h2{width:80%;height:175px;background:#6db55a;right:-8%;bottom:70px;}
-    .h3{width:105%;height:150px;background:#4d8a3a;left:-5%;bottom:0;}
-    .vbg-ground{position:absolute;bottom:0;left:0;right:0;height:75px;background:linear-gradient(180deg,#4d8a3a,#3d7a2a);}
+    .h1{width:110%;height:220px;background:#5d9e4a;left:-5%;bottom:145px;}
+    .h2{width:80%;height:175px;background:#6db55a;right:-8%;bottom:160px;}
+    .h3{width:105%;height:150px;background:#4d8a3a;left:-5%;bottom:90px;}
+    .vbg-ground{position:absolute;bottom:0;left:0;right:0;height:165px;background:linear-gradient(180deg,#4d8a3a,#3d7a2a);}
 
     /* River */
-    .vbg-river{position:absolute;bottom:40px;left:0;right:0;height:55px;
+    .vbg-river{position:absolute;bottom:130px;left:0;right:0;height:55px;
                background:linear-gradient(180deg,rgba(64,164,216,.75),rgba(32,128,180,.9));
                overflow:hidden;}
     .vbg-river::before{content:'';position:absolute;top:8px;left:0;right:0;height:6px;
@@ -71,13 +71,13 @@
     @keyframes riverFlow{from{background-position:0 0}to{background-position:60px 0}}
 
     /* River banks */
-    .vbg-river-top{position:absolute;bottom:93px;left:0;right:0;height:12px;
+    .vbg-river-top{position:absolute;bottom:183px;left:0;right:0;height:12px;
                    background:linear-gradient(180deg,transparent,rgba(64,164,216,.4));}
-    .vbg-river-bot{position:absolute;bottom:38px;left:0;right:0;height:14px;
+    .vbg-river-bot{position:absolute;bottom:128px;left:0;right:0;height:14px;
                    background:linear-gradient(0deg,#4d8a3a,transparent);}
 
     /* Trees */
-    .vbg-tree{position:absolute;bottom:68px;display:flex;flex-direction:column;align-items:center;
+    .vbg-tree{position:absolute;bottom:158px;display:flex;flex-direction:column;align-items:center;
               animation:treeSway 4s ease-in-out infinite;transform-origin:bottom center;}
     @keyframes treeSway{0%,100%{transform:rotate(0deg)}30%{transform:rotate(1.8deg)}70%{transform:rotate(-1.8deg)}}
     .tt3{width:0;height:0;border-left:24px solid transparent;border-right:24px solid transparent;border-bottom:54px solid #2a5f2a;}
@@ -86,7 +86,7 @@
     .ttr{width:11px;height:24px;background:#7a4a1a;border-radius:2px;}
 
     /* Flowers */
-    .vbg-flower{position:absolute;bottom:66px;font-size:1.1rem;animation:flBob 3.2s ease-in-out infinite;}
+    .vbg-flower{position:absolute;bottom:156px;font-size:1.1rem;animation:flBob 3.2s ease-in-out infinite;}
     @keyframes flBob{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-5px) rotate(6deg)}}
 
     /* Butterflies */
@@ -94,7 +94,7 @@
     @keyframes bflyAnim{0%{transform:translate(0,0) rotate(0)}25%{transform:translate(32px,-22px) rotate(20deg)}50%{transform:translate(-10px,-38px) rotate(-15deg)}75%{transform:translate(22px,-18px) rotate(10deg)}100%{transform:translate(0,0) rotate(0)}}
 
     /* Cute animals (emoji based) */
-    .vbg-animal{position:absolute;font-size:1.6rem;animation:animalWalk linear infinite;bottom:70px;}
+    .vbg-animal{position:absolute;font-size:1.6rem;animation:animalWalk linear infinite;bottom:162px;}
     @keyframes animalWalk{0%{left:-80px;transform:scaleX(1)}49%{transform:scaleX(1)}50%{left:110%;transform:scaleX(-1)}99%{transform:scaleX(-1)}100%{left:-80px;transform:scaleX(1)}}
 
     /* Pond */
@@ -452,9 +452,9 @@
   <div class="vbg-bfly" style="top:15%;left:55%;animation-delay:1.5s;">🦋</div>
   <!-- Cute animals walking -->
   <div class="vbg-animal" style="animation-duration:65s;animation-delay:0s;font-size:1.8rem;">🐻</div>
-  <div class="vbg-animal" style="animation-duration:82s;animation-delay:-22s;bottom:66px;font-size:1.5rem;">🐱</div>
-  <div class="vbg-animal" style="animation-duration:90s;animation-delay:-45s;bottom:68px;font-size:1.4rem;">🦊</div>
-  <div class="vbg-animal" style="animation-duration:58s;animation-delay:-12s;bottom:64px;font-size:1.6rem;">🐼</div>
+  <div class="vbg-animal" style="animation-duration:82s;animation-delay:-22s;bottom:166px;font-size:1.5rem;">🐱</div>
+  <div class="vbg-animal" style="animation-duration:90s;animation-delay:-45s;bottom:168px;font-size:1.4rem;">🦊</div>
+  <div class="vbg-animal" style="animation-duration:58s;animation-delay:-12s;bottom:164px;font-size:1.6rem;">🐼</div>
 </div>
 
 <!-- Confetti -->
@@ -884,7 +884,6 @@ let gameState={}, myCards=[], knownCards={};
 let publicKnown={};  // { targetPid: Set<number> } — known to EVERYONE
 let winners=[];
 let timerInt=null, listeners=[];
-let watchdogTimer=null; // declared here so stopTimer can reference it
 let popupTargetPid=null, popupSelectedNum=null;
 
 /* ── Seat positions: % of arena, safe from all overlays ──
@@ -917,7 +916,7 @@ function showFeedback(icon,title,sub,pts,isPos){
 }
 const stopTimer=()=>{
   if(timerInt){clearInterval(timerInt);timerInt=null;}
-  stopWatchdog();
+  // Note: watchdog keeps running independently — don't stop it here
 };
 const detach=()=>{listeners.forEach(l=>off(l));listeners=[];stopWatchdog();};
 
@@ -1051,6 +1050,7 @@ async function enterGame(meta){
   showScreen('screenGame');
   gameState={meta};knownCards={};publicKnown={};winners=[];
   injectMuteBtn();
+  startWatchdog(); // start continuous watchdog polling for disconnected players
   const h=await get(ref(db,`rooms/${roomId}/hands/${myPid}`));
   myCards=h.val()||[];
   renderHand();
@@ -1296,24 +1296,30 @@ function startTimer(total,startedAt,isMe){
     const rem=Math.max(0,total-elapsed);
 
     numEl.textContent=rem;
-    numEl.className='timer-num'+(rem<=5&&rem>0?' urgent':''); // no blink at 0
+    numEl.className='timer-num'+(rem<=5&&rem>0?' urgent':'');
     barEl.style.width=(rem/total*100)+'%';
     barEl.className='timer-fill'+(rem<=5&&rem>0?' urgent':'');
 
     if(rem<=3&&rem>0&&isMe) SFX.beep();
 
-    if(rem===0&&!passedTurn){
+    if(rem===0&&isMe&&!passedTurn){
       passedTurn=true;
-      clearInterval(timerInt); // clear immediately — before passTurn async call
+      clearInterval(timerInt);
       timerInt=null;
-      numEl.textContent='—'; // show dash not blinking 0
+      numEl.textContent='—';
       numEl.className='timer-num';
       barEl.style.width='0%';
       barEl.className='timer-fill';
-      if(isMe) passTurn();
-      // If NOT my turn but timer ran out, start watchdog
-      // so disconnected/frozen player doesn't block the game
-      else startWatchdog(total, startedAt);
+      passTurn();
+    } else if(rem===0&&!isMe&&!passedTurn){
+      passedTurn=true;
+      // Just clean up display — watchdog polling will advance the turn
+      numEl.textContent='—';
+      numEl.className='timer-num';
+      barEl.style.width='0%';
+      barEl.className='timer-fill';
+      clearInterval(timerInt);
+      timerInt=null;
     }
   }
   tick();
@@ -1321,29 +1327,40 @@ function startTimer(total,startedAt,isMe){
 }
 
 /* ── Watchdog — force-advance if current player is gone ──────
-   Non-current players start a 5s watchdog after the timer
-   expires. The player with the lowest joinedAt (room elder)
-   is the designated advancer — prevents simultaneous writes. */
-function startWatchdog(total, startedAt){
-  clearTimeout(watchdogTimer);
-  watchdogTimer=setTimeout(async()=>{
-    // Re-check: has the turn already moved? (another player may have already advanced it)
+   Runs a separate polling interval every 3 seconds, completely
+   independent of the visual timer. This means it still works
+   even when the browser throttles setInterval in background tabs.
+   Any connected player can trigger it, but only the "room elder"
+   (lowest joinedAt) actually writes to Firebase to avoid conflicts.
+   Grace period = turnTimer + 6 seconds.                          */
+let watchdogInt=null;
+
+function startWatchdog(){
+  stopWatchdog();
+  watchdogInt=setInterval(async()=>{
+    if(!roomId||!gameState.turn||!gameState.meta) return;
+    const turn=gameState.turn;
+    const timerSecs=gameState.meta?.timer||20;
+    const elapsed=Math.floor((Date.now()-turn.startedAt)/1000);
+    const overdue=elapsed>timerSecs+6; // 6s grace after timer expires
+    if(!overdue) return;
+    if(turn.currentPid===myPid) return; // I am the stuck player, I handle my own timeout
+
+    // Still same turn? Re-check Firebase to be sure
     const turnSnap=await get(ref(db,`rooms/${roomId}/turn`));
     if(!turnSnap.exists()) return;
-    const turn=turnSnap.val();
-    // If startedAt has changed, turn already moved — do nothing
-    if(turn.startedAt!==startedAt) return;
-    // Still the same stuck turn — find who should advance it
-    // Use the player with the lowest joinedAt as the "responsible" advancer
-    // to prevent all remaining players writing simultaneously
+    const liveTurn=turnSnap.val();
+    if(liveTurn.startedAt!==turn.startedAt) return; // turn already moved
+
+    // Find the room elder among connected players (excluding stuck player)
     const ps=gameState.players||{};
-    const connected=Object.entries(ps)
-      .filter(([pid])=>pid!==turn.currentPid) // exclude the stuck player
+    const others=Object.entries(ps)
+      .filter(([pid])=>pid!==turn.currentPid)
       .sort((a,b)=>(a[1].joinedAt||0)-(b[1].joinedAt||0));
-    if(!connected.length) return;
-    const advancerPid=connected[0][0];
-    if(advancerPid!==myPid) return; // only the designated advancer writes
-    // Force advance
+    if(!others.length) return;
+    if(others[0][0]!==myPid) return; // not my job to advance
+
+    // Force advance the turn
     const order=gameState.meta?.turnOrder||[];
     const currIdx=gameState.meta?.turnIndex||0;
     const nextIdx=(currIdx+1)%order.length;
@@ -1351,12 +1368,11 @@ function startWatchdog(total, startedAt){
       [`rooms/${roomId}/meta/turnIndex`]:nextIdx,
       [`rooms/${roomId}/turn`]:{currentPid:order[nextIdx],startedAt:Date.now()}
     });
-  }, 5000); // 5 second grace period after timer expires
+  },3000);
 }
 
 function stopWatchdog(){
-  clearTimeout(watchdogTimer);
-  watchdogTimer=null;
+  if(watchdogInt){clearInterval(watchdogInt);watchdogInt=null;}
 }
 
 /* ══════════════════════════════════════════════════════════
