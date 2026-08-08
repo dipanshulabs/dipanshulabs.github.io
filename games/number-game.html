@@ -884,6 +884,7 @@ let gameState={}, myCards=[], knownCards={};
 let publicKnown={};  // { targetPid: Set<number> } — known to EVERYONE
 let winners=[];
 let timerInt=null, listeners=[];
+let watchdogTimer=null; // declared here so stopTimer can reference it
 let popupTargetPid=null, popupSelectedNum=null;
 
 /* ── Seat positions: % of arena, safe from all overlays ──
@@ -914,8 +915,11 @@ function showFeedback(icon,title,sub,pts,isPos){
   const pe=document.getElementById('fbPts');pe.textContent=pts;pe.className='fb-pts '+(isPos?'pos':'neg');
   el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2200);
 }
-const stopTimer=()=>{if(timerInt){clearInterval(timerInt);timerInt=null;}};
-const detach=()=>{listeners.forEach(l=>off(l));listeners=[];};
+const stopTimer=()=>{
+  if(timerInt){clearInterval(timerInt);timerInt=null;}
+  stopWatchdog();
+};
+const detach=()=>{listeners.forEach(l=>off(l));listeners=[];stopWatchdog();};
 
 /* ── Tab switcher ────────────────────────────────────── */
 window.showTab=function(tab){
@@ -1285,22 +1289,74 @@ function startTimer(total,startedAt,isMe){
   stopTimer();
   const numEl=document.getElementById('timerNum');
   const barEl=document.getElementById('timerFill');
-  let passedTurn=false; // guard — only auto-pass once
+  let passedTurn=false;
+
   function tick(){
     const elapsed=Math.floor((Date.now()-startedAt)/1000);
     const rem=Math.max(0,total-elapsed);
+
     numEl.textContent=rem;
-    numEl.className='timer-num'+(rem<=5?' urgent':'');
+    numEl.className='timer-num'+(rem<=5&&rem>0?' urgent':''); // no blink at 0
     barEl.style.width=(rem/total*100)+'%';
-    barEl.className='timer-fill'+(rem<=5?' urgent':'');
+    barEl.className='timer-fill'+(rem<=5&&rem>0?' urgent':'');
+
     if(rem<=3&&rem>0&&isMe) SFX.beep();
-    if(rem===0&&isMe&&!passedTurn){
+
+    if(rem===0&&!passedTurn){
       passedTurn=true;
-      stopTimer(); // stop ticking immediately
-      passTurn();
+      clearInterval(timerInt); // clear immediately — before passTurn async call
+      timerInt=null;
+      numEl.textContent='—'; // show dash not blinking 0
+      numEl.className='timer-num';
+      barEl.style.width='0%';
+      barEl.className='timer-fill';
+      if(isMe) passTurn();
+      // If NOT my turn but timer ran out, start watchdog
+      // so disconnected/frozen player doesn't block the game
+      else startWatchdog(total, startedAt);
     }
   }
-  tick();timerInt=setInterval(tick,500);
+  tick();
+  timerInt=setInterval(tick,500);
+}
+
+/* ── Watchdog — force-advance if current player is gone ──────
+   Non-current players start a 5s watchdog after the timer
+   expires. The player with the lowest joinedAt (room elder)
+   is the designated advancer — prevents simultaneous writes. */
+function startWatchdog(total, startedAt){
+  clearTimeout(watchdogTimer);
+  watchdogTimer=setTimeout(async()=>{
+    // Re-check: has the turn already moved? (another player may have already advanced it)
+    const turnSnap=await get(ref(db,`rooms/${roomId}/turn`));
+    if(!turnSnap.exists()) return;
+    const turn=turnSnap.val();
+    // If startedAt has changed, turn already moved — do nothing
+    if(turn.startedAt!==startedAt) return;
+    // Still the same stuck turn — find who should advance it
+    // Use the player with the lowest joinedAt as the "responsible" advancer
+    // to prevent all remaining players writing simultaneously
+    const ps=gameState.players||{};
+    const connected=Object.entries(ps)
+      .filter(([pid])=>pid!==turn.currentPid) // exclude the stuck player
+      .sort((a,b)=>(a[1].joinedAt||0)-(b[1].joinedAt||0));
+    if(!connected.length) return;
+    const advancerPid=connected[0][0];
+    if(advancerPid!==myPid) return; // only the designated advancer writes
+    // Force advance
+    const order=gameState.meta?.turnOrder||[];
+    const currIdx=gameState.meta?.turnIndex||0;
+    const nextIdx=(currIdx+1)%order.length;
+    await update(ref(db),{
+      [`rooms/${roomId}/meta/turnIndex`]:nextIdx,
+      [`rooms/${roomId}/turn`]:{currentPid:order[nextIdx],startedAt:Date.now()}
+    });
+  }, 5000); // 5 second grace period after timer expires
+}
+
+function stopWatchdog(){
+  clearTimeout(watchdogTimer);
+  watchdogTimer=null;
 }
 
 /* ══════════════════════════════════════════════════════════
