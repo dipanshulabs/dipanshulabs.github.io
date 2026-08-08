@@ -208,14 +208,6 @@
     .sp-name{flex:1;font-weight:600;color:#2c3e50;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.7rem;}
     .sp-pts{font-family:var(--fun);color:#4db8a0;font-size:.82rem;}
 
-    .log-panel{position:absolute;top:.55rem;left:.55rem;z-index:35;
-               background:rgba(255,255,255,.82);backdrop-filter:blur(10px);
-               border-radius:14px;padding:.55rem .65rem;max-width:170px;max-height:140px;overflow-y:auto;
-               box-shadow:0 2px 14px rgba(0,0,0,.1);border:2px solid rgba(255,255,255,.9);}
-    .lp-title{font-family:var(--fun);font-size:.72rem;color:#0b4f6c;margin-bottom:.35rem;}
-    .log-line{font-size:.68rem;color:#2c3e50;padding:.18rem 0;border-bottom:1px solid rgba(0,0,0,.04);line-height:1.35;animation:logIn .25s var(--ease);}
-    @keyframes logIn{from{opacity:0;transform:translateY(-3px)}to{opacity:1;transform:none}}
-    .log-line:last-child{border-bottom:none;}
     .cg{color:#27ae60;font-weight:700;} .cr{color:#e74c3c;font-weight:700;} .cy{color:#f39c12;font-weight:700;}
 
     /* ── PLAYER SEATS ──
@@ -402,7 +394,7 @@
 
     /* ── RESPONSIVE ── */
     @media(max-width:600px){
-      .score-panel,.log-panel{display:none;}
+      .score-panel{display:none;}
       .mobile-score-bar{display:block;}
       .set-row{grid-template-columns:1fr;}
       .podium-box{padding:1.5rem 1.25rem;}
@@ -459,10 +451,10 @@
   <div class="vbg-bfly" style="top:28%;right:22%;animation-delay:3.2s;">🦋</div>
   <div class="vbg-bfly" style="top:15%;left:55%;animation-delay:1.5s;">🦋</div>
   <!-- Cute animals walking -->
-  <div class="vbg-animal" style="animation-duration:22s;animation-delay:0s;font-size:1.8rem;">🐻</div>
-  <div class="vbg-animal" style="animation-duration:28s;animation-delay:-10s;bottom:66px;font-size:1.5rem;">🐱</div>
-  <div class="vbg-animal" style="animation-duration:35s;animation-delay:-18s;bottom:68px;font-size:1.4rem;">🦊</div>
-  <div class="vbg-animal" style="animation-duration:20s;animation-delay:-5s;bottom:64px;font-size:1.6rem;">🐼</div>
+  <div class="vbg-animal" style="animation-duration:65s;animation-delay:0s;font-size:1.8rem;">🐻</div>
+  <div class="vbg-animal" style="animation-duration:82s;animation-delay:-22s;bottom:66px;font-size:1.5rem;">🐱</div>
+  <div class="vbg-animal" style="animation-duration:90s;animation-delay:-45s;bottom:68px;font-size:1.4rem;">🦊</div>
+  <div class="vbg-animal" style="animation-duration:58s;animation-delay:-12s;bottom:64px;font-size:1.6rem;">🐼</div>
 </div>
 
 <!-- Confetti -->
@@ -637,11 +629,6 @@
       <div class="sp-title">🏆 Scores</div>
       <div id="scoreList"></div>
     </div>
-    <!-- Log panel — compact top left -->
-    <div class="log-panel" id="logPanel">
-      <div class="lp-title">📋 Events</div>
-      <div id="logList"></div>
-    </div>
     <!-- Turn hint -->
     <div class="turn-hint" id="turnHint" style="display:none;">
       👆 Tap a player to call their number!
@@ -684,7 +671,7 @@
 <script type="module">
 import { initializeApp }
   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getDatabase, ref, set, get, push, update, onValue, onChildAdded, remove, off }
+import { getDatabase, ref, set, get, push, update, onValue, remove, off }
   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
 
 /* ══════════════════════════════════════════════════════════
@@ -985,6 +972,7 @@ window.joinRoom=async function(){
    LOBBY
 ══════════════════════════════════════════════════════════ */
 function enterLobby(){
+  detach(); // always clear any existing listeners before attaching new ones
   showScreen('screenLobby');
   document.getElementById('lobbyCode').textContent=roomId;
   const pRef=ref(db,`rooms/${roomId}/players`);
@@ -1101,9 +1089,7 @@ function attachGameListeners(){
   });
   listeners.push(pkRef);
 
-  const eRef=ref(db,`rooms/${roomId}/events`);
-  onChildAdded(eRef,snap=>logEvent(snap.val()));
-  listeners.push(eRef);
+  /* Events listener removed — log panel removed to prevent number leaking */
 
   const mRef=ref(db,`rooms/${roomId}/meta`);
   onValue(mRef,snap=>{
@@ -1112,11 +1098,12 @@ function attachGameListeners(){
     gameState.meta=meta;
     if(meta.winners)winners=[...meta.winners];
     if(meta.status==='over'){detach();stopTimer();enterGameOver(meta);}
-    /* Host pressed Play Again — everyone returns to lobby */
-    if(meta.status==='lobby'&&!isHost){
-      detach();stopTimer();
-      knownCards={};publicKnown={};myCards=[];winners=[];
-      enterLobby();
+    /* Host pressed Play Again — non-host players return to lobby */
+    if(meta.status==='lobby' && !isHost){
+      detach(); stopTimer();
+      knownCards={}; publicKnown={}; myCards=[]; winners=[];
+      /* Small delay so Firebase settles before re-attaching lobby listeners */
+      setTimeout(()=>enterLobby(), 300);
     }
   });
   listeners.push(mRef);
@@ -1279,6 +1266,7 @@ function starBurst(pid){
 ══════════════════════════════════════════════════════════ */
 function handleTurn(turn){
   stopTimer();renderSeats();
+  passingTurn=false; // reset guard for new turn
   const isMe=turn.currentPid===myPid;
   const pName=gameState.players?.[turn.currentPid]?.name||'?';
   const tt=document.getElementById('turnText');
@@ -1297,6 +1285,7 @@ function startTimer(total,startedAt,isMe){
   stopTimer();
   const numEl=document.getElementById('timerNum');
   const barEl=document.getElementById('timerFill');
+  let passedTurn=false; // guard — only auto-pass once
   function tick(){
     const elapsed=Math.floor((Date.now()-startedAt)/1000);
     const rem=Math.max(0,total-elapsed);
@@ -1305,7 +1294,11 @@ function startTimer(total,startedAt,isMe){
     barEl.style.width=(rem/total*100)+'%';
     barEl.className='timer-fill'+(rem<=5?' urgent':'');
     if(rem<=3&&rem>0&&isMe) SFX.beep();
-    if(rem===0&&isMe)passTurn();
+    if(rem===0&&isMe&&!passedTurn){
+      passedTurn=true;
+      stopTimer(); // stop ticking immediately
+      passTurn();
+    }
   }
   tick();timerInt=setInterval(tick,500);
 }
@@ -1409,10 +1402,7 @@ window.confirmCall=async function(isRisk){
     updates[`rooms/${roomId}/meta/publicKnown/${targetPid}/${num}`]=true;
   }
 
-  const evKey=push(ref(db,`rooms/${roomId}/events`)).key;
-  updates[`rooms/${roomId}/events/${evKey}`]={
-    type:isCorrect?'correct':'wrong',caller:myNm,target:tNm,num,isRisk,scoreDelta,ts:Date.now()
-  };
+  /* No event log written — removed to prevent number leaking to other players */
 
   /* ── Win condition ──────────────────────────────────────
      Player wins when they discover ALL cards of any opponent.
@@ -1478,17 +1468,22 @@ window.confirmCall=async function(isRisk){
 };
 
 /* ── Pass turn on timeout ────────────────────────────── */
+let passingTurn=false; // global guard against double-fire
 async function passTurn(){
+  if(passingTurn)return;
   if(!gameState.turn||gameState.turn.currentPid!==myPid)return;
-  const order=gameState.meta?.turnOrder||[];
-  const currIdx=gameState.meta?.turnIndex||0;
-  const nextIdx=(currIdx+1)%order.length;
-  const evKey=push(ref(db,`rooms/${roomId}/events`)).key;
-  await update(ref(db),{
-    [`rooms/${roomId}/meta/turnIndex`]:nextIdx,
-    [`rooms/${roomId}/turn`]:{currentPid:order[nextIdx],startedAt:Date.now()},
-    [`rooms/${roomId}/events/${evKey}`]:{type:'timeout',caller:myName,ts:Date.now()}
-  });
+  passingTurn=true;
+  try{
+    const order=gameState.meta?.turnOrder||[];
+    const currIdx=gameState.meta?.turnIndex||0;
+    const nextIdx=(currIdx+1)%order.length;
+    await update(ref(db),{
+      [`rooms/${roomId}/meta/turnIndex`]:nextIdx,
+      [`rooms/${roomId}/turn`]:{currentPid:order[nextIdx],startedAt:Date.now()}
+    });
+  }finally{
+    passingTurn=false;
+  }
 }
 
 /* ── Scoreboard (desktop panel + mobile bar) ─────────── */
@@ -1518,19 +1513,8 @@ function renderScores(){
   }
 }
 
-/* ── Event log ──────────────────────────────────────── */
-function logEvent(ev){
-  const log=document.getElementById('logList');
-  const item=document.createElement('div');item.className='log-line';
-  if(ev.type==='correct')
-    item.innerHTML=`<span class="cg">✓</span> ${esc(ev.caller)} got <b>${ev.num}</b> from ${esc(ev.target)} ${ev.isRisk?'<span class="cy">RISK</span>':''} <span class="cg">+${ev.scoreDelta}</span>`;
-  else if(ev.type==='wrong')
-    item.innerHTML=`<span class="cr">✗</span> ${esc(ev.caller)} missed <b>${ev.num}</b> <span class="cr">${ev.scoreDelta}</span>`;
-  else if(ev.type==='timeout')
-    item.innerHTML=`⏱ ${esc(ev.caller)} timed out`;
-  log.insertBefore(item,log.firstChild);
-  while(log.children.length>8)log.removeChild(log.lastChild);
-}
+/* ── Event log removed — numbers were giving away guesses ── */
+function logEvent(ev){ /* no-op */ }
 
 /* ══════════════════════════════════════════════════════════
    PODIUM — 3-step winner stage
@@ -1614,36 +1598,46 @@ function enterGameOver(meta){
 
 window.playAgain=async function(){
   if(isHost){
-    /* Reset ONLY game data — keep all players in the room */
-    const updates={};
-    /* Clear game-round data */
-    updates[`rooms/${roomId}/turn`]=null;
-    updates[`rooms/${roomId}/hands`]=null;
-    updates[`rooms/${roomId}/known`]=null;
-    updates[`rooms/${roomId}/events`]=null;
-    /* Reset meta back to lobby — keep cards/timer/numRange/maxPlayers settings */
-    updates[`rooms/${roomId}/meta/status`]='lobby';
-    updates[`rooms/${roomId}/meta/winners`]=null;
-    updates[`rooms/${roomId}/meta/publicKnown`]=null;
-    updates[`rooms/${roomId}/meta/winnerId`]=null;
-    updates[`rooms/${roomId}/meta/turnOrder`]=null;
-    updates[`rooms/${roomId}/meta/turnIndex`]=null;
-    /* Reset each player's score/stats for the new round */
-    const ps=await get(ref(db,`rooms/${roomId}/players`));
+    /* Step 1 — detach all game listeners first to avoid conflicts */
+    detach(); stopTimer();
+
+    /* Step 2 — delete game-round nodes (null doesn't delete in Firebase,
+       must use remove()) */
+    await Promise.all([
+      remove(ref(db,`rooms/${roomId}/turn`)),
+      remove(ref(db,`rooms/${roomId}/hands`)),
+      remove(ref(db,`rooms/${roomId}/known`)),
+    ]);
+
+    /* Step 3 — reset player scores keeping same players */
+    const ps = await get(ref(db,`rooms/${roomId}/players`));
+    const scoreUpdates = {};
     if(ps.exists()){
       Object.keys(ps.val()).forEach(pid=>{
-        updates[`rooms/${roomId}/players/${pid}/score`]=0;
-        updates[`rooms/${roomId}/players/${pid}/correct`]=0;
-        updates[`rooms/${roomId}/players/${pid}/wrong`]=0;
-        updates[`rooms/${roomId}/players/${pid}/lastOk`]=null;
-        updates[`rooms/${roomId}/players/${pid}/lastFail`]=null;
+        scoreUpdates[`rooms/${roomId}/players/${pid}/score`]    = 0;
+        scoreUpdates[`rooms/${roomId}/players/${pid}/correct`]  = 0;
+        scoreUpdates[`rooms/${roomId}/players/${pid}/wrong`]    = 0;
+        scoreUpdates[`rooms/${roomId}/players/${pid}/lastOk`]   = null;
+        scoreUpdates[`rooms/${roomId}/players/${pid}/lastFail`] = null;
       });
     }
-    await update(ref(db),updates);
+
+    /* Step 4 — reset meta to lobby, clear round-specific fields */
+    scoreUpdates[`rooms/${roomId}/meta/status`]    = 'lobby';
+    scoreUpdates[`rooms/${roomId}/meta/winners`]   = null;
+    scoreUpdates[`rooms/${roomId}/meta/publicKnown`] = null;
+    scoreUpdates[`rooms/${roomId}/meta/winnerId`]  = null;
+    scoreUpdates[`rooms/${roomId}/meta/turnOrder`] = null;
+    scoreUpdates[`rooms/${roomId}/meta/turnIndex`] = null;
+    await update(ref(db), scoreUpdates);
+
+    /* Step 5 — reset local state */
     knownCards={};publicKnown={};myCards=[];winners=[];
-    /* All players (host + others) will hear this via the meta listener
-       and transition to lobby automatically */
+
+    /* Step 6 — go to lobby (non-host players will also be
+       sent to lobby via their meta listener below) */
     enterLobby();
+
   } else {
     toast('Waiting for host to restart…');
   }
